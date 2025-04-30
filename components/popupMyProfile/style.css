@@ -1,0 +1,36 @@
+.select-member-group-slide-left {
+    right: -224px; /* Đặt phần tử ở trên ngoài màn hình */
+    animation: slideLeft 0.5s forwards;
+}
+
+@keyframes slideLeft {
+    to {
+        right: 0; /* Kết thúc animation với top = 0 để phần tử hiển thị đầy đủ */
+    }
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.animation-zoomin {
+    animation: zoomIn 0.5s ease forwards;
+}
+
+/* Ẩn nút tăng giảm cho input[type="number"] */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;  /* Hỗ trợ trên trình duyệt Webkit (Chrome, Safari, Edge) */
+  margin: 0;  /* Loại bỏ khoảng cách */
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;  /* Hỗ trợ trên Firefox */
+}

@@ -1,0 +1,42 @@
+[
+    {
+        "ques": "How do I create an account on your Prexjob?",
+        "ans": "To create an account, simply click on the Sign Up or Register button on our homepage. Fill in the required information, including your name, email address, and password. Once you submit the registration form, you will receive a verification email to activate your account."
+    },
+    {
+        "ques": "How much does it cost to use your Prexjob?",
+        "ans": "Our Prexjob is free to use for job seekers. There are no charges for browsing job listings, applying for positions, or accessing basic features. However, there may be optional premium services available for employers or additional features that require a subscription or payment"
+    },
+    {
+        "ques": "How can I search for jobs on your Prexjob?",
+        "ans": "We provide a search bar on our homepage where you can enter keywords related to the job you're looking for, such as job title, industry, or location. Additionally, we offer advanced search options and filters to help you refine your search based on specific criteria, such as salary range, experience level, or company name."
+    },
+    {
+        "ques": "How often are new job listings added to your Prexjob?",
+        "ans": "We strive to ensure our job listings are up-to-date and constantly refreshed. New job opportunities are added regularly, as employers post vacancies on our platform. We recommend checking our Prexjob frequently or setting up job alerts to receive notifications for newly posted positions that match your preferences."
+    },
+    {
+        "ques": "Can I apply for jobs directly through your Prexjob?",
+        "ans": "Yes, you can apply for jobs directly through our Prexjob. Once you find a job listing that interests you, click on the Apply or Submit Application button. You may be prompted to upload your resume, cover letter, or other required documents. Follow the instructions provided by the employer and submit your application securely through our platform."
+    },
+    {
+        "ques": "Can I edit or update my resume on your Prexjob?",
+        "ans": "Yes, you can edit and update your resume on our Prexjob. After logging into your account, navigate to your profile or dashboard, where you will find options to edit your personal information, work experience, skills, and qualifications. Make the necessary changes, save your updates, and ensure your most recent resume is available to employers."
+    },
+    {
+        "ques": "How can I receive job alerts or notifications?",
+        "ans": "To receive job alerts or notifications, you can set up email alerts through your account settings. Specify your preferred job criteria, such as location, industry, or job title, and choose how often you want to receive alerts (daily, weekly, etc.). You will then receive email notifications when new job listings match your specified preferences."
+    },
+    {
+        "ques": "Is my personal information secure on your Prexjob?",
+        "ans": "We take the security and privacy of your personal information seriously. We employ industry-standard security measures to protect your data from unauthorized access, loss, or misuse. However, we recommend reviewing our privacy policy to understand how we collect, use, and safeguard your information."
+    },
+    {
+        "ques": "How can I contact your customer support?",
+        "ans": "If you have any questions, concerns, or need assistance, our customer support team is here to help. You can reach out to us through the Contact Us page on our Prexjob or by sending an email to [support email address]. We strive to respond to inquiries promptly and provide you with the necessary support."
+    },
+    {
+        "ques": "How can employers post job openings on your Prexjob?",
+        "ans": "Employers can post job openings on our Prexjob by creating an employer account. They can access our employer portal, where they can enter job details, requirements, and contact information. Employers may also have the option to enhance their job listings with additional features to attract more qualified candidates."
+    }
+]

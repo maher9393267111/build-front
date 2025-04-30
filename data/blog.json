@@ -1,0 +1,110 @@
+[
+    {
+      "id": "1",
+      "title": "Top 10 In-Demand Web Techology Jobs of 2023",
+      "img": "1.jpg",
+      "authorImg": "1.png",
+      "category": "Technology",
+      "author": "John Doe",
+      "date": "2023-01-05"
+    },
+    {
+      "id": "2",
+      "title": "The Art of Writing an Effective Cover Letter",
+      "img": "2.jpg",
+      "authorImg": "2.png",
+      "category": "Career Advice",
+      "author": "Jane Smith",
+      "date": "2023-02-10"
+    },
+    {
+      "id": "3",
+      "title": "Mastering the Job Interview: Essential Tips for Success",
+      "img": "3.jpg",
+      "authorImg": "3.png",
+      "category": "Career Development",
+      "author": "Michael Johnson",
+      "date": "2023-03-15"
+    },
+    {
+      "id": "4",
+      "title": "The Rise of Remote Work and its Benefits",
+      "img": "4.jpg",
+      "authorImg": "4.png",
+      "category": "Workplace Trends",
+      "author": "Emily Davis",
+      "date": "2023-04-20"
+    },
+    {
+      "id": "5",
+      "title": "Exploring Careers in Digital Marketing",
+      "img": "5.jpg",
+      "authorImg": "5.png",
+      "category": "Sales and Marketing",
+      "author": "David Thompson",
+      "date": "2023-05-12"
+    },
+    {
+      "id": "6",
+      "title": "The Impact of Artificial Intelligence in Healthcare",
+      "img": "6.jpg",
+      "authorImg": "6.png",
+      "category": "Healthcare",
+      "author": "Sarah Johnson",
+      "date": "2023-06-18"
+    },
+    {
+      "id": "7",
+      "title": "Building a Successful Career in Web Development",
+      "img": "7.jpg",
+      "authorImg": "7.png",
+      "category": "Technology",
+      "author": "Robert Wilson",
+      "date": "2023-07-05"
+    },
+    {
+      "id": "8",
+      "title": "The Importance of Networking for Career Growth",
+      "img": "8.jpg",
+      "authorImg": "8.png",
+      "category": "Career Development",
+      "author": "Jessica Brown",
+      "date": "2023-08-14"
+    },
+    {
+      "id": "9",
+      "title": "Exploring Opportunities in Renewable Energy",
+      "img": "9.jpg",
+      "authorImg": "9.png",
+      "category": "Engineering",
+      "author": "Christopher Thompson",
+      "date": "2023-09-22"
+    },
+    {
+      "id": "10",
+      "title": "The Future of Work: Adapting to Automation",
+      "img": "10.jpg",
+      "authorImg": "10.png",
+      "category": "Workplace Trends",
+      "author": "Olivia Wilson",
+      "date": "2023-10-09"
+    },
+    {
+      "id": "11",
+      "title": "Breaking into the Gaming Industry: Career Paths and Opportunities",
+      "img": "11.jpg",
+      "authorImg": "11.png",
+      "category": "Creative Industries",
+      "author": "William Davis",
+      "date": "2023-11-17"
+    },
+    {
+      "id": "12",
+      "title": "Mastering Time Management for Increased Productivity",
+      "img": "12.jpg",
+      "authorImg": "12.png",
+      "category": "Career Advice",
+      "author": "Sophia Thompson",
+      "date": "2023-12-29"
+    }
+  ]

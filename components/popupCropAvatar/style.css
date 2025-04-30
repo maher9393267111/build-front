@@ -1,0 +1,14 @@
+.crop-avatar-slide-right {
+    right: -500px; /* Đặt phần tử ở trên ngoài màn hình */
+    animation: slideRightCropImage 0.5s forwards;
+}
+
+@keyframes slideRightCropImage {
+    to {
+        right: 0; /* Kết thúc animation với top = 0 để phần tử hiển thị đầy đủ */
+    }
+}
+
+.reactEasyCrop_Contain {
+    z-index: 0;
+}

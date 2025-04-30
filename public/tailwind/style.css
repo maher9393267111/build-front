@@ -1,0 +1,39 @@
+@import 'tailwindcss/base';
+@import '/base/global.css';
+
+@import 'tailwindcss/components';
+@import 'layout/header.css';
+@import 'components/card.css';
+@import 'components/button.css';
+@import 'components/form.css';
+
+@import 'tailwindcss/utilities';
+@import 'pages/home.css';
+@import 'pages/job-details.css';
+
+
+
+
+/* blogForm.module.css or global styles */
+.custom-quill .ql-toolbar {
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+    border: 2px solid #e5e7eb; /* Tailwind's border-gray-200 */
+    border-bottom: none;
+    background: #fafbfc;
+  }
+  
+  .custom-quill .ql-container {
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+    border: 2px solid #e5e7eb; /* Tailwind's border-gray-200 */
+    border-top: none;
+    min-height: 300px;
+    background: #fff;
+  }
+  
+  /* Optional: Error state */
+  .custom-quill.error .ql-toolbar,
+  .custom-quill.error .ql-container {
+    border-color: #f87171 !important; /* Tailwind's red-400 */
+  }

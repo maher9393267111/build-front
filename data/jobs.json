@@ -1,0 +1,652 @@
+[
+    {
+        "id": 1,
+        "logo": "1.png",
+        "jobTitle": "Nuclear Power Engineer",
+        "company": "Yata",
+        "location": "Pereira",
+        "time": 7,
+        "salary": 53,
+        "jobType": {
+            "styleClass": "privacy",
+            "type": "Full Time"
+        },
+        "link": "https://yale.edu", 
+        "destination": {
+            "min": 19,
+            "max": 9
+        },
+        "category": "Residential",
+        "created_at": "Last 1 Day",
+        "experience": "2 Year",
+        "totalSalary": {
+            "min": 407,
+            "max": 322
+        },
+        "tag": "react"
+    },
+    {
+        "id": 2,
+        "logo": "2.png",
+        "jobTitle": "Technical Writer",
+        "company": "Blognation",
+        "location": "Solna",
+        "time": 12,
+        "salary": 19,
+        "jobType": {
+            "styleClass": "privacy",
+            "type": "Urgent"
+        },
+        "link": "http://nih.gov",
+        "destination": {
+            "min": 3,
+            "max": 16
+        },
+        "category": "Residential",
+        "created_at": "Last 3 Days",
+        "experience": "Fresh",
+        "totalSalary": {
+            "min": 19,
+            "max": 419
+        },
+        "tag": "trending"
+    },
+    {
+        "id": 3,
+        "logo": "3.png",
+        "jobTitle": "Professor",
+        "company": "Mynte",
+        "location": "Minchinābād",
+        "time": 10,
+        "salary": 27,
+        "jobType": {
+            "styleClass": "required",
+            "type": "Private"
+        },
+        "link": "https://nature.com",
+        "destination": {
+            "min": 19,
+            "max": 4
+        },
+        "category": "Residential",
+        "created_at": "Last 1 Day",
+        "experience": "1 Year",
+        "totalSalary": {
+            "min": 269,
+            "max": 19
+        },
+        "tag": "trending"
+    },
+    {
+        "id": 4,
+        "logo": "4.png",
+        "jobTitle": "Financial Advisor",
+        "company": "Voonder",
+        "location": "Obrenovac",
+        "time": 21,
+        "salary": 21,
+        "jobType": {
+            "styleClass": "time",
+            "type": "Urgent"
+        },
+        "link": "http://gizmodo.com",
+        "destination": {
+            "min": 5,
+            "max": 9
+        },
+        "category": "Residential",
+        "created_at": "Last 5 Days",
+        "experience": "1 Year",
+        "totalSalary": {
+            "min": 165,
+            "max": 309
+        },
+        "tag": "wordpress"
+    },
+    {
+        "id": 5,
+        "logo": "5.png",
+        "jobTitle": "Associate Professor",
+        "company": "Abata",
+        "location": "Thị Trấn Nho Quan",
+        "time": 12,
+        "salary": 34,
+        "jobType": {
+            "styleClass": "required",
+            "type": "Full Time"
+        },
+        "link": "https://cornell.edu",
+        "destination": {
+            "min": 15,
+            "max": 20
+        },
+        "category": "Residential",
+        "created_at": "Last 4 Days",
+        "experience": "Fresh",
+        "totalSalary": {
+            "min": 147,
+            "max": 150
+        },
+        "tag": "marketing"
+    },
+    {
+        "id": 6,
+        "logo": "6.png",
+        "jobTitle": "GIS Technical Architect",
+        "company": "Linktype",
+        "location": "Velká nad Veličkou",
+        "time": 9,
+        "salary": 19,
+        "jobType": {
+            "styleClass": "privacy",
+            "type": "Full Time"
+        },
+        "link": "https://howstuffworks.com",
+        "destination": {
+            "min": 0,
+            "max": 17
+        },
+        "category": "Residential",
+        "created_at": "Last 4 Days",
+        "experience": "3 Year",
+        "totalSalary": {
+            "min": 142,
+            "max": 431
+        },
+        "tag": "marketing"
+    },
+    {
+        "id": 7,
+        "logo": "7.png",
+        "jobTitle": "Electrical Engineer",
+        "company": "Devify",
+        "location": "Palhoça",
+        "time": 2,
+        "salary": 31,
+        "jobType": {
+            "styleClass": "required",
+            "type": "Urgent"
+        },
+        "link": "http://xrea.com",
+        "destination": {
+            "min": 15,
+            "max": 10
+        },
+        "category": "Residential",
+        "created_at": "Last 3 Days",
+        "experience": "Fresh",
+        "totalSalary": {
+            "min": 316,
+            "max": 164
+        },
+        "tag": "trending"
+    },
+    {
+        "id": 8,
+        "logo": "8.png",
+        "jobTitle": "Assistant Media Planner",
+        "company": "Eimbee",
+        "location": "Neikeng",
+        "time": 10,
+        "salary": 37,
+        "jobType": {
+            "styleClass": "required",
+            "type": "Full Time"
+        },
+        "link": "http://jalbum.net",
+        "destination": {
+            "min": 20,
+            "max": 16
+        },
+        "category": "Residential",
+        "created_at": "Last Hour",
+        "experience": "Fresh",
+        "totalSalary": {
+            "min": 133,
+            "max": 361
+        },
+        "tag": "design"
+    },
+    {
+        "id": 9,
+        "logo": "9.png",
+        "jobTitle": "Environmental Specialist",
+        "company": "Jazzy",
+        "location": "Glendale",
+        "time": 19,
+        "salary": 19,
+        "jobType": {
+            "styleClass": "time",
+            "type": "Full Time"
+        },
+        "link": "http://addthis.com",
+        "destination": {
+            "min": 3,
+            "max": 17
+        },
+        "category": "Residential",
+        "created_at": "Last 1 Day",
+        "experience": "3 Year",
+        "totalSalary": {
+            "min": 2,
+            "max": 463
+        },
+        "tag": "app"
+    },
+    {
+        "id": 10,
+        "logo": "10.png",
+        "jobTitle": "Associate Professor",
+        "company": "Jamia",
+        "location": "Oka",
+        "time": 2,
+        "salary": 25,
+        "jobType": {
+            "styleClass": "required",
+            "type": "Urgent"
+        },
+        "link": "http://dedecms.com",
+        "destination": {
+            "min": 12,
+            "max": 10
+        },
+        "category": "Residential",
+        "created_at": "Last 3 Days",
+        "experience": "1 Year",
+        "totalSalary": {
+            "min": 194,
+            "max": 10
+        },
+        "tag": "react"
+    },
+    {
+        "id": 11,
+        "logo": "11.png",
+        "jobTitle": "Social Worker",
+        "company": "Yoveo",
+        "location": "Pasarkuok",
+        "time": 3,
+        "salary": 27,
+        "jobType": {
+            "styleClass": "required",
+            "type": "Full Time"
+        },
+        "link": "http://artisteer.com",
+        "destination": {
+            "min": 12,
+            "max": 1
+        },
+        "category": "Residential",
+        "created_at": "Last 3 Days",
+        "experience": "2 Year",
+        "totalSalary": {
+            "min": 463,
+            "max": 323
+        },
+        "tag": "trending"
+    },
+    {
+        "id": 12,
+        "logo": "12.png",
+        "jobTitle": "Software Engineer I",
+        "company": "Yodel",
+        "location": "Espinosa",
+        "time": 9,
+        "salary": 16,
+        "jobType": {
+            "styleClass": "privacy",
+            "type": "Full Time"
+        },
+        "link": "http://intel.com",
+        "destination": {
+            "min": 8,
+            "max": 20
+        },
+        "category": "Residential",
+        "created_at": "Last 1 Day",
+        "experience": "1 Year",
+        "totalSalary": {
+            "min": 239,
+            "max": 111
+        },
+        "tag": "trending"
+    },
+    {
+        "id": 13,
+        "logo": "13.png",
+        "jobTitle": "Environmental Tech",
+        "company": "Twimm",
+        "location": "Perm",
+        "time": 5,
+        "salary": 38,
+        "jobType": {
+            "styleClass": "privacy",
+            "type": "Private"
+        },
+        "link": "https://tiny.cc",
+        "destination": {
+            "min": 0,
+            "max": 1
+        },
+        "category": "Residential",
+        "created_at": "Last 1 Day",
+        "experience": "3 Year",
+        "totalSalary": {
+            "min": 195,
+            "max": 489
+        },
+        "tag": "app"
+    },
+    {
+        "id": 14,
+        "logo": "14.png",
+        "jobTitle": "Senior Editor",
+        "company": "Avaveo",
+        "location": "Roskoshnyy",
+        "time": 9,
+        "salary": 80,
+        "jobType": {
+            "styleClass": "required",
+            "type": "Urgent"
+        },
+        "link": "http://typepad.com",
+        "destination": {
+            "min": 14,
+            "max": 14
+        },
+        "category": "Residential",
+        "created_at": "Last 2 Days",
+        "experience": "1 Year",
+        "totalSalary": {
+            "min": 35,
+            "max": 205
+        },
+        "tag": "wordpress"
+    },
+    {
+        "id": 15,
+        "logo": "15.png",
+        "jobTitle": "Financial Advisor",
+        "company": "Gigashots",
+        "location": "Huadian",
+        "time": 7,
+        "salary": 32,
+        "jobType": {
+            "styleClass": "privacy",
+            "type": "Private"
+        },
+        "link": "http://hp.com",
+        "destination": {
+            "min": 17,
+            "max": 6
+        },
+        "category": "Residential",
+        "created_at": "Last Hour",
+        "experience": "2 Year",
+        "totalSalary": {
+            "min": 27,
+            "max": 90
+        },
+        "tag": "app"
+    },
+    {
+        "id": 16,
+        "logo": "16.png",
+        "jobTitle": "VP Marketing",
+        "company": "Zoomcast",
+        "location": "Gävle",
+        "time": 21,
+        "salary": 10,
+        "jobType": {
+            "styleClass": "time",
+            "type": "Full Time"
+        },
+        "link": "https://nifty.com",
+        "destination": {
+            "min": 2,
+            "max": 6
+        },
+        "category": "Residential",
+        "created_at": "Last 4 Days",
+        "experience": "1 Year",
+        "totalSalary": {
+            "min": 161,
+            "max": 229
+        },
+        "tag": "marketing"
+    },
+    {
+        "id": 17,
+        "logo": "17.png",
+        "jobTitle": "Research Nurse",
+        "company": "Zoonoodle",
+        "location": "Svecha",
+        "time": 7,
+        "salary": 29,
+        "jobType": {
+            "styleClass": "privacy",
+            "type": "Private"
+        },
+        "link": "http://diigo.com",
+        "destination": {
+            "min": 16,
+            "max": 5
+        },
+        "category": "Residential",
+        "created_at": "Last 4 Days",
+        "experience": "1 Year",
+        "totalSalary": {
+            "min": 297,
+            "max": 421
+        },
+        "tag": "marketing"
+    },
+    {
+        "id": 18,
+        "logo": "18.png",
+        "jobTitle": "Desktop Support Technician",
+        "company": "Jabberbean",
+        "location": "Sarpsborg",
+        "time": 16,
+        "salary": 70,
+        "jobType": {
+            "styleClass": "privacy",
+            "type": "Freelancer"
+        },
+        "link": "https://unesco.org",
+        "destination": {
+            "min": 0,
+            "max": 0
+        },
+        "category": "Residential",
+        "created_at": "Last 5 Days",
+        "experience": "Fresh",
+        "totalSalary": {
+            "min": 499,
+            "max": 100
+        },
+        "tag": "android"
+    },
+    {
+        "id": 19,
+        "logo": "19.png",
+        "jobTitle": "Administrative Officer",
+        "company": "Dablist",
+        "location": "Wuduhe",
+        "time": 14,
+        "salary": 15,
+        "jobType": {
+            "styleClass": "privacy",
+            "type": "Full Time"
+        },
+        "link": "https://csmonitor.com",
+        "destination": {
+            "min": 18,
+            "max": 10
+        },
+        "category": "Residential",
+        "created_at": "Last 5 Days",
+        "experience": "2 Year",
+        "totalSalary": {
+            "min": 36,
+            "max": 218
+        },
+        "tag": "react"
+    },
+    {
+        "id": 20,
+        "logo": "20.png",
+        "jobTitle": "Marketing Manager",
+        "company": "Bluejam",
+        "location": "Esperanza",
+        "time": 10,
+        "salary": 18,
+        "jobType": {
+            "styleClass": "time",
+            "type": "Freelancer"
+        },
+        "link": "https://huffingtonpost.com",
+        "destination": {
+            "min": 14,
+            "max": 13
+        },
+        "category": "Residential",
+        "created_at": "Last Hour",
+        "experience": "2 Year",
+        "totalSalary": {
+            "min": 416,
+            "max": 349
+        },
+        "tag": "android"
+    },
+    {
+        "id": 21,
+        "logo": "21.png",
+        "jobTitle": "Environmental Tech",
+        "company": "Brightdog",
+        "location": "Shahre Jadide Andisheh",
+        "time": 4,
+        "salary": 29,
+        "jobType": {
+            "styleClass": "privacy",
+            "type": "Urgent"
+        },
+        "link": "https://rediff.com",
+        "destination": {
+            "min": 11,
+            "max": 5
+        },
+        "category": "Residential",
+        "created_at": "Last 1 Day",
+        "experience": "1 Year",
+        "totalSalary": {
+            "min": 2,
+            "max": 276
+        },
+        "tag": "wordpress"
+    },
+    {
+        "id": 22,
+        "logo": "22.png",
+        "jobTitle": "Marketing Assistant",
+        "company": "Oozz",
+        "location": "León",
+        "time": 2,
+        "salary": 55,
+        "jobType": {
+            "styleClass": "time",
+            "type": "Private"
+        },
+        "link": "https://state.gov",
+        "destination": {
+            "min": 3,
+            "max": 0
+        },
+        "category": "Residential",
+        "created_at": "Last 1 Day",
+        "experience": "3 Year",
+        "totalSalary": {
+            "min": 419,
+            "max": 398
+        },
+        "tag": "wordpress"
+    },
+    {
+        "id": 23,
+        "logo": "23.png",
+        "jobTitle": "Media Manager I",
+        "company": "Ainyx",
+        "location": "Takasaki",
+        "time": 19,
+        "salary": 15,
+        "jobType": {
+            "styleClass": "required",
+            "type": "Private"
+        },
+        "link": "https://printfriendly.com",
+        "destination": {
+            "min": 0,
+            "max": 1
+        },
+        "category": "Residential",
+        "created_at": "Last 5 Days",
+        "experience": "2 Year",
+        "totalSalary": {
+            "min": 150,
+            "max": 280
+        },
+        "tag": "android"
+    },
+    {
+        "id": 24,
+        "logo": "24.png",
+        "jobTitle": "Help Desk Operator",
+        "company": "Kare",
+        "location": "Zhangdun",
+        "time": 22,
+        "salary": 18,
+        "jobType": {
+            "styleClass": "privacy",
+            "type": "Urgent"
+        },
+        "link": "https://un.org",
+        "destination": {
+            "min": 14,
+            "max": 16
+        },
+        "category": "Residential",
+        "created_at": "Last Hour",
+        "experience": "2 Year",
+        "totalSalary": {
+            "min": 498,
+            "max": 485
+        },
+        "tag": "administrative"
+    },
+    {
+        "id": 25,
+        "logo": "25.png",
+        "jobTitle": "Help Desk Operator",
+        "company": "Babbleset",
+        "location": "Camingawan",
+        "time": 9,
+        "salary": 31,
+        "jobType": {
+            "styleClass": "required",
+            "type": "Urgent"
+        },
+        "link": "http://chicagotribune.com",
+        "destination": {
+            "min": 17,
+            "max": 20
+        },
+        "category": "Residential",
+        "created_at": "Last 5 Days",
+        "experience": "Fresh",
+        "totalSalary": {
+            "min": 477,
+            "max": 88
+        },
+        "tag": "trending"
+    }
+]

@@ -1,0 +1,266 @@
+[{
+    "id": 1,
+    "img": "1.png",
+    "title": "Tiphany Espinosa",
+    "designation": "Automation Specialist II",
+    "location": "Nāṟay",
+    "hourlyRate": 51,
+    "tags": [
+      "psd"
+    ],
+    "destination": {
+      "min": 14,
+      "max": 7
+    },
+    "category": "Data  Scientist",
+    "gender": "Male",
+    "experience": "2 Year",
+    "qualification": "Certificate",
+    "created_at": "1682522155",
+    "email": "tespinosa0@yellowpages.com",
+    "phone": "859-950-9879"
+  }, {
+    "id": 2,
+    "img": "2.png",
+    "title": "Marthe Alesi",
+    "designation": "Speech Pathologist",
+    "location": "Dabachang",
+    "hourlyRate": 98,
+    "tags": [
+      "figma",
+      "html5"
+    ],
+    "destination": {
+      "min": 10,
+      "max": 0
+    },
+    "category": "Content  Writer",
+    "gender": "Female",
+    "experience": "Fresh",
+    "qualification": "Certificate",
+    "created_at": "1662613560",
+    "email": "malesi1@themeforest.net",
+    "phone": "770-911-4314"
+  }, {
+    "id": 3,
+    "img": "3.png",
+    "title": "Lisette Rouf",
+    "designation": "Human Resources Assistant II",
+    "location": "Guangning",
+    "hourlyRate": 12,
+    "tags": [
+      "psd",
+      "html5"
+    ],
+    "destination": {
+      "min": 17,
+      "max": 5
+    },
+    "category": "Graphic  Designer",
+    "gender": "Male",
+    "experience": "Fresh",
+    "qualification": "Certificate",
+    "created_at": "1681251169",
+    "email": "lrouf2@a8.net",
+    "phone": "535-899-0787"
+  }, {
+    "id": 4,
+    "img": "4.png",
+    "title": "Lindsay Cotterel",
+    "designation": "Biostatistician II",
+    "location": "Huangzhuang",
+    "hourlyRate": 36,
+    "tags": [
+      "bootstrap",
+      "figma",
+      "react"
+    ],
+    "destination": {
+      "min": 3,
+      "max": 25
+    },
+    "category": "Financial  Analyst",
+    "gender": "Male",
+    "experience": "Fresh",
+    "qualification": "Bachelor Degree",
+    "created_at": "1684433011",
+    "email": "lcotterel3@fema.gov",
+    "phone": "357-221-7936"
+  }, {
+    "id": 5,
+    "img": "5.png",
+    "title": "Jessie O'Sheerin",
+    "designation": "Speech Pathologist",
+    "location": "Monterrey",
+    "hourlyRate": 12,
+    "tags": [
+      "javascript"
+    ],
+    "destination": {
+      "min": 1,
+      "max": 9
+    },
+    "category": "Content  Writer",
+    "gender": "Female",
+    "experience": "1 Year",
+    "qualification": "Associate Degree",
+    "created_at": "1663552579",
+    "email": "josheerin4@theatlantic.com",
+    "phone": "175-609-6667"
+  }, {
+    "id": 6,
+    "img": "6.png",
+    "title": "Terrence Coppenhall",
+    "designation": "Programmer III",
+    "location": "Krajan Joho",
+    "hourlyRate": 66,
+    "tags": [
+      "App",
+      "bootstrap"
+    ],
+    "destination": {
+      "min": 8,
+      "max": 12
+    },
+    "category": "",
+    "gender": "Female",
+    "experience": "Fresh",
+    "qualification": "Certificate",
+    "created_at": "1679492599",
+    "email": "tcoppenhall5@e-recht24.de",
+    "phone": "527-290-2390"
+  }, {
+    "id": 7,
+    "img": "7.png",
+    "title": "Milzie Westberg",
+    "designation": "VP Sales",
+    "location": "Masaguisi",
+    "hourlyRate": 6,
+    "tags": [
+      "bootstrap",
+      "Digital"
+    ],
+    "destination": {
+      "min": 8,
+      "max": 17
+    },
+    "category": "Project  Manager",
+    "gender": "Male",
+    "experience": "1 Year",
+    "qualification": "Bachelor Degree",
+    "created_at": "1674635563",
+    "email": "mwestberg6@home.pl",
+    "phone": "229-829-1760"
+  }, {
+    "id": 8,
+    "img": "8.png",
+    "title": "Fred Wickendon",
+    "designation": "Executive Secretary",
+    "location": "Villa Atamisqui",
+    "hourlyRate": 2,
+    "tags": [
+      "npm",
+      "bootstrap"
+    ],
+    "destination": {
+      "min": 15,
+      "max": 20
+    },
+    "category": "Marketing  Specialist",
+    "gender": "Male",
+    "experience": "1 Year",
+    "qualification": "Bachelor Degree",
+    "created_at": "1680437705",
+    "email": "fwickendon7@irs.gov",
+    "phone": "221-459-7910"
+  }, {
+    "id": 9,
+    "img": "9.png",
+    "title": "Mireielle Coundley",
+    "designation": "Administrative Officer",
+    "location": "Gaoyan",
+    "hourlyRate": 66,
+    "tags": [
+      "npm",
+      "javascript",
+      "typescript"
+    ],
+    "destination": {
+      "min": 30,
+      "max": 22
+    },
+    "category": "",
+    "gender": "Female",
+    "experience": "2 Year",
+    "qualification": "Bachelor Degree",
+    "created_at": "1676178870",
+    "email": "mcoundley8@soundcloud.com",
+    "phone": "596-273-6951"
+  }, {
+    "id": 10,
+    "img": "10.png",
+    "title": "Tabbitha Bretherick",
+    "designation": "Programmer Analyst I",
+    "location": "Las Vegas, Santa Barbara",
+    "hourlyRate": 84,
+    "tags": [
+      "html5",
+      "Design"
+    ],
+    "destination": {
+      "min": 2,
+      "max": 30
+    },
+    "category": "Project  Manager",
+    "gender": "Female",
+    "experience": "Fresh",
+    "qualification": "Associate Degree",
+    "created_at": "1682218888",
+    "email": "tbretherick9@youtu.be",
+    "phone": "847-259-3364"
+  }, {
+    "id": 11,
+    "img": "11.png",
+    "title": "Kaleb Purslow",
+    "designation": "Sales Representative",
+    "location": "Jambubol",
+    "hourlyRate": 16,
+    "tags": [
+      "App",
+      "nodejs",
+      "css"
+    ],
+    "destination": {
+      "min": 11,
+      "max": 11
+    },
+    "category": "Content  Writer",
+    "gender": "Others",
+    "experience": "2 Year",
+    "qualification": "Associate Degree",
+    "created_at": "1679379799",
+    "email": "kpurslowa@msn.com",
+    "phone": "949-308-5302"
+  }, {
+    "id": 12,
+    "img": "12.png",
+    "title": "Peta Braidford",
+    "designation": "Environmental Specialist",
+    "location": "Camiri",
+    "hourlyRate": 38,
+    "tags": [
+      "npm",
+      "App"
+    ],
+    "destination": {
+      "min": 18,
+      "max": 25
+    },
+    "category": "Financial  Analyst",
+    "gender": "Female",
+    "experience": "1 Year",
+    "qualification": "Associate Degree",
+    "created_at": "1671721908",
+    "email": "pbraidfordb@list-manage.com",
+    "phone": "769-724-4251"
+  }]
