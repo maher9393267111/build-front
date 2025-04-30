@@ -105,5 +105,78 @@ export const deleteBlockTemplate = async (id) => {
 
 
 
+// --------
+// Blog Category APIs
+export const getBlogCategories = async () => {
+  const { data } = await http.get('/blog-categories');
+  return data.categories;
+};
+
+export const createBlogCategory = async (payload) => {
+  const { data } = await http.post('/blog-categories', payload);
+  return data.category;
+};
+
+export const updateBlogCategory = async ({ id, ...payload }) => {
+  const { data } = await http.put(`/blog-categories/${id}`, payload);
+  return data.category;
+};
+
+export const deleteBlogCategory = async (id) => {
+  const { data } = await http.delete(`/blog-categories/${id}`);
+  return data;
+};
+
+// Blog APIs - Public
+export const getBlogs = async (params = {}) => {
+  const { data } = await http.get('/blogs', { params });
+  return data;
+};
+
+export const getBlogBySlug = async (slug) => {
+  const { data } = await http.get(`/blogs/${slug}`);
+  return data.blog;
+};
+
+export const getRelatedBlogs = async (params) => {
+  const { data } = await http.get('/blogs/related', { params });
+  return data.blogs;
+};
+
+// Blog APIs - Admin
+export const getAdminBlogs = async (params = {}) => {
+  const { data } = await http.get('/admin/blogs', { params });
+  return data;
+};
+
+export const createBlog = async (payload) => {
+  const { data } = await http.post('/blogs', payload);
+  return data.blog;
+};
+
+export const updateBlog = async ({ id, ...payload }) => {
+  const { data } = await http.put(`/blogs/${id}`, payload);
+  return data.blog;
+};
+
+export const deleteBlog = async (id) => {
+  const { data } = await http.delete(`/blogs/${id}`);
+  return data;
+};
 
 
+// Add this function
+export const getBlogById = async (id) => {
+  const numId = parseInt(id, 10);
+  if (isNaN(numId)) {
+    throw new Error('Invalid blog ID');
+  }
+  
+  // First get the blog to get its slug
+  const { data } = await http.get(`/admin/blogs/${numId}`);
+  return data.blog;
+};
+
+
+//   -----------Faq api-----------
+// FAQ APIs
