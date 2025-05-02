@@ -2,7 +2,7 @@
 //no cache
 export const revalidate = 0;
 
-import PageContent from "./[slug]/PageContent";
+import PageContent from "../components/PageContent";
 import { getMainPage } from "@services/api";
 import Layout from "@components/layout/landing/Layout";
 

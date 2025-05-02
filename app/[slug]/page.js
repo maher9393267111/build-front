@@ -1,5 +1,5 @@
 
-import PageContent from './PageContent';
+import PageContent from '../../components/PageContent';
 import { getPageBySlug } from '@services/api';
 import Layout from '@components/layout/landing/Layout';
 
