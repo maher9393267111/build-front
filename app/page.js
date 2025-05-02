@@ -1,5 +1,6 @@
 
-
+//no cache
+export const revalidate = 0;
 
 import PageContent from "./[slug]/PageContent";
 import { getMainPage } from "@services/api";
