@@ -17,29 +17,18 @@ import { getPublishedPages } from "@services/api";
 
 // import Top1 from './top/Top1'
 
-export default function Header1({ handleToggle, scroll }) {
+export default function Header1({ handleToggle, scroll, pagesData }) {
   // const dispatch = useDispatch();
+  console.log(pagesData ,'in header')
   const { token, role, verified } = useSelector((state) => state.auth);
   const { profile } = useSelector((state) => state.profile);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [pages, setPages] = useState([]);
+   let pages = pagesData || [];
   // const [showPopupMyProfile, setShowPopupMyProfile] = useState(false);
   const popupRef = useRef(null); // Gắn ref cho popup
   const dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   // Fetch published pages for navigation
-  //   const fetchPages = async () => {
-  //     try {
-  //       const pagesData = await getPublishedPages();
-  //       setPages(pagesData);
-  //     } catch (error) {
-  //       console.error("Error fetching pages:", error);
-  //     }
-  //   };
-    
-  //   fetchPages();
-  // }, []);
+
 
   useEffect(() => {
     // Hàm kiểm tra nếu click ra ngoài popup thì đóng popup
@@ -80,20 +69,8 @@ export default function Header1({ handleToggle, scroll }) {
               />
             </Link>
 
-            <div className="items-center justify-end header-right hidden lg:flex lg:items-center lg:w-auto lg:space-x-12">
-              <Menu />
-              {/* Display page links in the navigation */}
-              <div className="flex items-center space-x-8">
-                {pages.map((page) => (
-                  <Link
-                    key={page.id}
-                    href={`/page/${page.slug}`}
-                    className="text-gray-700 hover:text-primary-500 transition duration-150"
-                  >
-                    {page.title}
-                  </Link>
-                ))}
-              </div>
+            <div className="items-center justify-end header-right hidden lg:flex lg:items-center lg:w-auto lg:space-x-8">
+              <Menu pagesData={pages} transparent={false} scroll={scroll} />
               {!token && (
                 <div className="signin-btn">
                   <Link
@@ -154,22 +131,52 @@ export default function Header1({ handleToggle, scroll }) {
                         </div>
                       </div>
                       <div className="py-1">
-                        {/* Show Dashboard link only for ADMIN */}
+                        {/* Admin Dashboard section */}
                         {role === "ADMIN" && (
-                          <HeadlessMenu.Item>
-                            {({ active }) => (
-                              <Link
-                                href="/admin"
-                                className={`w-full block text-left px-4 py-2 text-sm ${
-                                  active
-                                    ? "bg-primary-50 text-primary-800"
-                                    : "text-gray-700"
-                                }`}
-                              >
-                                Dashboard
-                              </Link>
-                            )}
-                          </HeadlessMenu.Item>
+                          <>
+                            <HeadlessMenu.Item>
+                              {({ active }) => (
+                                <Link
+                                  href="/admin"
+                                  className={`w-full block text-left px-4 py-2 text-sm ${
+                                    active
+                                      ? "bg-primary-50 text-primary-800"
+                                      : "text-gray-700"
+                                  }`}
+                                >
+                                  Dashboard
+                                </Link>
+                              )}
+                            </HeadlessMenu.Item>
+                            <HeadlessMenu.Item>
+                              {({ active }) => (
+                                <Link
+                                  href="/admin/profile"
+                                  className={`w-full block text-left px-4 py-2 text-sm ${
+                                    active
+                                      ? "bg-primary-50 text-primary-800"
+                                      : "text-gray-700"
+                                  }`}
+                                >
+                                  Profile
+                                </Link>
+                              )}
+                            </HeadlessMenu.Item>
+                            <HeadlessMenu.Item>
+                              {({ active }) => (
+                                <Link
+                                  href="/admin/settings"
+                                  className={`w-full block text-left px-4 py-2 text-sm ${
+                                    active
+                                      ? "bg-primary-50 text-primary-800"
+                                      : "text-gray-700"
+                                  }`}
+                                >
+                                  Settings
+                                </Link>
+                              )}
+                            </HeadlessMenu.Item>
+                          </>
                         )}
 
                         {role === "SERVICE_PROVIDER" && !verified && (

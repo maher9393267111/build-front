@@ -36,8 +36,13 @@ export const getPageBySlug = async (slug) => {
   return data;
 };
 
- export const getPublishedPages = async () => {
+export const getPublishedPages = async () => {
   const { data } = await http.get('/pages/published-navigation');
+  return data;
+};
+
+export const getMainPage = async () => {
+  const { data } = await http.get('/pages/main');
   return data;
 };
 
@@ -180,3 +185,11 @@ export const getBlogById = async (id) => {
 
 //   -----------Faq api-----------
 // FAQ APIs
+
+// Sitemap API
+export const getSitemapData = async () => {
+    console.log("Fetching sitemap data from API...");
+    const { data } = await http.get('/sitemap-data');
+    console.log("Received sitemap data:", data);
+    return data; 
+  };

@@ -1,6 +1,6 @@
 'use server';
 import { cookies } from 'next/headers';
-import { getBlogById, getRelatedBlogs } from '@services/api';
+import { getBlogBySlug, getRelatedBlogs } from '@services/api';
 import Layout from '@components/layout/landing/Layout';
 import BlogDetails from './BlogDetailsMain';
 
@@ -10,7 +10,7 @@ export default async function BlogPage({ params }) {
   let relatedBlogs = [];
 
   try {
-    blog = await getBlogById(id);
+    blog = await getBlogBySlug(id);
     if (blog?.id && blog?.categoryId) {
       relatedBlogs = await getRelatedBlogs({ id: blog.id, categoryId: blog.categoryId });
     }

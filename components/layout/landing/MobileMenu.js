@@ -3,18 +3,21 @@ import { useDispatch, useSelector } from 'react-redux';
 import Image from 'next/image';
 import { resetStateProfile } from '@features/profile/profileSlice';
 import { resetStateAuth } from '@features/auth/authSlice';
+import { useState, useEffect } from 'react'
 
-import { useState } from 'react'
-const MobileMenu = ({ isToggled, handleToggle }) => {
-
+const MobileMenu = ({ isToggled, handleToggle ,pagesData}) => {
     const [isActive, setIsActive] = useState({
         status: false,
         key: "",
     })
+let pages = pagesData
+let isLoading = false
 
     const dispatch = useDispatch();
     const { token, role } = useSelector((state) => state.auth);
     const { profile } = useSelector((state) => state.profile);
+
+
 
     const handleDropdown = (key) => {
         if (isActive.key === key) {
@@ -28,6 +31,13 @@ const MobileMenu = ({ isToggled, handleToggle }) => {
             })
         }
     }
+
+    const handleLogout = () => {
+        dispatch(resetStateAuth());
+        dispatch(resetStateProfile());
+        handleToggle(); // Close menu on logout
+    }
+
     return (
         <>
             <div className={`${isToggled ? "blog" : "hidden"} navbar-menu relative z-50 transition duration-300`}>
@@ -43,57 +53,32 @@ const MobileMenu = ({ isToggled, handleToggle }) => {
                     </div>
                     <div>
                         <ul className="mobile-menu">
-                            <li className={`mb-1 menu-item-has-children rounded-xl ${isActive.key == 1 ? "active" : ""}`}>
-                                <span className="menu-expand" onClick={() => handleDropdown(1)}>+</span>
-                                <Link className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500" href="#">Home</Link>
-                                <ul className="dropdown pl-5" style={{ display: `${isActive.key == 1 ? "block" : "none"}` }}>
-                                    <li>
-                                        <Link href="/" className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500">Home 1</Link>
+                            {isLoading ? (
+                                <li className="mb-1 rounded-xl">
+                                    <span className="block p-3 text-sm text-pgray-500">Loading pages...</span>
+                                </li>
+                            ) : (
+                                <>
+                                    {pages.map((page, index) => (
+                                        <li key={page.id || index} className="mb-1 rounded-xl">
+                                            <Link 
+                                                className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50 hover:text-primary-500 rounded-xl" 
+                                                href={ page.isMainPage ? '/' : (page.slug || `/${page.title.toLowerCase().replace(/\s+/g, '-')}`)}
+                                            >
+                                                {page.title}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                    <li className="mb-1 rounded-xl">
+                                        <Link className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50 hover:text-primary-500 rounded-xl" href="/blog">Blog</Link>
                                     </li>
-                                    <li>
-                                        <Link href="/index-2" className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500">Home 2</Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/index-3" className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500">Home 3</Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/index-4" className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500">Home 4</Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/index-5" className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500">Home 5</Link>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li className="mb-1 rounded-xl">
-                                <Link className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500 rounded-xl" href="/jobs">Jobs</Link>
-                            </li>
-                            <li className="mb-1 rounded-xl">
-                                <Link className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500 rounded-xl" href="/recruters">Recruters</Link>
-                            </li>
-                            <li className="mb-1 rounded-xl">
-                                <Link className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500 rounded-xl" href="/candidates">Candidates</Link>
-                            </li>
-                            <li className="mb-1 rounded-xl">
-                                <Link className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500 rounded-xl" href="/blog">Blog</Link>
-                            </li>
-                            <li className={`mb-1 menu-item-has-children rounded-xl ${isActive.key == 2 ? "active" : ""}`}>
-                                <span className="menu-expand" onClick={() => handleDropdown(2)}>+</span>
-                                <Link className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500" href="#">Pages</Link>
-                                <ul className="dropdown pl-5" style={{ display: `${isActive.key == 2 ? "block" : "none"}` }}>
-                                    <li>
-                                        <Link href="/about" className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500">About</Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/faqs" className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500">Faqs</Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/contact" className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500">Contact</Link>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li className="mb-1">
-                                <Link className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50  hover:text-primary-500" href="/admin">Dashboard</Link>
-                            </li>
+                                    {token && role === 'admin' && (
+                                        <li className="mb-1 rounded-xl">
+                                            <Link className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50 hover:text-primary-500 rounded-xl" href="/admin">Dashboard</Link>
+                                        </li>
+                                    )}
+                                </>
+                            )}
                         </ul>
                         <div className="mt-4 pt-6 border-t border-pgray-100">
                             {!token ? (
@@ -106,7 +91,7 @@ const MobileMenu = ({ isToggled, handleToggle }) => {
                                     <div className="flex items-center gap-3">
                                         <Image
                                             src={profile?.avatar ? profile.avatar : '/images/about/user.png'}
-                                        className="w-10 h-10 rounded-full object-cover"
+                                            className="w-10 h-10 rounded-full object-cover"
                                             width={40}
                                             height={40}
                                             alt="User avatar"
@@ -116,13 +101,25 @@ const MobileMenu = ({ isToggled, handleToggle }) => {
                                             <div className="text-xs text-gray-500">{role}</div>
                                         </div>
                                     </div>
+                                    
+                                    {role === 'ADMIN' && (
+                                        <div className="w-full mt-2 mb-2">
+                                            <div className="flex flex-col space-y-1 w-full">
+                                                <Link 
+                                                    className="w-full px-4 py-2 text-xs text-center text-gray-700 hover:bg-gray-100 font-medium rounded"
+                                                    href="/admin/dashboard"
+                                                    onClick={handleToggle}
+                                                >
+                                                   Dashboard
+                                                </Link>
+                                               
+                                            </div>
+                                        </div>
+                                    )}
+                                    
                                     <button
                                         className="block w-full px-4 py-2 text-xs text-center text-primary-500 hover:text-primary-700 font-semibold leading-none border border-primary-200 hover:border-primary-300 rounded"
-                                        onClick={() => {
-                                            dispatch(resetStateAuth());
-                                            dispatch(resetStateProfile());
-                                            handleToggle(); // Optionally close menu on logout
-                                        }}
+                                        onClick={handleLogout}
                                     >
                                         Logout
                                     </button>
@@ -147,7 +144,6 @@ const MobileMenu = ({ isToggled, handleToggle }) => {
                     </div>
                 </nav>
             </div>
-
         </>
     )
 }

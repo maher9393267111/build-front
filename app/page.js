@@ -1,50 +1,76 @@
-import Layout from "@components/layout/landing/Layout"
-import Banner1 from "@components/sections/Banner1"
-import BlogSection1 from "@components/sections/blog/BlogSection1"
-import BrandSection1 from "@components/sections/brand/Brand1"
-import Category1 from "@components/sections/categories/Category1"
-import CitySection1 from "@components/sections/city/City1"
-import CounterSection1 from "@components/sections/counter/Counter1"
-import FeaturedJob1 from "@components/sections/featured/Featured1"
-import Hero1 from "@components/sections/hero/Hero1"
-import Newsletter1 from "@components/sections/newsletter/Newsletter1"
-import TestimonialSection1 from "@components/sections/testimonial/Testimonial1"
-import WhyChooseSection1 from "@components/sections/why/WhyChooseUs1"
-import {  getBlogs } from "@services/api"
+import PageContent from "./[slug]/PageContent";
+import { getMainPage } from "@services/api";
+import Layout from "@components/layout/landing/Layout";
 
-export const metadata = {
-    title: 'Herofix',
-    description: 'Herofix connects service providers with customers for home jobs. Service providers can introduce themselves, showcase their skills, and get hired. Customers can easily find and contact trusted professionals for their home service needs.',
-}
+export async function generateMetadata() {
+    try {
+      const page = await getMainPage();
+  
+      // Prepare icon data if ogImage exists
+      const iconUrl = page.ogImage?.url; 
+      const iconsData = iconUrl ? {
+          icon: [{ url: iconUrl }], // Use for standard favicon
+          apple: [{ url: iconUrl }], // Use for Apple touch icon
+        } : undefined;
+  
+      const metadata = {
+        title: page.metaTitle || page.title,
+        description: page.description || '',
+        keywords: page.metaKeywords || '',
+        openGraph: iconUrl ? { // Reuse iconUrl check
+          images: [{ url: iconUrl }],
+        } : undefined,
+        icons: iconsData, // Add the icons property here
+      };
+  
+      // Add canonical URL if available
+      if (page.canonicalUrl) {
+        metadata.alternates = { canonical: page.canonicalUrl };
+      }
+  
+      // Add robots meta tag if available
+      if (page.robots) {
+        metadata.robots = page.robots;
+      }
+  
+      return metadata;
+    } catch (error) {
+      console.error('Error generating metadata:', error);
+      return {
+        title: 'Page Not Found',
+        description: 'The requested page could not be found.'
+      };
+    }
+  }
+  
+
+
+
 
 export default async function Home() {
-    // Fetch categories server-side
-    let categories = [];
-    let latestBlogs = [];
+    let pageData = null;
+    
     try {
+        // Fetch the main page data
+        pageData = await getMainPage();
         
-        // Fetch the latest 3 blogs
-        const blogsData = await getBlogs({ page: 1, limit: 3, sort: 'newest' });
-        latestBlogs = blogsData.blogs || [];
+   
     } catch (e) {
-        // handle error or leave as empty array
+        console.error("Error fetching main page:", e);
+        // Keep the default metadata on error
     }
 
     return (
         <>
-            <Layout headerStyle={1}>
-                <Hero1 />
-                {/* <Category1 categories={categories} /> */}
-                <FeaturedJob1 />
-                <WhyChooseSection1 />
-                <Banner1 />
-                <CitySection1 />
-                <TestimonialSection1 />
-                <BrandSection1 />
-                <CounterSection1 />
-                <BlogSection1 blogs={latestBlogs} />
-                <Newsletter1 />
+            {pageData?.structuredData && (
+                <script 
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(pageData.structuredData) }}
+                />
+            )}
+             <Layout headerStyle={1}>
+                <PageContent pageData={pageData} />
             </Layout>
         </>
-    )
+    );
 }

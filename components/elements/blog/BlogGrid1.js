@@ -8,7 +8,7 @@ const BlogGrid1 = ({ item }) => {
     return (
         <>
             <div className="w-full mb-8 bg-primary-50/50 rounded-xl hover:shadow-md transition duration-300">
-                <Link href={`/blog/${id}`}>
+                <Link href={`/blog/${slug}`}>
                     {featuredImage ? (
                         <div className="w-full h-48 overflow-hidden rounded-tl-xl rounded-tr-xl">
                             <img 

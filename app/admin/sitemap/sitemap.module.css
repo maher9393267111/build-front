@@ -1,0 +1,148 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #f9fafb; /* Added a light background */
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 3rem;
+  color: #111827; /* Darker title */
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.sitemapGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid #e5e7eb; /* Subtle border */
+}
+
+.section:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.07);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem; /* Increased padding */
+  border-bottom: 1px solid #e5e7eb; /* Lighter border */
+}
+
+.icon {
+  font-size: 1.75rem;
+  margin-right: 0.85rem; /* Slightly increased margin */
+  color: #3b82f6; /* Brighter blue */
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  font-size: 1.2rem; /* Slightly smaller */
+  font-weight: 600; /* Semi-bold */
+  color: #1f2937; /* Darker heading */
+}
+
+.linkList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.linkItem {
+  margin-bottom: 0.5rem; /* Reduced spacing */
+}
+
+.linkItem a,
+.linkItem .link { /* Target both direct links and components */
+  color: #4b5563; /* Slightly lighter text */
+  text-decoration: none;
+  transition: color 0.2s ease, background-color 0.2s ease; /* Added background transition */
+  display: flex; /* Use flex for alignment */
+  align-items: center;
+  padding: 0.6rem 0.5rem; /* Adjusted padding */
+  border-radius: 6px; /* Slightly more rounded */
+  font-size: 0.95rem; /* Standardize font size */
+}
+
+.linkItem a:hover,
+.linkItem .link:hover { /* Target both */
+  color: #1d4ed8; /* Darker blue on hover */
+  background: #eff6ff; /* Light blue background on hover */
+}
+
+.childLink {
+  padding-left: 1.8rem; /* Indent child links */
+  position: relative;
+}
+
+/* Optional: Add a visual indicator for child links if desired */
+/* .childLink::before {
+  content: "\21B3"; 
+  position: absolute;
+  left: 0.5rem;
+  top: 0.6rem;
+  color: #9ca3af;
+  font-size: 1.1em;
+} */
+
+.linkIconWrapper {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.6rem; /* Adjusted spacing */
+  width: 20px; /* Fixed width for icon alignment */
+  justify-content: center;
+}
+
+.childIconWrapper {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.6rem;
+  color: #9ca3af; /* Grey color for arrows/child icons */
+}
+
+.linkIcon,
+.arrowIcon,
+.childIcon {
+  font-size: 1rem;
+  color: inherit; /* Inherit color from parent */
+  flex-shrink: 0; /* Prevent icon shrinking */
+}
+
+.arrowIcon {
+  margin-right: 0.3rem;
+}
+
+.linkText {
+  flex-grow: 1; /* Allow text to take available space */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Prevent long titles from breaking layout */
+}
+
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  .sitemapGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+} 
