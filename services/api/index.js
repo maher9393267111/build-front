@@ -108,7 +108,61 @@ export const deleteBlockTemplate = async (id) => {
   return data;
 };
 
+// Media Library API endpoints
+export const getAllMedia = async (params) => {
+  const { data } = await http.get('/media', { params });
+  return data;
+};
 
+export const getMediaById = async (id) => {
+  const { data } = await http.get(`/media/${id}`);
+  return data.media;
+};
+
+export const createMedia = async (mediaData) => {
+  const { data } = await http.post('/media', mediaData);
+  return data.media;
+};
+
+export const updateMedia = async (id, mediaData) => {
+  const { data } = await http.put(`/media/${id}`, mediaData);
+  return data.media;
+};
+
+export const deleteMedia = async (id, force = false) => {
+  const { data } = await http.delete(`/media/${id}${force ? '?force=true' : ''}`);
+  return data;
+};
+
+export const bulkDeleteMedia = async (ids) => {
+  const { data } = await http.post('/media/bulk-delete', { ids });
+  return data;
+};
+
+export const registerUploadedFile = async (fileData) => {
+  const { data } = await http.post('/media/register-upload', fileData);
+  return data;
+};
+
+export const getMediaLibrary = async (params) => {
+  const { data } = await http.get('/media-library', { params });
+  return data;
+};
+
+export const uploadMediaFile = async (file, addToMediaLibrary = true, setAsInUse = true) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('addToMediaLibrary', addToMediaLibrary.toString());
+  formData.append('setAsInUse', setAsInUse.toString());
+  
+  const { data } = await http.post('/uploadfile', formData);
+  return data;
+};
+
+export const deleteFile = async (fileName, skipMediaCheck = false) => {
+  const { data } = await http.delete(`/deletefile?fileName=${fileName}&skipMediaCheck=${skipMediaCheck}`);
+  return data;
+};
 
 // --------
 // Blog Category APIs

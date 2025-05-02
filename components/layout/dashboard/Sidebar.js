@@ -41,6 +41,11 @@ function Sidebar({ isServiceProvider, isToggled, toggleTrueFalse }) {
             path: "pages",
             icon: <><Icon.DocumentTextIcon /></>
         },
+        // {
+        //     name: "Media Library",
+        //     path: "media",
+        //     icon: <><Icon.PhotoIcon /></>
+        // },
         //blocks
         // {
         //     name: "Blocks",

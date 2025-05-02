@@ -1,3 +1,6 @@
+
+
+
 import PageContent from "./[slug]/PageContent";
 import { getMainPage } from "@services/api";
 import Layout from "@components/layout/landing/Layout";
