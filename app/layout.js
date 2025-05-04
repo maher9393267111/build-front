@@ -1,3 +1,5 @@
+
+
 import { Inter } from 'next/font/google';
 import Script from 'next/script';
 import { getSiteSettings } from '@services/api';
@@ -54,10 +56,37 @@ export async function generateMetadata() {
 
 export default async function RootLayout({ children }) {
     let settings = null;
+    
     try {
-        settings = await getSiteSettings();
+        // Wrap in try/catch and set a timeout to prevent hanging
+        const settingsPromise = getSiteSettings();
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Settings fetch timeout')), 5000)
+        );
+        
+        // Race the settings fetch against a timeout
+        settings = await Promise.race([settingsPromise, timeoutPromise])
+            .catch(error => {
+                console.error("Failed to fetch settings for layout:", error);
+                return null;
+            });
     } catch (error) {
         console.error("Failed to fetch settings for layout:", error);
+    }
+
+    // If settings is still null, provide fallback values
+    if (!settings) {
+        settings = {
+            primaryColor: '#3b82f6',
+            navTitles: {
+                textColor: '#000000',
+                iconColor: '#000000'
+            },
+            scripts: {
+                head: '',
+                body: ''
+            }
+        };
     }
 
     const primaryColorStyle = settings?.primaryColor 
@@ -70,28 +99,33 @@ export default async function RootLayout({ children }) {
          primaryColorStyle['--nav-icon-color'] = settings.navTitles.iconColor;
      }
 
+    // Parse any HTML content to avoid potential hydration issues
+    const headScript = settings?.scripts?.head || '';
+    const bodyScript = settings?.scripts?.body || '';
+
     return (
         <html lang="en" className="scroll-smooth hover:scroll-auto" id='top' style={primaryColorStyle}>
-            <head>
-                {settings?.scripts?.head && (
-                   <script
+            <head>{/* Remove whitespace and ensure no extra text nodes */}
+                {headScript ? (
+                   <Script
                         id="head-scripts"
-                        dangerouslySetInnerHTML={{ __html: settings.scripts.head }} 
+                        dangerouslySetInnerHTML={{ __html: headScript }}
+                        strategy="beforeInteractive"
                     />
-                )}
+                ) : null}
             </head>
-            <body className={inter.className}>
+            <body className={inter.className} suppressHydrationWarning={true}>
                 <ClientProviders initialSettings={settings}>
                     {children}
                 </ClientProviders>
 
-                {settings?.scripts?.body && (
-                    <script 
+                {bodyScript ? (
+                    <Script 
                         id="body-scripts"
-                        dangerouslySetInnerHTML={{ __html: settings.scripts.body }}
+                        dangerouslySetInnerHTML={{ __html: bodyScript }}
                         strategy="lazyOnload"
                     />
-                )}
+                ) : null}
             </body>
         </html>
     );

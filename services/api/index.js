@@ -262,11 +262,30 @@ export const suggestKeywords = async (params) => {
 
 // Site Settings API endpoints
 export const getSiteSettings = async () => {
-  const { data } = await http.get('/site-settings');
-  return data.settings;
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5-second timeout
+    
+    const { data } = await http.get('/site-settings', {
+      signal: controller.signal,
+      timeout: 5000
+    });
+    
+    clearTimeout(timeoutId);
+    return data.settings || {}; // Return empty object if settings is null/undefined
+  } catch (error) {
+    console.error("Failed to fetch site settings:", error);
+    // Don't throw - return empty object instead
+    return {};
+  }
 };
 
 export const updateSiteSettings = async (settingsData) => {
-  const { data } = await http.put('/site-settings', settingsData);
-  return data;
+  try {
+    const { data } = await http.put('/site-settings', settingsData);
+    return data;
+  } catch (error) {
+    console.error("Failed to update site settings:", error);
+    throw error; // Re-throw for caller to handle
+  }
 };
