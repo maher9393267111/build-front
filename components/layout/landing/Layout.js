@@ -19,7 +19,7 @@ import Header3 from './header/Header3'
 import Header4 from './header/Header4'
 import Header5 from './header/Header5'
 // import { setShowPopupMyProfile } from '@features/profile/profileSlice';
-import PopupMyProfile from '@components/popupMyProfile';
+// import PopupMyProfile from '@components/popupMyProfile';
 import { useSelector } from 'react-redux'
 
 
@@ -54,10 +54,10 @@ const Layout = ({ headerStyle, footerStyle, children, headerBg, breadcrumbTitle,
 
     return (
         <>
-            {
+            {/* {
                 showPopupMyProfile && 
-                    <PopupMyProfile/>
-            }
+                    // <PopupMyProfile/>
+            } */}
             <DataBg />
             <SvgIcon />
            

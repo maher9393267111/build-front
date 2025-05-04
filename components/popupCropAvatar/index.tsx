@@ -145,7 +145,7 @@ function PopupCropAvatar({ setCroppedImage, setShowPopupCropAvatar }: {
                                     <Cropper
                                         cropSize={{ width: 200, height: 200 }}
                                         
-                                        style={{ containerStyle: { background: 'white', width: '10000000px', height: '200px', position: 'absolute', left: '50%', transform: 'translateX(-50%)' } }}
+                                        // style={{ containerStyle: { background: 'white', width: '10000000px', height: '200px', position: 'absolute', left: '50%', transform: 'translateX(-50%)' } }}
                                         cropShape="round"
                                         image={imageUrl as string}
                                         // setMediaSize={{}}

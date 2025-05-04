@@ -1,7 +1,12 @@
-'use server';
+// 'use server';
 
 import * as api from '@/services/api';
 import AdminSitemapMain from './AdminSitemapMain';
+
+export const metadata = {
+  title: 'Sitemap',
+  
+};
 
 export default async function AdminSitemapPage() {
   let siteStructure = [];
