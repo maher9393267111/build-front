@@ -18,6 +18,7 @@ export async function generateMetadata() {
         } : undefined;
   
       const metadata = {
+        metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://letsbuildsw.co.uk'),
         title: page.metaTitle || page.title,
         description: page.description || '',
         keywords: page.metaKeywords || '',
@@ -29,7 +30,7 @@ export async function generateMetadata() {
   
       // Add canonical URL if available
       if (page.canonicalUrl) {
-        metadata.alternates = { canonical: page.canonicalUrl };
+        metadata.alternates = { canonical: page.canonicalUrl || 'https://letsbuildsw.co.uk' };
       }
   
       // Add robots meta tag if available

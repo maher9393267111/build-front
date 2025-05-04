@@ -339,7 +339,7 @@ const AdminBlogs = () => {
                   <td className="px-6 py-4">{formatDate(blog.createdAt)}</td>
                   <td className="px-6 py-4 flex gap-2">
                     <Link
-                      href={`/blog/${blog?.id}`}
+                      href={`/blog/${blog?.slug}`}
                       target="_blank"
                       className="flex items-center gap-1 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300"
                       title="View"

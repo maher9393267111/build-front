@@ -28,7 +28,9 @@ const Layout = ({ headerStyle, footerStyle, children, headerBg, breadcrumbTitle,
     const [isToggled, setToggled] = useState(false)
     const handleToggle = () => setToggled(!isToggled)
     const {showPopupMyProfile} = useSelector(state => state.profile); 
-   
+    const { settings } = useSelector(state => state.settings);
+    
+    console.log("Settings from Redux:", settings);
 
     // Fetch published pages using react-query
     const { data: pagesData, isLoading } = useQuery('publishedPages', getPublishedPages, {
@@ -58,23 +60,24 @@ const Layout = ({ headerStyle, footerStyle, children, headerBg, breadcrumbTitle,
             }
             <DataBg />
             <SvgIcon />
-            {!headerStyle && <Header3 isToggled={isToggled} handleToggle={handleToggle} scroll={scroll} pagesData={pagesData || []} isLoading={isLoading} />}
-            {headerStyle === 1 && <Header1 isToggled={isToggled} handleToggle={handleToggle} scroll={scroll} pagesData={pagesData || []} isLoading={isLoading} />}
-            {headerStyle === 2 && <Header2 isToggled={isToggled} handleToggle={handleToggle} scroll={scroll} pagesData={pagesData || []} isLoading={isLoading} />}
-            {headerStyle === 3 && <Header3 isToggled={isToggled} handleToggle={handleToggle} scroll={scroll} pagesData={pagesData || []} isLoading={isLoading} />}
-            {headerStyle === 4 && <Header4 isToggled={isToggled} handleToggle={handleToggle} scroll={scroll} pagesData={pagesData || []} isLoading={isLoading} />}
-            {headerStyle === 5 && <Header5 isToggled={isToggled} handleToggle={handleToggle} scroll={scroll} pagesData={pagesData || []} isLoading={isLoading} />}
-            <MobileMenu pagesData={pagesData || []} isToggled={isToggled} handleToggle={handleToggle} />
+           
+            {!headerStyle && <Header3 isToggled={isToggled} handleToggle={handleToggle} scroll={scroll} pagesData={pagesData || []} isLoading={isLoading} settings={settings} />}
+            {headerStyle === 1 && <Header1 isToggled={isToggled} handleToggle={handleToggle} scroll={scroll} pagesData={pagesData || []} isLoading={isLoading} settings={settings} />}
+            {headerStyle === 2 && <Header2 isToggled={isToggled} handleToggle={handleToggle} scroll={scroll} pagesData={pagesData || []} isLoading={isLoading} settings={settings} />}
+            {headerStyle === 3 && <Header3 isToggled={isToggled} handleToggle={handleToggle} scroll={scroll} pagesData={pagesData || []} isLoading={isLoading} settings={settings} />}
+            {headerStyle === 4 && <Header4 isToggled={isToggled} handleToggle={handleToggle} scroll={scroll} pagesData={pagesData || []} isLoading={isLoading} settings={settings} />}
+            {headerStyle === 5 && <Header5 isToggled={isToggled} handleToggle={handleToggle} scroll={scroll} pagesData={pagesData || []} isLoading={isLoading} settings={settings} />}
+            <MobileMenu pagesData={pagesData || []} isToggled={isToggled} handleToggle={handleToggle} settings={settings} />
             {breadcrumbTitle &&
                 <Breadcrumb breadcrumbTitle={breadcrumbTitle} breadcrumbSubTitle={breadcrumbSubTitle} breadcrumbAlign={breadcrumbAlign} />
             }
             {children}
-            {!footerStyle && <Footer1 />}
-            {footerStyle === 1 && <Footer1 />}
-            {footerStyle === 2 && <Footer2 />}
-            {footerStyle === 3 && <Footer3 />}
-            {footerStyle === 4 && <Footer4 />}
-            {footerStyle === 5 && <Footer5 />}
+            {!footerStyle && <Footer1 settings={settings} />}
+            {footerStyle === 1 && <Footer1 settings={settings} />}
+            {footerStyle === 2 && <Footer2 settings={settings} />}
+            {footerStyle === 3 && <Footer3 settings={settings} />}
+            {footerStyle === 4 && <Footer4 settings={settings} />}
+            {footerStyle === 5 && <Footer5 settings={settings} />}
 
             <BackToTop scroll={scroll} />
         </>

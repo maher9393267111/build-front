@@ -28,6 +28,8 @@ import dynamic from "next/dynamic";
 import "react-quill/dist/quill.snow.css";
 // Import useQueryClient from react-query
 import { useQueryClient } from "react-query";
+import MediaUpload from "@components/ui/MediaUpload";
+import SeoDashboard from "@components/SEO/SeoDashboard";
 
 // Dynamically import ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
@@ -48,129 +50,6 @@ const quillModules = {
     ["clean"],
   ],
 };
-
-function FileUpload({
-  file,
-  onDrop,
-  onRemove,
-  loading,
-  error,
-  maxSize,
-  identifier,
-}) {
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef(null);
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const event = { target: { files: e.dataTransfer.files } };
-      onDrop(event, identifier);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    onDrop(e, identifier);
-  };
-
-  const handleBoxClick = () => {
-    if (!loading) fileInputRef.current.click();
-  };
-
-  const getFileSize = (size) => {
-    if (!size) return "";
-    if (size < 1024) return `${size} B`;
-    if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
-    return `${(size / (1024 * 1024)).toFixed(2)} MB`;
-  };
-
-  const fileUrl = file?.url || null;
-  const fileSize = file?.size || 0;
-  const fileName = file?.name || "Uploaded Image";
-
-  return (
-    <div className="w-full">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleInputChange}
-        className="hidden"
-        disabled={loading}
-      />
-      {!fileUrl ? (
-        <div
-          className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-4 transition-colors min-h-[100px] cursor-pointer
-            ${
-              isDragging
-                ? "border-primary-500 bg-primary-50"
-                : "border-gray-300 bg-white"
-            }
-            ${error ? "border-red-400 bg-red-50" : ""}
-            ${loading ? "opacity-50 pointer-events-none" : ""}
-          `}
-          onClick={handleBoxClick}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <PhotoIcon className="w-8 h-8 text-gray-400 mb-2" />
-          <p className="text-gray-500 text-xs text-center">
-            Drag & drop or{" "}
-            <span className="text-primary-500 font-semibold">
-              click to upload
-            </span>
-          </p>
-          {maxSize && (
-            <p className="text-xs text-gray-400 mt-1">
-              Max {getFileSize(maxSize)}.
-            </p>
-          )}
-        </div>
-      ) : (
-        <div className="flex items-center border rounded-lg p-2 bg-gray-50 relative">
-          <div className="w-16 h-16 rounded overflow-hidden flex items-center justify-center bg-gray-100 mr-3">
-            <img
-              src={fileUrl}
-              alt="Preview"
-              className="object-cover w-full h-full"
-            />
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <div className="font-medium text-gray-700 text-sm truncate">
-              {fileName}
-            </div>
-            {fileSize > 0 && (
-              <div className="text-xs text-gray-400">
-                {getFileSize(fileSize)}
-              </div>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => onRemove(identifier)}
-            className="ml-2 p-1.5 rounded-full hover:bg-red-100 text-red-600 transition absolute top-1 right-1"
-            aria-label="Remove"
-          >
-            <XMarkIcon className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
-    </div>
-  );
-}
 
 const PageForm = ({ id }) => {
   const ICON_OPTIONS = [
@@ -220,7 +99,32 @@ const PageForm = ({ id }) => {
   }, [id]);
 
   const [sidebarVisible, setSidebarVisible] = useState(true);
-  const [activeTab, setActiveTab] = useState("page"); // 'page' or 'block'
+  const [activeTab, setActiveTab] = useState("page"); // 'page' or 'block' or 'seo'
+  
+  // Function to handle SEO suggestions
+  const handleSeoSuggestions = (seoData) => {
+    if (!seoData) return;
+    
+    // Update formData with SEO suggestions if they exist
+    const updates = {};
+    
+    if (seoData.titleSuggestion && !formData.metaTitle) {
+      updates.metaTitle = seoData.titleSuggestion;
+    }
+    
+    if (seoData.metaDescriptionSuggestion && !formData.description) {
+      updates.description = seoData.metaDescriptionSuggestion;
+    }
+    
+    if (seoData.recommendedKeywords?.length > 0 && !formData.metaKeywords) {
+      updates.metaKeywords = seoData.recommendedKeywords.join(', ');
+    }
+    
+    if (Object.keys(updates).length > 0) {
+      setFormData(prev => ({ ...prev, ...updates }));
+      toast.info("SEO suggestions applied to your page metadata.");
+    }
+  };
 
   const toggleSidebar = () => {
     setSidebarVisible(!sidebarVisible);
@@ -499,11 +403,30 @@ const PageForm = ({ id }) => {
   };
 
   const handleSlideImageUpload = async (e, identifier) => {
-    const file = e.target.files[0];
-    if (!file || !identifier) return;
-
+    if (!identifier) return;
     const { blockIndex, slideIndex } = identifier;
     const uploadKey = `${blockIndex}-${slideIndex}`;
+
+    // Handle media library selection
+    if (e.mediaLibraryFile) {
+      const mediaFile = e.mediaLibraryFile;
+      handleItemChange(
+        blockIndex,
+        "slides",
+        slideIndex,
+        "imageUrl",
+        {
+          _id: mediaFile._id,
+          url: mediaFile.url,
+          fromMediaLibrary: true,
+          mediaId: mediaFile.mediaId
+        }
+      );
+      return;
+    }
+
+    const file = e.target?.files?.[0];
+    if (!file) return;
 
     setUploadStates((prev) => ({
       ...prev,
@@ -512,10 +435,17 @@ const PageForm = ({ id }) => {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("addToMediaLibrary", "true"); // Add to media library
+    formData.append("setAsInUse", "true"); // Mark as in use
 
     try {
       const { data } = await http.post("/uploadfile", formData);
-      const imageObj = { _id: data._id, url: data.url };
+      const imageObj = { 
+        _id: data._id, 
+        url: data.url,
+        fromMediaLibrary: data.fromMediaLibrary || false,
+        mediaId: data.mediaId
+      };
       handleItemChange(blockIndex, "slides", slideIndex, "imageUrl", imageObj);
       setUploadStates((prev) => ({
         ...prev,
@@ -534,7 +464,22 @@ const PageForm = ({ id }) => {
   };
 
   const handleOgImageUpload = async (e, identifier) => {
-    const file = e.target.files[0];
+    // Handle media library selection
+    if (e.mediaLibraryFile) {
+      const mediaFile = e.mediaLibraryFile;
+      setFormData((prev) => ({
+        ...prev,
+        ogImage: {
+          _id: mediaFile._id,
+          url: mediaFile.url,
+          fromMediaLibrary: true,
+          mediaId: mediaFile.mediaId
+        }
+      }));
+      return;
+    }
+
+    const file = e.target?.files?.[0];
     if (!file || !identifier) return;
 
     setUploadStates((prev) => ({
@@ -544,11 +489,18 @@ const PageForm = ({ id }) => {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("addToMediaLibrary", "true"); // Add to media library
+    formData.append("setAsInUse", "true"); // Mark as in use
 
     try {
       // Use http instance for consistency
       const { data } = await http.post("/uploadfile", formData);
-      const imageObj = { _id: data._id, url: data.url };
+      const imageObj = { 
+        _id: data._id, 
+        url: data.url,
+        fromMediaLibrary: data.fromMediaLibrary || false,
+        mediaId: data.mediaId
+      };
 
       setFormData((prev) => ({
         ...prev,
@@ -574,7 +526,7 @@ const PageForm = ({ id }) => {
 
  
 
-  const handleRemoveOgImage = async (identifier) => {
+  const handleRemoveOgImage = async (identifier, isFromLibrary = false) => {
     // Set loading state for the specific identifier
     setUploadStates((prev) => ({
       ...prev,
@@ -584,8 +536,8 @@ const PageForm = ({ id }) => {
     const currentOgImage = formData.ogImage;
 
     try {
-      if (currentOgImage?._id) {
-        // Use http instance and correct endpoint
+      if (currentOgImage?._id && !isFromLibrary && !currentOgImage.fromMediaLibrary) {
+        // If it's not from the media library, delete from S3
         await http.delete(`/deletefile?fileName=${currentOgImage._id}`);
       }
 
@@ -618,7 +570,7 @@ const PageForm = ({ id }) => {
     const currentImageUrl =
       formData.blocks[blockIndex]?.content?.slides?.[slideIndex]?.imageUrl;
 
-    if (currentImageUrl && currentImageUrl._id) {
+    if (currentImageUrl && currentImageUrl._id && !currentImageUrl.fromMediaLibrary) {
       try {
         await http.delete(`/deletefile?fileName=${currentImageUrl._id}`);
       } catch (error) {
@@ -639,11 +591,25 @@ const PageForm = ({ id }) => {
   };
 
   const handleHeroImageUpload = async (e, identifier) => {
-    const file = e.target.files[0];
-    if (!file || !identifier) return;
-
+    if (!identifier) return;
     const { blockIndex } = identifier;
     const uploadKey = `hero-${blockIndex}`;
+
+    // Handle media library selection
+    if (e.mediaLibraryFile) {
+      const mediaFile = e.mediaLibraryFile;
+      handleBlockContentChange(blockIndex, "imageUrl", {
+        _id: mediaFile._id,
+        url: mediaFile.url,
+        fromMediaLibrary: true,
+        mediaId: mediaFile.mediaId
+      });
+      return;
+    }
+
+    // Handle file upload
+    const file = e.target?.files?.[0];
+    if (!file) return;
 
     setUploadStates((prev) => ({
       ...prev,
@@ -652,10 +618,17 @@ const PageForm = ({ id }) => {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("addToMediaLibrary", "true"); // Add to media library
+    formData.append("setAsInUse", "true"); // Mark as in use
 
     try {
       const { data } = await http.post("/uploadfile", formData);
-      const imageObj = { _id: data._id, url: data.url };
+      const imageObj = { 
+        _id: data._id, 
+        url: data.url,
+        fromMediaLibrary: data.fromMediaLibrary || false,
+        mediaId: data.mediaId
+      };
       handleBlockContentChange(blockIndex, "imageUrl", imageObj);
       setUploadStates((prev) => ({
         ...prev,
@@ -673,19 +646,22 @@ const PageForm = ({ id }) => {
     }
   };
 
-  const handleRemoveHeroImage = async (identifier) => {
+  const handleRemoveHeroImage = async (identifier, isFromLibrary = false) => {
     const { blockIndex } = identifier;
     const uploadKey = `hero-${blockIndex}`;
     const currentImageUrl = formData.blocks[blockIndex]?.content?.imageUrl;
 
     if (currentImageUrl && currentImageUrl._id) {
-      try {
-        await http.delete(`/deletefile?fileName=${currentImageUrl._id}`);
-      } catch (error) {
-        console.error("Delete failed:", error);
-        toast.warn(
-          "Could not delete image from server, but removed from hero block."
-        );
+      if (!isFromLibrary && !currentImageUrl.fromMediaLibrary) {
+        // If it's not from the media library, delete from S3
+        try {
+          await http.delete(`/deletefile?fileName=${currentImageUrl._id}`);
+        } catch (error) {
+          console.error("Delete failed:", error);
+          toast.warn(
+            "Could not delete image from server, but removed from hero block."
+          );
+        }
       }
     }
 
@@ -739,11 +715,31 @@ const PageForm = ({ id }) => {
   };
 
   const handleProductImageUpload = async (e, identifier) => {
-    const file = e.target.files[0];
-    if (!file || !identifier) return;
-
+    if (!identifier) return;
     const { blockIndex, productIndex } = identifier;
     const uploadKey = `product-${blockIndex}-${productIndex}`;
+
+    // Handle media library selection
+    if (e.mediaLibraryFile) {
+      const mediaFile = e.mediaLibraryFile;
+      handleItemChange(
+        blockIndex,
+        "products",
+        productIndex,
+        "imageUrl",
+        {
+          _id: mediaFile._id,
+          url: mediaFile.url,
+          fromMediaLibrary: true,
+          mediaId: mediaFile.mediaId
+        }
+      );
+      return;
+    }
+
+    // Handle file upload
+    const file = e.target?.files?.[0];
+    if (!file) return;
 
     setUploadStates((prev) => ({
       ...prev,
@@ -752,10 +748,17 @@ const PageForm = ({ id }) => {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("addToMediaLibrary", "true"); // Add to media library
+    formData.append("setAsInUse", "true"); // Mark as in use
 
     try {
       const { data } = await http.post("/uploadfile", formData);
-      const imageObj = { _id: data._id, url: data.url };
+      const imageObj = { 
+        _id: data._id, 
+        url: data.url,
+        fromMediaLibrary: data.fromMediaLibrary || false,
+        mediaId: data.mediaId
+      };
       handleItemChange(
         blockIndex,
         "products",
@@ -1025,22 +1028,26 @@ const PageForm = ({ id }) => {
                           className="font-mono text-sm"
                           helper="Add structured data in JSON-LD format for enhanced search results"
                         />
+
+<SeoDashboard 
+                pageData={formData}
+                onUpdateSuggestions={handleSeoSuggestions}
+              />
+
                         
                         <div className="mb-4">
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Open Graph Image
                           </label>
-                          <FileUpload
+                          <MediaUpload
                             file={formData.ogImage}
                             onDrop={(e) => handleOgImageUpload(e, "ogImage")}
-                            onRemove={() => handleRemoveOgImage("ogImage")}
+                            onRemove={() => handleRemoveOgImage("ogImage", formData.ogImage?.fromMediaLibrary)}
                             loading={uploadStates["ogImage"]?.loading}
                             error={uploadStates["ogImage"]?.error}
                             identifier="ogImage"
+                            helperText="Image that appears when shared on social media (1200x630px recommended)"
                           />
-                          <p className="text-xs text-gray-500 mt-1">
-                            Image that appears when shared on social media (1200x630px recommended)
-                          </p>
                         </div>
                       </div>
                     </Disclosure.Panel>
@@ -1489,7 +1496,7 @@ const PageForm = ({ id }) => {
                                                   <label className="block text-xs font-medium text-gray-700 mb-1">
                                                     Hero Image
                                                   </label>
-                                                  <FileUpload
+                                                  <MediaUpload
                                                     file={
                                                       block.content?.imageUrl
                                                     }
@@ -1868,28 +1875,16 @@ const PageForm = ({ id }) => {
                                                               {slideIndex + 1}{" "}
                                                               Image*
                                                             </label>
-                                                            <FileUpload
+                                                            <MediaUpload
                                                               file={
                                                                 slide.imageUrl
                                                               }
-                                                              onDrop={
-                                                                handleSlideImageUpload
-                                                              }
-                                                              onRemove={
-                                                                handleRemoveSlideImage
-                                                              }
-                                                              loading={
-                                                                uState.loading
-                                                              }
-                                                              error={
-                                                                uState.error
-                                                              }
-                                                              maxSize={
-                                                                5 * 1024 * 1024
-                                                              }
-                                                              identifier={
-                                                                identifier
-                                                              }
+                                                              onDrop={(e) => handleSlideImageUpload(e, identifier)}
+                                                              onRemove={() => handleRemoveSlideImage(identifier, slide.imageUrl?.fromMediaLibrary)}
+                                                              loading={uState.loading}
+                                                              error={uState.error}
+                                                              maxSize={5 * 1024 * 1024}
+                                                              identifier={identifier}
                                                             />
                                                           </div>
                                                           <div className="sm:col-span-2 space-y-3">
@@ -2287,7 +2282,7 @@ const PageForm = ({ id }) => {
                                                                   1}{" "}
                                                                 Image*
                                                               </label>
-                                                              <FileUpload
+                                                              <MediaUpload
                                                                 file={
                                                                   product.imageUrl
                                                                 }
@@ -2517,7 +2512,7 @@ const PageForm = ({ id }) => {
                                                   <label className="block text-xs font-medium text-gray-700 mb-1">
                                                     Image
                                                   </label>
-                                                  <FileUpload
+                                                  <MediaUpload
                                                     file={
                                                       block.content?.imageUrl
                                                     }
@@ -2819,7 +2814,7 @@ const PageForm = ({ id }) => {
                                                   <label className="block text-xs font-medium text-gray-700 mb-1">
                                                     Image
                                                   </label>
-                                                  <FileUpload
+                                                  <MediaUpload
                                                     file={
                                                       block.content?.imageUrl
                                                     }
@@ -3688,6 +3683,7 @@ const PageForm = ({ id }) => {
               >
                 Block
               </button>
+            
             </div>
             <button
               type="button"
@@ -3913,8 +3909,9 @@ const PageForm = ({ id }) => {
           )}
 
 
-          {/* Block tab content */}
+     
 
+          {/* Block tab content */}
           {activeTab === "block" && (
             <div className="p-4">
               <DragDropContext onDragEnd={onDragEnd}>

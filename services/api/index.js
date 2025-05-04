@@ -247,3 +247,26 @@ export const getSitemapData = async () => {
     console.log("Received sitemap data:", data);
     return data; 
   };
+
+// SEO Analysis API
+export const analyzeSEO = async (pageData, content) => {
+  const { data } = await http.post('/analyze', { pageData, content });
+  return data;
+};
+
+export const suggestKeywords = async (params) => {
+  // Expect params to include title, description, industry, and metaKeywords
+  const { data } = await http.post('/suggest-keywords', params);
+  return data;
+};
+
+// Site Settings API endpoints
+export const getSiteSettings = async () => {
+  const { data } = await http.get('/site-settings');
+  return data.settings;
+};
+
+export const updateSiteSettings = async (settingsData) => {
+  const { data } = await http.put('/site-settings', settingsData);
+  return data;
+};

@@ -13,11 +13,12 @@ import {
 import { resetStateAuth } from "@features/auth/authSlice";
 import { Menu as HeadlessMenu, Transition } from "@headlessui/react";
 import { getPublishedPages } from "@services/api";
+import OfferNavTitles from "./OfferNavTitles";
 // import { useSelector } from 'react-redux';
 
 // import Top1 from './top/Top1'
 
-export default function Header1({ handleToggle, scroll, pagesData }) {
+export default function Header1({ handleToggle, scroll, pagesData, settings }) {
   // const dispatch = useDispatch();
   console.log(pagesData ,'in header')
   const { token, role, verified } = useSelector((state) => state.auth);
@@ -48,6 +49,9 @@ export default function Header1({ handleToggle, scroll, pagesData }) {
   }, []);
   return (
     <>
+      {/* OfferNavTitles component */}
+      <OfferNavTitles settings={settings} />
+      
       {/* <Top1 /> */}
 
       <div
@@ -60,13 +64,24 @@ export default function Header1({ handleToggle, scroll, pagesData }) {
         <div className="container">
           <div className="flex gap-4 items-center justify-between">
             <Link href="/" className="logo px-3 py-1">
-              <Image
-                width={134}
-                height={29}
-                sizes="50vw"
-                src="/images/logo.png"
-                alt=""
-              />
+              {/* Use settings logo if available, otherwise fallback */}
+              {settings?.logo?.url ? (
+                <Image
+                  width={134}
+                  height={29}
+                  sizes="50vw"
+                  src={settings.logo.url}
+                  alt={settings?.title || "Site Logo"}
+                />
+              ) : (
+                <Image
+                  width={134}
+                  height={29}
+                  sizes="50vw"
+                  src="/images/logo.png"
+                  alt="Logo"
+                />
+              )}
             </Link>
 
             <div className="items-center justify-end header-right hidden lg:flex lg:items-center lg:w-auto lg:space-x-8">

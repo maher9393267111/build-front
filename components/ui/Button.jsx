@@ -12,15 +12,20 @@ const Button = ({
   disabled = false,
   isLoading = false
 }) => {
-  // Look for the icon in OutlineIcons first, then in SolidIcons
-  // Handle icon name with or without 'Icon' suffix
+  // Handle icon rendering - support both string names and direct component instances
   let IconComponent = null;
   
   if (icon) {
-    // Add "Icon" suffix if it's not already there
-    const iconName = icon.endsWith('Icon') ? icon : `${icon}Icon`;
-    IconComponent = OutlineIcons[iconName] || SolidIcons[iconName];
-    console.log('Looking for icon:', iconName, 'Found:', IconComponent ? 'yes' : 'no');
+    // If icon is already a React element, use it directly
+    if (React.isValidElement(icon)) {
+      IconComponent = () => icon;
+    } 
+    // Otherwise, try to find the icon in the Heroicons libraries
+    else if (typeof icon === 'string') {
+      // Add "Icon" suffix if it's not already there
+      const iconName = icon.endsWith('Icon') ? icon : `${icon}Icon`;
+      IconComponent = OutlineIcons[iconName] || SolidIcons[iconName];
+    }
   }
 
   // Base styles for all buttons
@@ -47,17 +52,20 @@ const Button = ({
     case 'btn-outline-primary':
       specificStyles = 'border border-primary-500 bg-transparent text-primary-500 hover:bg-primary-500 hover:text-white focus:ring-primary-500';
       break;
-    case 'btn-secondary': // Assuming a secondary color style might be needed
+    case 'btn-secondary': 
       specificStyles = 'bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-500';
       break;
     case 'btn-outline-secondary':
        specificStyles = 'border border-gray-400 bg-transparent text-gray-600 hover:bg-gray-100 focus:ring-gray-400';
       break;
-    case 'btn-danger': // Example for danger
+    case 'btn-danger': 
       specificStyles = 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500';
       break;
     case 'btn-outline-danger':
       specificStyles = 'border border-red-500 bg-transparent text-red-500 hover:bg-red-500 hover:text-white focus:ring-red-500';
+      break;
+    case 'btn-outline-gray':
+      specificStyles = 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus:ring-gray-300';
       break;
     default:
       // Default to primary if no specific btn- class or only other classes are present
@@ -76,7 +84,7 @@ const Button = ({
   }
   
   // Small button adjustments
-  if (otherClasses.includes('btn-sm')) {
+  if (className.includes('btn-sm')) {
     specificStyles = specificStyles.replace('px-4 py-2', 'px-3 py-1.5 text-sm'); 
   }
 
@@ -92,10 +100,16 @@ const Button = ({
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-      ) : IconComponent && (
-        <IconComponent className="h-5 w-5" />
+      ) : icon && (
+        <span className="flex-shrink-0">
+          {React.isValidElement(icon) ? (
+            icon
+          ) : IconComponent ? (
+            <IconComponent className="h-5 w-5" />
+          ) : null}
+        </span>
       )}
-      {text}
+      {text && <span>{text}</span>}
     </button>
   );
 };

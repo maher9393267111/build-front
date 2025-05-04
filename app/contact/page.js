@@ -12,6 +12,7 @@ const page = () => {
                 breadcrumbSubTitle={"We will be glad to hear from you"}
                 breadcrumbAlign={"center"}
                 headerBg="transparent"
+                headerStyle={1}
             >
                 <section className="py-20">
                     <div className="container">

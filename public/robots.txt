@@ -26,4 +26,4 @@ Allow: /*.ico$
 Allow: /_next/static/
 
 # Sitemap location
-Sitemap: https://yourdomain.com/sitemap.xml # <<<--- CHANGE THIS TO YOUR ACTUAL DOMAIN 
+Sitemap: https://letsbuildsw.co.uk/sitemap.xml # 

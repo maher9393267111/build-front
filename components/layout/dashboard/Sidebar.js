@@ -41,11 +41,11 @@ function Sidebar({ isServiceProvider, isToggled, toggleTrueFalse }) {
             path: "pages",
             icon: <><Icon.DocumentTextIcon /></>
         },
-        // {
-        //     name: "Media Library",
-        //     path: "media",
-        //     icon: <><Icon.PhotoIcon /></>
-        // },
+        {
+            name: "Media Library",
+            path: "media",
+            icon: <><Icon.PhotoIcon /></>
+        },
         //blocks
         // {
         //     name: "Blocks",
@@ -69,7 +69,7 @@ function Sidebar({ isServiceProvider, isToggled, toggleTrueFalse }) {
      
         {
             name: "Settings",
-            path: "/settings",
+            path: "settings",
             icon: <><Icon.CogIcon /></>
         }
     ]

@@ -23,11 +23,12 @@ export async function generateMetadata({ params }) {
         images: [{ url: iconUrl }],
       } : undefined,
       icons: iconsData, // Add the icons property here
+      
     };
 
     // Add canonical URL if available
     if (page.canonicalUrl) {
-      metadata.alternates = { canonical: page.canonicalUrl };
+      metadata.alternates = { canonical: page.canonicalUrl || `https://letsbuildsw.co.uk/${slug}` };
     }
 
     // Add robots meta tag if available

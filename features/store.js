@@ -6,6 +6,7 @@ import countriesSlice from "./location/countriesSlice"
 import citiesSlice from "./location/citiesSlice"
 import districtsSlice from "./location/districtsSlice"
 import profileSlice from "./profile/profileSlice"
+import settingsSlice from "./settings/settingsSlice"
 import storage from 'redux-persist/lib/storage';
 import autoMergeLevel2 from "redux-persist/es/stateReconciler/autoMergeLevel2";
 import { FLUSH, REHYDRATE, PAUSE, PERSIST, REGISTER, PURGE, persistCombineReducers } from 'redux-persist';
@@ -31,7 +32,8 @@ const persistedReducer = persistCombineReducers(persistConfig, {
     filter: filterSlice,
     countries: countriesSlice,
     cities: citiesSlice,
-    districts: districtsSlice
+    districts: districtsSlice,
+    settings: settingsSlice
 });
 
 export const store = configureStore({

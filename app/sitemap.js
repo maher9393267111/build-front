@@ -1,6 +1,6 @@
 import * as api from '../services/api'; // Adjust path as necessary
 
-const BASE_URL = 'https://yourdomain.com'; // <<<--- CHANGE THIS TO YOUR ACTUAL DOMAIN
+const BASE_URL = 'https://letsbuildsw.co.uk'; // <<<--- CHANGE THIS TO YOUR ACTUAL DOMAIN
 
 export default async function sitemap() {
   console.log("Generating sitemap...");
@@ -15,22 +15,10 @@ export default async function sitemap() {
     const currentDate = new Date().toISOString();
 
     // --- Static Pages --- 
-    // Add your core static pages here
+    // Only truly static pages, not the dynamic main page
     const staticUrls = [
       {
-        url: `${BASE_URL}/`,
-        lastModified: currentDate,
-        changeFrequency: 'daily',
-        priority: 1, // Homepage highest priority
-      },
-      {
         url: `${BASE_URL}/contact`,
-        lastModified: currentDate,
-        changeFrequency: 'monthly',
-        priority: 0.7,
-      },
-       {
-        url: `${BASE_URL}/faqs`,
         lastModified: currentDate,
         changeFrequency: 'monthly',
         priority: 0.7,
@@ -47,6 +35,7 @@ export default async function sitemap() {
 
 
     // --- Dynamic Page URLs --- 
+    // Main page (homepage) is included here as a dynamic page with isMainPage=true
     const pageUrls = pages.map((page) => {
       let lastMod = currentDate;
       try {
@@ -54,11 +43,15 @@ export default async function sitemap() {
       } catch (e) {
         console.error('Invalid date for page:', page.slug, page.updatedAt);
       }
+      
+      // For main page, set highest priority
+      const priority = page.isMainPage ? 1 : 0.8;
+      
       return {
-        url: `${BASE_URL}/${page.isMainPage ? '/' : page.slug}`, // Assuming pages are at the root level
+        url: `${BASE_URL}${page.isMainPage ? '' : `/${page.slug}`}`, // Fix URL for main page
         lastModified: lastMod,
-        changeFrequency: 'weekly', // Or 'daily' if they change often
-        priority: 0.8,
+        changeFrequency: page.isMainPage ? 'daily' : 'weekly', // Main page changes more frequently
+        priority,
       };
     });
     console.log("Generated dynamic page URLs:", pageUrls);

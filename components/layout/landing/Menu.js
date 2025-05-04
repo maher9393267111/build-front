@@ -29,6 +29,18 @@ export default function Menu({ transparent, scroll, pagesData }) {
                         Blog
                     </Link>
                 </li>
+
+                <li>
+                    <Link 
+                        className={`mx-3 text-base font-medium ${transparent ? scroll ? "text-pgray-600" : "text-white" : "text-pgray-600"} hover:text-primary-500`} 
+                        href="/contact"
+                    >
+                        Contact
+                    </Link>
+                </li>
+
+
+
                 
                 {/* Dashboard Link - only for admin */}
                 {/* {token && role === "ADMIN" && (

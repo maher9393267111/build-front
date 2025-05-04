@@ -72,6 +72,12 @@ let isLoading = false
                                     <li className="mb-1 rounded-xl">
                                         <Link className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50 hover:text-primary-500 rounded-xl" href="/blog">Blog</Link>
                                     </li>
+
+                                    <li className="mb-1 rounded-xl">
+                                        <Link className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50 hover:text-primary-500 rounded-xl" href="/contact">Contact</Link>
+                                    </li>
+
+
                                     {token && role === 'admin' && (
                                         <li className="mb-1 rounded-xl">
                                             <Link className="block p-3 text-sm text-pgray-500 hover:bg-primary-50/50 hover:text-primary-500 rounded-xl" href="/admin">Dashboard</Link>
