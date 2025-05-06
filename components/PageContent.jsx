@@ -651,114 +651,115 @@ function renderBlock(block, blockIndex) {
         );
       }
   
-    case "products":
-      return (
-        <div className="py-16 bg-white">
-          <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center mb-10 relative">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 relative inline-block pb-4">
-                {block.content?.sectionTitle || "Frequently Asked Questions"}
-                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-1 bg-primary-500 rounded-full"></span>
-              </h2>
-              {block.content?.sectionSubtitle && (
-                <p className="text-gray-600 max-w-2xl mx-auto mt-2">
-                  {block.content.sectionSubtitle}
-                </p>
-              )}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {(block.content?.products || []).map((product, i) => (
-                <div
-                  key={i}
-                  className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200 flex flex-col h-full"
-                >
-                  <div className="relative">
-                    <a href={product.link || "#product"} className="block relative overflow-hidden h-64 bg-gray-100">
+      case "products":
+        return (
+          <div className="py-16 bg-white">
+            <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto text-center mb-10 relative">
+                <h2 className="text-3xl md:text-4xl font-bold mb-6 relative inline-block pb-4">
+                  {block.content?.sectionTitle || "Frequently Asked Questions"}
+                  <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-1 bg-primary-500 rounded-full"></span>
+                </h2>
+                {block.content?.sectionSubtitle && (
+                  <p className="text-gray-600 max-w-2xl mx-auto mt-2">
+                    {block.content.sectionSubtitle}
+                  </p>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {(block.content?.products || []).map((product, i) => (
+                  <div
+                    key={i}
+                    className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200 flex flex-col h-full"
+                  >
+                    <div className="relative">
+                      <a href={product.link || "#product"} className="block relative overflow-hidden h- bg-gra-100">
                       {product.imageUrl?.url ? (
                         <img
                           src={product.imageUrl.url}
                           alt={product.title || `Product ${i + 1}`}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-gray-400 flex flex-col items-center">
-                            <Icon icon="ShoppingBag" className="h-12 w-12 mb-2" />
-                            Product image
-                          </span>
-                        </div>
-                      )}
-                      {product.badge && (
-                        <div className="absolute top-4 left-4 bg-primary-500 text-white text-sm font-medium py-1 px-3 rounded-full z-10">
-                          {product.badge}
-                        </div>
-                      )}
-                    </a>
-                  </div>
-                  
-                  <div className="p-6 flex-grow flex flex-col">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
-                      {product.title || `Product ${i + 1}`}
-                    </h3>
-                    
-                    {product.description && (
-                      <div
-                        className="text-gray-600 mb-4 flex-grow"
-                        dangerouslySetInnerHTML={{
-                          __html: product.description,
-                        }}
-                      />
-                    )}
-                    
-                    <div className="mt-auto pt-4 border-t border-gray-100">
-                      <div className="flex items-center justify-between">
-                        {product.price && (
-                          <span className="text-lg font-bold text-gray-900">
-                            {product.price}€
-                          </span>
+                          title={product.title || `Product ${i + 1}`}
+                          className="block mx-auto w-[200px] h-[200px] object-contain transition-all duration-300 mb-"
+                        /> 
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-gray-400 flex flex-col items-center">
+                              <Icon icon="ShoppingBag" className="h-12 w-12 mb-2" />
+                              Product image
+                            </span>
+                          </div>
                         )}
-                        
-                        <a 
-                          href={product.link || "#product"} 
-                          className="inline-flex items-center justify-center px-5 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 font-medium"
-                        >
-                          <span>View Details</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 ml-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                        {product.badge && (
+                          <div className="absolute top-4 left-4 bg-primary-500 text-white text-sm font-medium py-1 px-3 rounded-full z-10">
+                            {product.badge}
+                          </div>
+                        )}
+                      </a>
+                    </div>
+                    
+                    <div className="p-6 flex-grow flex flex-col">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
+                        {product.title || `Product ${i + 1}`}
+                      </h3>
+                      
+                      {product.description && (
+                        <div
+                          className="text-gray-600 mb-4 flex-grow"
+                          dangerouslySetInnerHTML={{
+                            __html: product.description,
+                          }}
+                        />
+                      )}
+                      
+                      <div className="mt-auto pt-4 border-t border-gray-100">
+                        <div className="flex items-center justify-between">
+                          {product.price && (
+                            <span className="text-lg font-bold text-gray-900">
+                              {product.price}€
+                            </span>
+                          )}
+                          
+                          <a 
+                            href={product.link || "#product"} 
+                            className="inline-flex items-center justify-center px-5 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 font-medium"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 5l7 7-7 7"
-                            />
-                          </svg>
-                        </a>
+                            <span>View Details</span>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 ml-2"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 5l7 7-7 7"
+                              />
+                            </svg>
+                          </a>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-            
-            {block.content?.showViewAllButton && (
-              <div className="text-center mt-12">
-                <a 
-                  href={block.content?.viewAllLink || "#all-products"} 
-                  className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 md:py-3 md:px-8 transition-colors"
-                >
-                  {block.content?.viewAllText || "View All Products"}
-                </a>
+                ))}
               </div>
-            )}
+              
+              {block.content?.showViewAllButton && (
+                <div className="text-center mt-12">
+                  <a 
+                    href={block.content?.viewAllLink || "#all-products"} 
+                    className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 md:py-3 md:px-8 transition-colors"
+                  >
+                    {block.content?.viewAllText || "View All Products"}
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      );
-  
+        );
+    
     case "blocktextimage":
       return (
         <div 

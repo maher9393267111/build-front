@@ -1,4 +1,3 @@
-
 //no cache
 export const revalidate = 0;
 
@@ -16,16 +15,31 @@ export async function generateMetadata() {
           icon: [{ url: iconUrl }], // Use for standard favicon
           apple: [{ url: iconUrl }], // Use for Apple touch icon
         } : undefined;
+      
+      // Optimize title - make it shorter (under 60 chars ideal for SEO)
+      let title = page.metaTitle || page.title || "Let's Build - Boiler Installation & Heat Pumps in South Wales";
+      // If title is too long, truncate it
+      if (title.length > 60) {
+        title = title.substring(0, 57) + "...";
+      }
+      
+      // Optimize description - make it shorter (under 160 chars ideal for SEO)
+      let description = page.description || "";
+      if (description.length > 160) {
+        description = description.substring(0, 157) + "...";
+      }
   
       const metadata = {
         metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://letsbuildsw.co.uk'),
-        title: page.metaTitle || page.title,
-        description: page.description || '',
+        title: title,
+        description: description,
         keywords: page.metaKeywords || '',
-        openGraph: iconUrl ? { // Reuse iconUrl check
+        openGraph: iconUrl ? {
           images: [{ url: iconUrl }],
+          title: title,
+          description: description.substring(0, 160), // Ensure OG description is also truncated
         } : undefined,
-        icons: iconsData, // Add the icons property here
+        icons: iconsData,
       };
   
       // Add canonical URL if available
@@ -42,8 +56,8 @@ export async function generateMetadata() {
     } catch (error) {
       console.error('Error generating metadata:', error);
       return {
-        title: 'Page Not Found',
-        description: 'The requested page could not be found.'
+        title: "Let's Build - Heating & AC Specialists in South Wales",
+        description: "Expert boiler installation, heat pumps, and air conditioning services across South Wales. Quality work & free quotes."
       };
     }
   }

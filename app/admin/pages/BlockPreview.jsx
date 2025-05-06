@@ -542,13 +542,14 @@ switch (block.type) {
                 className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200 flex flex-col h-full"
               >
                 <div className="relative">
-                  <a href={product.link || "#product"} className="block relative overflow-hidden h-64 bg-gray-100">
-                    {product.imageUrl?.url ? (
-                      <img
-                        src={product.imageUrl.url}
-                        alt={product.title || `Product ${i + 1}`}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
+                  <a href={product.link || "#product"} className="block relative overflow-hidden h- bg-gra-100">
+                  {product.imageUrl?.url ? (
+                    <img
+                      src={product.imageUrl.url}
+                      alt={product.title || `Product ${i + 1}`}
+                      title={product.title || `Product ${i + 1}`}
+                      className="block mx-auto w-[200px] h-[200px] object-contain transition-all duration-300 mb-"
+                    /> 
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <span className="text-gray-400 flex flex-col items-center">
