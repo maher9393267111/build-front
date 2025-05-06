@@ -17,14 +17,14 @@ export async function generateMetadata() {
         } : undefined;
       
       // Optimize title - make it shorter (under 60 chars ideal for SEO)
-      let title = page.metaTitle || page.title || "Let's Build - Boiler Installation & Heat Pumps in South Wales";
+      let title = page.metaTitle || page.title || "Let's Build ";
       // If title is too long, truncate it
       if (title.length > 60) {
         title = title.substring(0, 57) + "...";
       }
       
       // Optimize description - make it shorter (under 160 chars ideal for SEO)
-      let description = page.description || "";
+      let description = page.description || "Looking for reliable builders in South Wales? Let’s Build specialises in home extensions, renovations, and new builds with quality workmanship and local trust.";
       if (description.length > 160) {
         description = description.substring(0, 157) + "...";
       }
@@ -33,7 +33,7 @@ export async function generateMetadata() {
         metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://letsbuildsw.co.uk'),
         title: title,
         description: description,
-        keywords: page.metaKeywords || '',
+        keywords: page.metaKeywords || 'home extensions south wales, home renovations south wales, new builds south wales, house builders south wales, home construction south wales',
         openGraph: iconUrl ? {
           images: [{ url: iconUrl }],
           title: title,
