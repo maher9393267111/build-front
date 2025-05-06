@@ -105,6 +105,35 @@ const PageForm = ({ id }) => {
   const handleSeoSuggestions = (seoData) => {
     if (!seoData) return;
     
+    // Handle applied suggestions
+    if (seoData.applySuggestion) {
+      // Prevent any form submission
+      if (seoData.preventDefault) {
+        seoData.preventDefault();
+      }
+      
+      const { type, value } = seoData;
+      
+      // Apply the suggestion based on type
+      switch(type) {
+        case 'title':
+          setFormData(prev => ({ ...prev, metaTitle: value }));
+          toast.success('Title suggestion applied successfully');
+          break;
+        case 'metaDescription':
+          setFormData(prev => ({ ...prev, description: value }));
+          toast.success('Meta description suggestion applied successfully');
+          break;
+        case 'keywords':
+          setFormData(prev => ({ ...prev, metaKeywords: value }));
+          toast.success('Keywords applied successfully');
+          break;
+        default:
+          break;
+      }
+      return;
+    }
+    
     // Update formData with SEO suggestions if they exist
     const updates = {};
     
@@ -322,7 +351,7 @@ const PageForm = ({ id }) => {
     { value: "blocktextimage", label: "Text & Image Block" },
     { value: "about", label: "About Block" },
     { value: "video", label: "Video Block" },
- 
+    { value: "partners", label: "Partners" },
     { value: "customers", label: "Customers" },
   ];
 
@@ -849,6 +878,88 @@ const PageForm = ({ id }) => {
     setFormData((prev) => ({ ...prev, isMainPage: isChecked }));
   };
 
+  const handlePartnerImageUpload = async (e, identifier) => {
+    if (!identifier) return;
+    const { blockIndex, partnerIndex } = identifier;
+    const uploadKey = `partner-${blockIndex}-${partnerIndex}`;
+
+    // Handle media library selection
+    if (e.mediaLibraryFile) {
+      const mediaFile = e.mediaLibraryFile;
+      handleItemChange(
+        blockIndex,
+        "partners",
+        partnerIndex,
+        "imageUrl",
+        {
+          _id: mediaFile._id,
+          url: mediaFile.url,
+          fromMediaLibrary: true,
+          mediaId: mediaFile.mediaId
+        }
+      );
+      return;
+    }
+
+    // Handle file upload
+    const file = e.target?.files?.[0];
+    if (!file) return;
+
+    setUploadStates((prev) => ({
+      ...prev,
+      [uploadKey]: { loading: true, error: null },
+    }));
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("addToMediaLibrary", "true");
+    formData.append("setAsInUse", "true");
+
+    try {
+      const { data } = await http.post("/uploadfile", formData);
+      const imageObj = { 
+        _id: data._id, 
+        url: data.url,
+        fromMediaLibrary: data.fromMediaLibrary || false,
+        mediaId: data.mediaId
+      };
+      handleItemChange(blockIndex, "partners", partnerIndex, "imageUrl", imageObj);
+      setUploadStates((prev) => ({
+        ...prev,
+        [uploadKey]: { loading: false, error: null },
+      }));
+    } catch (error) {
+      console.error("Upload failed:", error);
+      const errorMessage = error.response?.data?.error || "Failed to upload image.";
+      setUploadStates((prev) => ({
+        ...prev,
+        [uploadKey]: { loading: false, error: errorMessage },
+      }));
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleRemovePartnerImage = async (identifier) => {
+    const { blockIndex, partnerIndex } = identifier;
+    const uploadKey = `partner-${blockIndex}-${partnerIndex}`;
+    const currentImageUrl = formData.blocks[blockIndex]?.content?.partners?.[partnerIndex]?.imageUrl;
+
+    if (currentImageUrl && currentImageUrl._id && !currentImageUrl.fromMediaLibrary) {
+      try {
+        await http.delete(`/deletefile?fileName=${currentImageUrl._id}`);
+      } catch (error) {
+        console.error("Delete failed:", error);
+        toast.warn("Could not delete image from server, but removed from partner.");
+      }
+    }
+
+    handleItemChange(blockIndex, "partners", partnerIndex, "imageUrl", null);
+    setUploadStates((prev) => ({
+      ...prev,
+      [uploadKey]: { loading: false, error: null },
+    }));
+  };
+
   if (loading && isEditMode) {
     return (
       <div className="flex justify-center items-center h-40">
@@ -1129,7 +1240,7 @@ const PageForm = ({ id }) => {
                                       <div
                                         ref={provided.innerRef}
                                         {...provided.draggableProps}
-                                        className="border p-4 rounded-lg bg-white shadow-sm"
+                                        className="border border-gray-200 p-4 rounded-lg bg-white shadow-md hover:shadow-lg transition-shadow duration-200"
                                         id={ block.id ? `block-${block.id}` : `block-new-${index}` }
                                       >
                                         <div className="flex justify-between items-center mb-3">
@@ -1140,7 +1251,7 @@ const PageForm = ({ id }) => {
                                             >
                                               <Icon icon="Bars3" />
                                             </div>
-                                            <span className="font-medium">
+                                            <span className="font-semibold px-3 py-1 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-sm">
                                               {block.title ||
                                                 `${
                                                   block.type
@@ -1150,7 +1261,7 @@ const PageForm = ({ id }) => {
                                                 } Block`}
                                             </span>
                                             {block.templateId && (
-                                              <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                              <span className="ml-2 px-2 py-0.5 bg-primary-100 text-primary-800 text-xs rounded-full border border-primary-200">
                                                 Template:{" "}
                                                 {templates.find(
                                                   (t) =>
@@ -1161,18 +1272,18 @@ const PageForm = ({ id }) => {
                                           </div>
                                           <div className="flex items-center space-x-2">
                                             <button
-                                           type="button"
-                                           className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded"
-                                           onClick={() =>
-                                             handleBlockPreviewToggle(index)
-                                           }
-                                           aria-label="Preview block"
-                                         >
-                                           <Icon icon="Eye" className="h-5 w-5" />
-                                         </button>
+                                              type="button"
+                                              className="p-1.5 text-primary-500 hover:text-primary-700 hover:bg-primary-50 rounded-full transition-colors"
+                                              onClick={() =>
+                                                handleBlockPreviewToggle(index)
+                                              }
+                                              aria-label="Preview block"
+                                            >
+                                              <Icon icon="Eye" className="h-5 w-5" />
+                                            </button>
                                             <button
                                               type="button"
-                                              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+                                              className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
                                               onClick={() =>
                                                 handleToggleBlock(index)
                                               }
@@ -1194,16 +1305,13 @@ const PageForm = ({ id }) => {
                                             </button>
                                             <button
                                               type="button"
-                                              className="p-1 !text-red-500 hover:bg-red-50 rounded"
+                                              className="p-1.5 !text-red-500 hover:bg-red-50 rounded-full transition-colors"
                                               onClick={() =>
                                                 handleRemoveBlock(index)
                                               }
                                               aria-label="Remove block"
                                             >
-                                              <Icon
-                                                icon="XMark"
-                                                className="h-5 w-5"
-                                              />
+                                              <Icon icon="XMark" className="h-5 w-5" />
                                             </button>
                                           </div>
                                         </div>
@@ -3588,6 +3696,206 @@ const PageForm = ({ id }) => {
                                                         "listItems",
                                                         {
                                                           text: "",
+                                                        }
+                                                      )
+                                                    }
+                                                    icon="Plus"
+                                                    type="button"
+                                                  />
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            {block.type === "partners" && (
+                                              <div className="space-y-3">
+                                                <Textinput
+                                                  label="Section Title"
+                                                  value={block.content?.sectionTitle || ""}
+                                                  onChange={(e) =>
+                                                    handleBlockContentChange(index, "sectionTitle", e.target.value)
+                                                  }
+                                                  placeholder="Our Partners"
+                                                />
+                                                <Textarea
+                                                  label="Section Description"
+                                                  value={block.content?.sectionDescription || ""}
+                                                  onChange={(e) =>
+                                                    handleBlockContentChange(index, "sectionDescription", e.target.value)
+                                                  }
+                                                  rows={2}
+                                                  placeholder="Brief description about your partners"
+                                                />
+
+                                                <div>
+                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                    Colored Description Section Background
+                                                  </label>
+                                                  <div className="flex items-center">
+                                                    <input
+                                                      type="color"
+                                                      value={block.content?.coloredSectionBg || "#f3f4f6"}
+                                                      onChange={(e) =>
+                                                        handleBlockContentChange(index, "coloredSectionBg", e.target.value)
+                                                      }
+                                                      className="h-9 w-16 p-1 border rounded mr-2"
+                                                    />
+                                                    <Textinput
+                                                      value={block.content?.coloredSectionBg || "#f3f4f6"}
+                                                      onChange={(e) =>
+                                                        handleBlockContentChange(index, "coloredSectionBg", e.target.value)
+                                                      }
+                                                      placeholder="#f3f4f6"
+                                                    />
+                                                  </div>
+                                                </div>
+
+                                                <div>
+                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                    Colored Description Section Text Color
+                                                  </label>
+                                                  <div className="flex items-center">
+                                                    <input
+                                                      type="color"
+                                                      value={block.content?.coloredSectionTextColor || "#000000"}
+                                                      onChange={(e) =>
+                                                        handleBlockContentChange(index, "coloredSectionTextColor", e.target.value)
+                                                      }
+                                                      className="h-9 w-16 p-1 border rounded mr-2"
+                                                    />
+                                                    <Textinput
+                                                      value={block.content?.coloredSectionTextColor || "#000000"}
+                                                      onChange={(e) =>
+                                                        handleBlockContentChange(index, "coloredSectionTextColor", e.target.value)
+                                                      }
+                                                      placeholder="#000000"
+                                                    />
+                                                  </div>
+                                                </div>
+
+                                                <Textinput
+                                                  label="Colored Section Text"
+                                                  value={block.content?.coloredSectionText || ""}
+                                                  onChange={(e) =>
+                                                    handleBlockContentChange(index, "coloredSectionText", e.target.value)
+                                                  }
+                                                  placeholder="Over 2500 companies use our tools to better their business."
+                                                />
+
+                                                <Textinput
+                                                  label="Colored Section Link Text"
+                                                  value={block.content?.coloredSectionLinkText || ""}
+                                                  onChange={(e) =>
+                                                    handleBlockContentChange(index, "coloredSectionLinkText", e.target.value)
+                                                  }
+                                                  placeholder="Read our customer stories"
+                                                />
+
+                                                <Textinput
+                                                  label="Colored Section Link URL"
+                                                  value={block.content?.coloredSectionLinkUrl || ""}
+                                                  onChange={(e) =>
+                                                    handleBlockContentChange(index, "coloredSectionLinkUrl", e.target.value)
+                                                  }
+                                                  placeholder="/customer-stories"
+                                                />
+
+                                                <div className="space-y-4 mt-2 border-t pt-4">
+                                                  <h4 className="font-medium text-sm">
+                                                    Partner Logos:
+                                                  </h4>
+                                                  {(block.content?.partners || []).map((partner, partnerIndex) => {
+                                                    const identifier = {
+                                                      blockIndex: index,
+                                                      partnerIndex: partnerIndex,
+                                                    };
+                                                    const uploadKey = `partner-${index}-${partnerIndex}`;
+                                                    const uState = uploadStates[uploadKey] || {
+                                                      loading: false,
+                                                      error: null,
+                                                    };
+                                                    return (
+                                                      <div
+                                                        key={partnerIndex}
+                                                        className="border p-3 rounded bg-slate-50 space-y-3 relative"
+                                                      >
+                                                        <button
+                                                          type="button"
+                                                          onClick={() =>
+                                                            handleRemoveItem(
+                                                              index,
+                                                              "partners",
+                                                              partnerIndex
+                                                            )
+                                                          }
+                                                          className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full z-10"
+                                                          aria-label="Remove Partner"
+                                                        >
+                                                          <Icon
+                                                            icon="XMark"
+                                                            className="h-4 w-4"
+                                                          />
+                                                        </button>
+
+                                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                          <div className="sm:col-span-1">
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                              Partner {partnerIndex + 1} Logo*
+                                                            </label>
+                                                            <MediaUpload
+                                                              file={partner.imageUrl}
+                                                              onDrop={(e) => handlePartnerImageUpload(e, identifier)}
+                                                              onRemove={() => handleRemovePartnerImage(identifier)}
+                                                              loading={uState.loading}
+                                                              error={uState.error}
+                                                              maxSize={5 * 1024 * 1024}
+                                                              identifier={identifier}
+                                                            />
+                                                          </div>
+                                                          <div className="sm:col-span-2 space-y-3">
+                                                            <Textinput
+                                                              label={`Partner ${partnerIndex + 1} Name`}
+                                                              value={partner.name || ""}
+                                                              onChange={(e) =>
+                                                                handleItemChange(
+                                                                  index,
+                                                                  "partners",
+                                                                  partnerIndex,
+                                                                  "name",
+                                                                  e.target.value
+                                                                )
+                                                              }
+                                                              placeholder="Partner name"
+                                                            />
+                                                            <Textinput
+                                                              label={`Partner ${partnerIndex + 1} URL`}
+                                                              value={partner.url || ""}
+                                                              onChange={(e) =>
+                                                                handleItemChange(
+                                                                  index,
+                                                                  "partners",
+                                                                  partnerIndex,
+                                                                  "url",
+                                                                  e.target.value
+                                                                )
+                                                              }
+                                                              placeholder="https://partner-website.com"
+                                                            />
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                    );
+                                                  })}
+                                                  <Button
+                                                    text="Add Partner"
+                                                    className="btn-outline-primary btn-sm"
+                                                    onClick={() =>
+                                                      handleAddItem(
+                                                        index,
+                                                        "partners",
+                                                        {
+                                                          imageUrl: null,
+                                                          name: "",
+                                                          url: "",
                                                         }
                                                       )
                                                     }

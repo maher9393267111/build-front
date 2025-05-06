@@ -26,7 +26,7 @@ const localURL = "http://localhost:3001"
 
 const http = axios.create({
   baseURL: baseURL + `/api`,
-  timeout: 12000, // 10 second timeout
+  
   retryDelay: 1000,
   maxRetries: 3,
 });

@@ -27,7 +27,13 @@ import {
   Cog6ToothIcon,
   QuestionMarkCircleIcon,
   BookOpenIcon,
-  CalendarIcon
+  CalendarIcon,
+  ChartPieIcon,
+  CursorArrowRaysIcon,
+  FingerPrintIcon,
+  SquaresPlusIcon,
+  ArrowPathIcon,
+  PlayCircleIcon
 } from '@heroicons/react/24/outline';
 import { getSiteSettings, updateSiteSettings } from '@services/api';
 import http from '@services/api/http';
@@ -55,7 +61,13 @@ const iconMap = {
   ChevronDownIcon,
   PlusIcon,
   TrashIcon,
-  ArrowsUpDownIcon
+  ArrowsUpDownIcon,
+  ChartPieIcon,
+  CursorArrowRaysIcon,
+  FingerPrintIcon,
+  SquaresPlusIcon,
+  ArrowPathIcon,
+  PlayCircleIcon
 };
 
 function classNames(...classes) {
@@ -209,7 +221,8 @@ export default function SettigsPage() {
         fontSize: 'text-md',
         textColor: '#374151',
         iconColor: '#4f46e5'
-      }
+      },
+      linksInfo: []
     }
   });
 
@@ -262,7 +275,8 @@ export default function SettigsPage() {
             fontSize: data.navTitles?.fontSize || 'text-md',
             textColor: data.navTitles?.textColor?.startsWith('#') ? data.navTitles.textColor : '#374151',
             iconColor: data.navTitles?.iconColor?.startsWith('#') ? data.navTitles.iconColor : '#4f46e5',
-          }
+          },
+          linksInfo: data.linksInfo || []
         };
         
         reset(resetData);
@@ -394,6 +408,7 @@ export default function SettigsPage() {
     { name: 'Social', icon: <LinkIcon className="w-5 h-5" /> },
     { name: 'Footer', icon: <DocumentTextIcon className="w-5 h-5" /> },
     { name: 'Nav Titles', icon: <ArrowsUpDownIcon className="w-5 h-5" /> },
+    { name: 'Links Info', icon: <LinkIcon className="w-5 h-5" /> },
     { name: 'Scripts', icon: <CodeBracketIcon className="w-5 h-5" /> },
   ];
 
@@ -907,6 +922,17 @@ export default function SettigsPage() {
               </div>
             </Tab.Panel>
             
+            {/* Links Info */}
+            <Tab.Panel className="bg-white rounded-lg p-2 md:p-4">
+              <LinksInfoSection
+                register={register}
+                control={control}
+                watch={watch}
+                setValue={setValue}
+                errors={errors}
+              />
+            </Tab.Panel>
+            
             {/* Custom Scripts */}
             <Tab.Panel className="bg-white rounded-lg p-2 md:p-4">
               <div className="space-y-4 md:space-y-6">
@@ -961,5 +987,222 @@ export default function SettigsPage() {
         </form>
       </Tab.Group>
     </Card>
+  );
+}
+
+function LinksInfoSection({ register, control, watch, setValue, errors }) {
+  const { fields: linksFields, append: appendLink, remove: removeLink } = useFieldArray({
+    control,
+    name: "linksInfo"
+  });
+
+  const addMainLink = () => {
+    appendLink({ 
+      title: '', 
+      href: '#',
+      hasChildren: false,
+      children: [] 
+    });
+  };
+
+  const addChildLink = (parentIndex) => {
+    const currentLinks = watch(`linksInfo`);
+    if (!currentLinks[parentIndex].children) {
+      setValue(`linksInfo.${parentIndex}.children`, []);
+    }
+    
+    const updatedChildren = [
+      ...(currentLinks[parentIndex].children || []), 
+      { name: '', href: '#', icon: 'ChartPieIcon', description: '' }
+    ];
+    
+    setValue(`linksInfo.${parentIndex}.hasChildren`, true);
+    setValue(`linksInfo.${parentIndex}.children`, updatedChildren);
+  };
+
+  const removeChildLink = (parentIndex, childIndex) => {
+    const currentChildren = watch(`linksInfo.${parentIndex}.children`);
+    const updatedChildren = currentChildren.filter((_, i) => i !== childIndex);
+    setValue(`linksInfo.${parentIndex}.children`, updatedChildren);
+    
+    // If no children left, update hasChildren flag
+    if (updatedChildren.length === 0) {
+      setValue(`linksInfo.${parentIndex}.hasChildren`, false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold text-gray-800">Navigation Links</h3>
+        <button
+          type="button"
+          onClick={addMainLink}
+          className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md bg-primary-50 text-primary-600 hover:bg-primary-100"
+        >
+          <PlusIcon className="h-4 w-4 mr-2" />
+          Add Main Link
+        </button>
+      </div>
+      
+      <div className="space-y-4">
+        {linksFields.map((link, index) => (
+          <Disclosure
+            key={link.id}
+            as="div"
+            className="border border-gray-200 rounded-lg overflow-hidden"
+            defaultOpen={false}
+          >
+            {({ open }) => (
+              <>
+                <Disclosure.Button className="w-full px-4 py-3 flex justify-between items-center bg-gray-50 hover:bg-gray-100 text-left font-medium text-gray-700">
+                  <span>{watch(`linksInfo.${index}.title`) || `Link ${index + 1}`}</span>
+                  <div className="flex items-center">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeLink(index);
+                      }}
+                      className="mr-2 p-1 rounded-full hover:bg-red-100 text-red-500"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                    <ChevronDownIcon
+                      className={`${open ? 'transform rotate-180' : ''} w-5 h-5 text-gray-500`}
+                    />
+                  </div>
+                </Disclosure.Button>
+                
+                <Disclosure.Panel className="px-4 py-3 bg-white">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block mb-2 text-sm font-semibold text-gray-700">
+                          Title
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                          placeholder="Enter title"
+                          {...register(`linksInfo.${index}.title`)}
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block mb-2 text-sm font-semibold text-gray-700">
+                          Link (URL)
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                          placeholder="Enter URL"
+                          {...register(`linksInfo.${index}.href`)}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="pt-4 border-t">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="text-md font-medium text-gray-700">Child Links</h4>
+                        <button
+                          type="button"
+                          onClick={() => addChildLink(index)}
+                          className="inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-primary-50 text-primary-600 hover:bg-primary-100"
+                        >
+                          <PlusIcon className="h-3 w-3 mr-1" />
+                          Add Child Link
+                        </button>
+                      </div>
+                      
+                      {watch(`linksInfo.${index}.children`)?.map((child, childIndex) => (
+                        <div key={childIndex} className="mb-4 p-4 border border-gray-100 rounded-lg bg-gray-50">
+                          <div className="flex justify-between items-start mb-3">
+                            <h5 className="text-sm font-medium text-gray-700">
+                              {child.name || `Child ${childIndex + 1}`}
+                            </h5>
+                            <button
+                              type="button"
+                              onClick={() => removeChildLink(index, childIndex)}
+                              className="p-1 rounded-full hover:bg-red-100 text-red-500"
+                            >
+                              <TrashIcon className="h-3 w-3" />
+                            </button>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block mb-1 text-xs font-semibold text-gray-700">
+                                Name
+                              </label>
+                              <input
+                                type="text"
+                                className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none text-sm"
+                                placeholder="Name"
+                                {...register(`linksInfo.${index}.children.${childIndex}.name`)}
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="block mb-1 text-xs font-semibold text-gray-700">
+                                Link (URL)
+                              </label>
+                              <input
+                                type="text"
+                                className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none text-sm"
+                                placeholder="URL"
+                                {...register(`linksInfo.${index}.children.${childIndex}.href`)}
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="block mb-1 text-xs font-semibold text-gray-700">
+                                Icon
+                              </label>
+                              <select
+                                className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none text-sm"
+                                {...register(`linksInfo.${index}.children.${childIndex}.icon`)}
+                              >
+                                {['ChartPieIcon', 'CursorArrowRaysIcon', 'FingerPrintIcon', 'SquaresPlusIcon', 'ArrowPathIcon', 'PlayCircleIcon', 'PhoneIcon'].map((icon) => (
+                                  <option key={icon} value={icon}>
+                                    {icon.replace('Icon', '')}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            
+                            <div>
+                              <label className="block mb-1 text-xs font-semibold text-gray-700">
+                                Description
+                              </label>
+                              <input
+                                type="text"
+                                className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none text-sm"
+                                placeholder="Description"
+                                {...register(`linksInfo.${index}.children.${childIndex}.description`)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {(!watch(`linksInfo.${index}.children`) || watch(`linksInfo.${index}.children`).length === 0) && (
+                        <p className="text-sm text-gray-500 italic">No child links added yet.</p>
+                      )}
+                    </div>
+                  </div>
+                </Disclosure.Panel>
+              </>
+            )}
+          </Disclosure>
+        ))}
+        
+        {linksFields.length === 0 && (
+          <div className="text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            <p className="text-gray-500">No navigation links added yet. Click the button above to add your first link.</p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

@@ -951,6 +951,107 @@ switch (block.type) {
       </div>
     );
 
+  case "partners":
+    return (
+      <div className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center mb-10 relative">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 relative inline-block pb-4">
+              {block.content?.sectionTitle || "Our Partners"}
+              <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-1 bg-primary-500 rounded-full"></span>
+            </h2>
+            {block.content?.sectionDescription && (
+              <p className="text-gray-600 max-w-2xl mx-auto mt-2">
+                {block.content.sectionDescription}
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 mb-12">
+            {(block.content?.partners || []).map((partner, i) => (
+              <div key={i} className="flex items-center justify-center p-4 hover:scale-110 transition-transform duration-300">
+                {partner.url ? (
+                  <a 
+                    href={partner.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block w-full h-full"
+                  >
+                    {partner.imageUrl?.url ? (
+                      <img
+                        src={partner.imageUrl.url}
+                        alt={partner.name || `Partner ${i + 1}`}
+                        className="w-full h-auto max-h-16 object-contain mx-auto grayscale hover:grayscale-0 opacity-80 hover:opacity-100 transition-all duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-24 bg-gray-100 flex items-center justify-center rounded">
+                        <span className="text-gray-400">Logo</span>
+                      </div>
+                    )}
+                  </a>
+                ) : (
+                  <div className="block w-full h-full">
+                    {partner.imageUrl?.url ? (
+                      <img
+                        src={partner.imageUrl.url}
+                        alt={partner.name || `Partner ${i + 1}`}
+                        className="w-full h-auto max-h-16 object-contain mx-auto grayscale hover:grayscale-0 opacity-80 hover:opacity-100 transition-all duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-24 bg-gray-100 flex items-center justify-center rounded">
+                        <span className="text-gray-400">Logo</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {block.content?.coloredSectionText && (
+            <div 
+              className="py-6 px-6 rounded-lg text-center mt-8"
+              style={{
+                backgroundColor: block.content?.coloredSectionBg || "#f3f4f6",
+                color: block.content?.coloredSectionTextColor || "#000000"
+              }}
+            >
+              <p className="inline text-lg">
+                {block.content.coloredSectionText}
+                {block.content?.coloredSectionLinkText && (
+                  <>
+                    {" "}
+                    <a 
+                      href={block.content?.coloredSectionLinkUrl || "#"} 
+                      className="font-medium hover:underline inline-flex items-center ml-1"
+                      style={{
+                        color: block.content?.coloredSectionTextColor || "#000000"
+                      }}
+                    >
+                      {block.content.coloredSectionLinkText}
+                      <svg 
+                        className="ml-1 h-5 w-5" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M14 5l7 7m0 0l-7 7m7-7H3" 
+                        />
+                      </svg>
+                    </a>
+                  </>
+                )}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+
   default:
     return (
       <div className="p-6 border rounded bg-gray-50">

@@ -7,7 +7,15 @@ import { useQuery, useMutation } from 'react-query';
 import { getBlogCategories, createBlog, updateBlog } from '@services/api';
 import 'react-quill/dist/quill.snow.css';
 import http from '@services/api/http';
-import { XMarkIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import { toast } from 'react-toastify';
+import { XMarkIcon, PhotoIcon, SparklesIcon, LightBulbIcon } from '@heroicons/react/24/outline';
+import MediaUpload from '@components/ui/MediaUpload';
+import Card from '@components/ui/Card';
+import Button from '@components/ui/Button';
+import Textinput from '@components/ui/TextinputBlog';
+import Textarea from '@components/ui/TextareaBlog';
+import Select from '@components/ui/SelectBlog';
+import BlogSeoDashboard from '@components/SEO/Blog/BlogSeoDashboard';
 
 // Dynamically import ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
@@ -134,11 +142,28 @@ const BlogForm = ({ initialData = null }) => {
   const [ogImage, setOgImage] = useState(initialData?.ogImage || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savingStatus, setSavingStatus] = useState('');
-  const [showSeo, setShowSeo] = useState(false);
-  const fileInputRef = useRef(null);
-  const ogImageInputRef = useRef(null);
+  const [uploadStates, setUploadStates] = useState({});
+  const [activeTab, setActiveTab] = useState('main'); // 'main', 'seo', or 'preview'
   
-  const { register, handleSubmit, reset, formState: { errors }, setValue, watch } = useForm({
+  // Content generation states
+  const [isGeneratingContent, setIsGeneratingContent] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState(null);
+  const [contentType, setContentType] = useState('full'); // 'full', 'intro', 'section', 'conclusion'
+  const [showContentModal, setShowContentModal] = useState(false);
+  const [generationPrompt, setGenerationPrompt] = useState('');
+  const [generationTone, setGenerationTone] = useState('professional');
+  
+  console.log('initialDataXXX', initialData)
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    setValue,
+    watch,
+    getValues,
+  } = useForm({
     defaultValues: initialData || {
       title: '',
       excerpt: '',
@@ -149,9 +174,84 @@ const BlogForm = ({ initialData = null }) => {
       metaDescription: '',
       metaKeywords: '',
       canonicalUrl: '',
-      robots: 'index, follow'
-    }
+      robots: 'index, follow',
+    },
   });
+
+  // Format blog data for SEO analysis
+  const getBlogDataForSeo = () => {
+    const values = getValues();
+ 
+
+    return {
+      title: values.title || '',
+      metaTitle: values.metaTitle || values.title || '',
+      description: values.metaDescription || values.excerpt || '',
+      slug: values.slug || '',
+      metaKeywords: values.metaKeywords || '',
+      robots: values.robots || 'index, follow',
+      ogImage: ogImage,
+      contentType: 'blog',
+      category: values.categoryId, // Keep categoryId if needed elsewhere
+      categoryName: values.category?.name, // Add category name here
+    };
+  };
+
+  // Handle SEO suggestions
+  const handleSeoSuggestions = (seoData) => {
+    if (!seoData) return;
+    
+    // Handle applied suggestions
+    if (seoData.applySuggestion) {
+      // Prevent any form submission
+      if (seoData.preventDefault) {
+        seoData.preventDefault();
+      }
+      
+      const { type, value } = seoData;
+      
+      // Apply the suggestion based on type
+      switch(type) {
+        case 'title':
+          setValue('metaTitle', value);
+          toast.success('Title suggestion applied successfully');
+          break;
+        case 'metaDescription':
+          setValue('metaDescription', value);
+          toast.success('Meta description suggestion applied successfully');
+          break;
+        case 'keywords':
+          setValue('metaKeywords', value);
+          toast.success('Keywords applied successfully');
+          break;
+        default:
+          break;
+      }
+      return;
+    }
+    
+    // Update form with SEO suggestions
+    const updates = {};
+    
+    if (seoData.analysis?.titleSuggestion && !getValues('metaTitle')) {
+      updates.metaTitle = seoData.analysis.titleSuggestion;
+    }
+    
+    if (seoData.analysis?.metaDescriptionSuggestions?.[0] && !getValues('metaDescription')) {
+      updates.metaDescription = seoData.analysis.metaDescriptionSuggestions[0];
+    }
+    
+    if (seoData.analysis?.recommendedKeywords?.length > 0 && !getValues('metaKeywords')) {
+      updates.metaKeywords = seoData.analysis.recommendedKeywords.join(', ');
+    }
+    
+    if (Object.keys(updates).length > 0) {
+      // Update form values
+      Object.entries(updates).forEach(([key, value]) => {
+        setValue(key, value);
+      });
+    }
+  };
 
   // Get blog categories
   const { data: categories, isLoading: loadingCategories } = useQuery('blogCategories', getBlogCategories);
@@ -195,70 +295,216 @@ const BlogForm = ({ initialData = null }) => {
     setContent(value);
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
+  // AI Content Generation functions
+  const generateBlogContent = async () => {
+    setIsGeneratingContent(true);
+    
+    try {
+      const formValues = getValues();
       
-      http.post('/uploadfile', formData)
-        .then(({ data }) => {
-          const imageObj = { _id: data._id, url: data.url };
-          setFeaturedImage(imageObj);
-          setValue('featuredImage', imageObj);
-        })
-        .catch(error => {
-          console.error('Upload failed:', error);
-        });
-    }
-  };
-
-  const handleRemoveFile = () => {
-    if (featuredImage && featuredImage._id) {
-      http.delete(`/deletefile?fileName=${featuredImage._id}`)
-        .then(() => {
-          setFeaturedImage(null);
-          setValue('featuredImage', null);
-        })
-        .catch(error => {
-          console.error('Delete failed:', error);
-        });
-    }
-  };
-
-  const handleOgImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
+      const payload = {
+        title: formValues.title,
+        description: formValues.excerpt || formValues.metaDescription,
+        keywords: formValues.metaKeywords,
+        category: categories?.find(c => c.id.toString() === formValues.categoryId)?.name,
+        contentType: contentType,
+        tone: generationTone,
+        customPrompt: generationPrompt || undefined,
+        existingContent: content || undefined,
+      };
       
-      http.post('/uploadfile', formData)
-        .then(({ data }) => {
-          const imageObj = { _id: data._id, url: data.url };
-          setOgImage(imageObj);
-          setValue('ogImage', imageObj);
-        })
-        .catch(error => {
-          console.error('Upload failed:', error);
-        });
+      // Make API call to generate content
+      const { data } = await http.post('/generate-blog-content', payload);
+      
+      if (data && data.generatedContent) {
+        setGeneratedContent(data.generatedContent);
+        setShowContentModal(true);
+      } else {
+        throw new Error('No content generated');
+      }
+    } catch (error) {
+      console.error('Error generating content:', error);
+      setSavingStatus(`Error generating content: ${error.message}`);
+    } finally {
+      setIsGeneratingContent(false);
+    }
+  };
+  
+  const applyGeneratedContent = () => {
+    if (!generatedContent) return;
+    
+    // Apply based on content type
+    if (contentType === 'full') {
+      setContent(generatedContent);
+    } else if (contentType === 'intro') {
+      setContent(generatedContent + content);
+    } else if (contentType === 'conclusion') {
+      setContent(content + generatedContent);
+    } else if (contentType === 'section') {
+      // Insert at cursor position or append if not possible
+      setContent(content + "\n\n" + generatedContent);
+    }
+    
+    setShowContentModal(false);
+    setGeneratedContent(null);
+  };
+
+  const handleFeaturedImageUpload = async (e, identifier) => {
+    if (!identifier) return;
+    const uploadKey = `featured-image`;
+
+    // Handle media library selection
+    if (e.mediaLibraryFile) {
+      const mediaFile = e.mediaLibraryFile;
+      setFeaturedImage({
+        _id: mediaFile._id,
+        url: mediaFile.url,
+        fromMediaLibrary: true,
+        mediaId: mediaFile.mediaId,
+      });
+      setValue('featuredImage', {
+        _id: mediaFile._id,
+        url: mediaFile.url,
+        fromMediaLibrary: true,
+        mediaId: mediaFile.mediaId,
+      });
+      return;
+    }
+
+    const file = e.target?.files?.[0];
+    if (!file) return;
+
+    setUploadStates((prev) => ({
+      ...prev,
+      [uploadKey]: { loading: true, error: null },
+    }));
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('addToMediaLibrary', 'true');
+    formData.append('setAsInUse', 'true');
+
+    try {
+      const { data } = await http.post('/uploadfile', formData);
+      const imageObj = {
+        _id: data._id,
+        url: data.url,
+        fromMediaLibrary: data.fromMediaLibrary || false,
+        mediaId: data.mediaId,
+      };
+      setFeaturedImage(imageObj);
+      setValue('featuredImage', imageObj);
+      setUploadStates((prev) => ({
+        ...prev,
+        [uploadKey]: { loading: false, error: null },
+      }));
+    } catch (error) {
+      console.error('Upload failed:', error);
+      const errorMessage =
+        error.response?.data?.error || 'Failed to upload image.';
+      setUploadStates((prev) => ({
+        ...prev,
+        [uploadKey]: { loading: false, error: errorMessage },
+      }));
     }
   };
 
-  const handleRemoveOgImage = () => {
-    if (ogImage && ogImage._id) {
-      http.delete(`/deletefile?fileName=${ogImage._id}`)
-        .then(() => {
-          setOgImage(null);
-          setValue('ogImage', null);
-        })
-        .catch(error => {
-          console.error('Delete failed:', error);
-        });
+  const handleRemoveFeaturedImage = async (identifier, isFromLibrary = false) => {
+    const uploadKey = `featured-image`;
+    
+    if (featuredImage && featuredImage._id && !isFromLibrary && !featuredImage.fromMediaLibrary) {
+      try {
+        await http.delete(`/deletefile?fileName=${featuredImage._id}`);
+      } catch (error) {
+        console.error('Delete failed:', error);
+      }
+    }
+    
+    setFeaturedImage(null);
+    setValue('featuredImage', null);
+    setUploadStates((prev) => ({
+      ...prev,
+      [uploadKey]: { loading: false, error: null },
+    }));
+  };
+
+  const handleOgImageUpload = async (e, identifier) => {
+    if (!identifier) return;
+    const uploadKey = `og-image`;
+
+    // Handle media library selection
+    if (e.mediaLibraryFile) {
+      const mediaFile = e.mediaLibraryFile;
+      setOgImage({
+        _id: mediaFile._id,
+        url: mediaFile.url,
+        fromMediaLibrary: true,
+        mediaId: mediaFile.mediaId,
+      });
+      setValue('ogImage', {
+        _id: mediaFile._id,
+        url: mediaFile.url,
+        fromMediaLibrary: true,
+        mediaId: mediaFile.mediaId,
+      });
+      return;
+    }
+
+    const file = e.target?.files?.[0];
+    if (!file) return;
+
+    setUploadStates((prev) => ({
+      ...prev,
+      [uploadKey]: { loading: true, error: null },
+    }));
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('addToMediaLibrary', 'true');
+    formData.append('setAsInUse', 'true');
+
+    try {
+      const { data } = await http.post('/uploadfile', formData);
+      const imageObj = {
+        _id: data._id,
+        url: data.url,
+        fromMediaLibrary: data.fromMediaLibrary || false,
+        mediaId: data.mediaId,
+      };
+      setOgImage(imageObj);
+      setValue('ogImage', imageObj);
+      setUploadStates((prev) => ({
+        ...prev,
+        [uploadKey]: { loading: false, error: null },
+      }));
+    } catch (error) {
+      console.error('Upload failed:', error);
+      const errorMessage =
+        error.response?.data?.error || 'Failed to upload image.';
+      setUploadStates((prev) => ({
+        ...prev,
+        [uploadKey]: { loading: false, error: errorMessage },
+      }));
     }
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current.click();
+  const handleRemoveOgImage = async (identifier, isFromLibrary = false) => {
+    const uploadKey = `og-image`;
+    
+    if (ogImage && ogImage._id && !isFromLibrary && !ogImage.fromMediaLibrary) {
+      try {
+        await http.delete(`/deletefile?fileName=${ogImage._id}`);
+      } catch (error) {
+        console.error('Delete failed:', error);
+      }
+    }
+    
+    setOgImage(null);
+    setValue('ogImage', null);
+    setUploadStates((prev) => ({
+      ...prev,
+      [uploadKey]: { loading: false, error: null },
+    }));
   };
 
   const onSubmit = (data) => {
@@ -270,10 +516,18 @@ const BlogForm = ({ initialData = null }) => {
     setIsSubmitting(true);
     setSavingStatus('Saving...');
 
+    // Create a slug from the title if it doesn't exist
+    if (!data.slug && data.title) {
+      data.slug = data.title
+        .toLowerCase()
+        .replace(/[^\w\s]/gi, '')
+        .replace(/\s+/g, '-');
+    }
+
     // Combine form data with content
     const blogData = {
       ...data,
-      content
+      content,
     };
 
     if (initialData) {
@@ -283,234 +537,424 @@ const BlogForm = ({ initialData = null }) => {
     }
   };
 
+  // Strip HTML tags from content for plain text analysis
+  const getPlainTextContent = () => {
+    if (!content) return '';
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
+    return tempDiv.textContent || '';
+  };
+
   return (
-    <div className="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+    <div className="flex flex-col space-y-6">
+      {/* Tabs Navigation */}
+      <div className="flex border-b border-gray-200">
+        <button
+          className={`py-3 px-6 font-medium text-sm focus:outline-none ${
+            activeTab === 'main'
+              ? 'text-primary-600 border-b-2 border-primary-600'
+              : 'text-gray-500 hover:text-gray-900'
+          }`}
+          onClick={() => setActiveTab('main')}
+        >
+          Blog Content
+        </button>
+        <button
+          className={`py-3 px-6 font-medium text-sm focus:outline-none ${
+            activeTab === 'seo'
+              ? 'text-primary-600 border-b-2 border-primary-600'
+              : 'text-gray-500 hover:text-gray-900'
+          }`}
+          onClick={() => setActiveTab('seo')}
+        >
+          SEO & Optimization
+        </button>
+        <button
+          className={`py-3 px-6 font-medium text-sm focus:outline-none ${
+            activeTab === 'preview'
+              ? 'text-primary-600 border-b-2 border-primary-600'
+              : 'text-gray-500 hover:text-gray-900'
+          }`}
+          onClick={() => setActiveTab('preview')}
+        >
+          Preview
+        </button>
+      </div>
+
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Basic Info */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Basic Information</h2>
-          
-          {/* Title */}
-          <div className="mb-6">
-            <label className="block mb-2 text-sm font-semibold text-gray-700">Title *</label>
-            <input
-              type="text"
-              className={`w-full rounded-lg border-2 ${errors.title ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'} focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none`}
-              placeholder="Enter blog title"
-              {...register('title', { required: 'Title is required' })}
+        {activeTab === 'main' && (
+          <div className="space-y-6">
+            <Card className="overflow-hidden border-0 shadow-xl rounded-xl">
+              <div className="p-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">Blog Information</h2>
+                
+                {/* Title */}
+                <div className="mb-6">
+                  <Textinput
+                    label="Title"
+                    name="title"
+                    placeholder="Enter blog title"
+                    required
+                    error={errors.title?.message}
+                    {...register('title', { required: 'Title is required' })}
+                  />
+                </div>
+
+                {/* Category */}
+                <div className="mb-6">
+                  <Select
+                    label="Category"
+                    name="categoryId"
+                    required
+                    error={errors.categoryId?.message}
+                    {...register('categoryId', { required: 'Category is required' })}
+                  >
+                    <option value="">Select a category</option>
+                    {categories?.map((category) => (
+                      <option key={category.id} value={category.id.toString()}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                {/* Excerpt/Summary */}
+                <div className="mb-6">
+                  <Textarea
+                    label="Excerpt/Summary"
+                    name="excerpt"
+                    placeholder="Brief summary of the blog (optional)"
+                    rows={3}
+                    helperText="If left empty, an excerpt will be generated from the beginning of your content."
+                    {...register('excerpt')}
+                  />
+                </div>
+
+                {/* Featured Image */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Featured Image
+                  </label>
+                  <MediaUpload
+                    file={featuredImage}
+                    onDrop={(e) => handleFeaturedImageUpload(e, 'featuredImage')}
+                    onRemove={() => handleRemoveFeaturedImage('featuredImage', featuredImage?.fromMediaLibrary)}
+                    loading={uploadStates['featured-image']?.loading}
+                    error={uploadStates['featured-image']?.error}
+                    identifier='featuredImage'
+                    helperText="Featured image for your blog post"
+                  />
+                </div>
+
+                {/* AI Content Generation Card */}
+                <div className="mb-6">
+                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 p-4 mb-4">
+                    <div className="flex items-center mb-3">
+                      <SparklesIcon className="h-6 w-6 text-indigo-600 mr-2" />
+                      <h3 className="text-md font-semibold text-indigo-800">AI Content Generation</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Content Type
+                        </label>
+                        <select
+                          className="w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          value={contentType}
+                          onChange={(e) => setContentType(e.target.value)}
+                        >
+                          <option value="full">Full Blog Post</option>
+                          <option value="intro">Introduction</option>
+                          <option value="section">Blog Section</option>
+                          <option value="conclusion">Conclusion</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Writing Tone
+                        </label>
+                        <select
+                          className="w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          value={generationTone}
+                          onChange={(e) => setGenerationTone(e.target.value)}
+                        >
+                          <option value="professional">Professional</option>
+                          <option value="conversational">Conversational</option>
+                          <option value="authoritative">Authoritative</option>
+                          <option value="friendly">Friendly</option>
+                          <option value="educational">Educational</option>
+                        </select>
+                      </div>
+                      
+                      <div className="flex items-end">
+                        <Button
+                          text={isGeneratingContent ? "Generating..." : "Generate Content"}
+                          className="btn-primary bg-gradient-to-r from-indigo-500 to-purple-600 w-full"
+                          icon="Sparkles"
+                          onClick={generateBlogContent}
+                          disabled={isGeneratingContent || !watch('title')}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Custom Prompt (Optional)
+                      </label>
+                      <textarea
+                        className="w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Add specific instructions for the AI content generation"
+                        rows={2}
+                        value={generationPrompt}
+                        onChange={(e) => setGenerationPrompt(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rich Text Editor */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Content *
+                  </label>
+                  <div
+                    className={`custom-quill${
+                      !content && savingStatus.includes('Content cannot be empty')
+                        ? ' border-2 border-red-300'
+                        : ''
+                    }`}
+                  >
+                    <ReactQuill
+                      theme="snow"
+                      value={content}
+                      onChange={handleContentChange}
+                      modules={quillModules}
+                      className="min-h-[400px]"
+                    />
+                  </div>
+                  {!content && savingStatus.includes('Content cannot be empty') && (
+                    <p className="mt-1 text-sm text-red-600">Content is required</p>
+                  )}
+                </div>
+
+                {/* Status */}
+                <div className="mb-6">
+                  <Select
+                    label="Status"
+                    name="status"
+                    {...register('status')}
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                  </Select>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {activeTab === 'seo' && (
+          <div className="space-y-6">
+            <Card className="overflow-hidden border-0 shadow-xl rounded-xl mb-6">
+              <div className="p-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">SEO Settings</h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <Textinput
+                    label="Meta Title"
+                    name="metaTitle"
+                    placeholder="Meta title for SEO (defaults to blog title if empty)"
+                    helperText="Recommended length: 50-60 characters"
+                    {...register('metaTitle')}
+                  />
+                  
+                  <Textinput
+                    label="Canonical URL"
+                    name="canonicalUrl"
+                    placeholder="https://example.com/blog/canonical-url"
+                    helperText="Optional: Use this to specify the preferred URL for SEO"
+                    {...register('canonicalUrl')}
+                  />
+                </div>
+                
+                <div className="mb-6">
+                  <Textarea
+                    label="Meta Description"
+                    name="metaDescription"
+                    placeholder="Meta description for SEO (defaults to excerpt if empty)"
+                    rows={3}
+                    helperText="Recommended length: 150-160 characters"
+                    {...register('metaDescription')}
+                  />
+                </div>
+                
+                <div className="mb-6">
+                  <Textinput
+                    label="Meta Keywords"
+                    name="metaKeywords"
+                    placeholder="Comma-separated keywords"
+                    {...register('metaKeywords')}
+                  />
+                </div>
+                
+                <div className="mb-6">
+                  <Select
+                    label="Robots Meta Tag"
+                    name="robots"
+                    {...register('robots')}
+                  >
+                    <option value="index, follow">index, follow</option>
+                    <option value="noindex, follow">noindex, follow</option>
+                    <option value="index, nofollow">index, nofollow</option>
+                    <option value="noindex, nofollow">noindex, nofollow</option>
+                  </Select>
+                </div>
+                
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Open Graph Image
+                  </label>
+                  <p className="mb-2 text-xs text-gray-500">
+                    This image will be used when sharing on social media. If not provided, featured image will be used.
+                  </p>
+                  <MediaUpload
+                    file={ogImage}
+                    onDrop={(e) => handleOgImageUpload(e, 'ogImage')}
+                    onRemove={() => handleRemoveOgImage('ogImage', ogImage?.fromMediaLibrary)}
+                    loading={uploadStates['og-image']?.loading}
+                    error={uploadStates['og-image']?.error}
+                    identifier='ogImage'
+                    helperText="Recommended size: 1200x630px"
+                  />
+                </div>
+              </div>
+            </Card>
+            
+            {/* SEO Analysis Dashboard */}
+            <BlogSeoDashboard
+              pageData={getBlogDataForSeo()}
+              content={getPlainTextContent()}
+              onUpdateSuggestions={handleSeoSuggestions}
             />
-            {errors.title && (
-              <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
-            )}
           </div>
+        )}
 
-          {/* Category */}
-          <div className="mb-6">
-            <label className="block mb-2 text-sm font-semibold text-gray-700">Category *</label>
-            <select
-              className={`w-full rounded-lg border-2 ${errors.categoryId ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'} focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none`}
-              {...register('categoryId', { required: 'Category is required' })}
-            >
-              <option value="">Select a category</option>
-              {categories?.map(category => (
-                <option key={category.id} value={category.id.toString()}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            {errors.categoryId && (
-              <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p>
-            )}
+        {activeTab === 'preview' && (
+          <div className="space-y-6">
+            <Card className="overflow-hidden border-0 shadow-xl rounded-xl">
+              <div className="p-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">Blog Preview</h2>
+                
+                <div className="border rounded-lg overflow-hidden">
+                  {featuredImage && (
+                    <div className="aspect-video w-full overflow-hidden">
+                      <img 
+                        src={featuredImage.url} 
+                        alt={watch('title') || 'Blog featured image'} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="p-6">
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                      {watch('title') || 'Blog Title'}
+                    </h1>
+                    
+                    <div className="text-sm text-gray-500 mb-4">
+                      Category: {categories?.find(c => c.id.toString() === watch('categoryId'))?.name || initialData?.category?.name}
+                      {' · '}
+                      Status: <span className={`${watch('status') === 'published' ? 'text-green-600' : 'text-amber-600'}`}>
+                        {watch('status') === 'published' ? 'Published' : 'Draft'}
+                      </span>
+                    </div>
+                    
+                    <div className="text-gray-700 mb-4">
+                      {watch('excerpt') || 'No excerpt provided'}
+                    </div>
+                    
+                    <div className="prose max-w-none border-t pt-4 mt-4">
+                      <div dangerouslySetInnerHTML={{ __html: content }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
           </div>
-
-          {/* Excerpt/Summary */}
-          <div className="mb-6">
-            <label className="block mb-2 text-sm font-semibold text-gray-700">Excerpt/Summary</label>
-            <textarea
-              className="w-full h-24 rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
-              placeholder="Brief summary of the blog (optional)"
-              {...register('excerpt')}
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              If left empty, an excerpt will be generated from the beginning of your content.
-            </p>
-          </div>
-
-          {/* Featured Image */}
-          <div className="mb-6">
-            <label className="block mb-2 text-sm font-semibold text-gray-700">Featured Image</label>
-            <FileUpload
-              file={featuredImage}
-              onDrop={handleFileChange}
-              onRemove={handleRemoveFile}
-              loading={false}
-              error={false}
-              maxSize={5 * 1024 * 1024}
-            />
-            <input type="hidden" {...register('featuredImage')} />
-          </div>
-
-          {/* Rich Text Editor */}
-          <div className="mb-6">
-            <label className="block mb-2 text-sm font-semibold text-gray-700">Content *</label>
-            <div className={`custom-quill${!content && savingStatus.includes('Content cannot be empty') ? ' error' : ''}`}>
-              <ReactQuill
-                theme="snow"
-                value={content}
-                onChange={handleContentChange}
-                modules={quillModules}
-                className="min-h-[300px]"
-              />
-            </div>
-            {!content && savingStatus.includes('Content cannot be empty') && (
-              <p className="mt-1 text-sm text-red-600">Content is required</p>
-            )}
-          </div>
-
-          {/* Status */}
-          <div className="mb-6">
-            <label className="block mb-2 text-sm font-semibold text-gray-700">Status</label>
-            <select
-              className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
-              {...register('status')}
-            >
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-            </select>
-          </div>
-        </div>
-
-        {/* SEO Information Section */}
-        <div className="mb-8 border-t pt-8">
-          <button 
-            type="button" 
-            onClick={() => setShowSeo(!showSeo)}
-            className="flex items-center text-gray-700 font-bold text-xl mb-4"
-          >
-            <span>SEO Settings</span>
-            <svg 
-              className={`w-5 h-5 ml-2 transition-transform ${showSeo ? 'transform rotate-180' : ''}`} 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          
-          {showSeo && (
-            <div className="space-y-6 bg-gray-50 p-6 rounded-lg">
-              {/* Meta Title */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-700">Meta Title</label>
-                <input
-                  type="text"
-                  className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
-                  placeholder="Meta title for SEO (defaults to blog title if empty)"
-                  {...register('metaTitle')}
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Recommended length: 50-60 characters
-                </p>
-              </div>
-              
-              {/* Meta Description */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-700">Meta Description</label>
-                <textarea
-                  className="w-full h-24 rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
-                  placeholder="Meta description for SEO (defaults to excerpt if empty)"
-                  {...register('metaDescription')}
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Recommended length: 150-160 characters
-                </p>
-              </div>
-              
-              {/* Meta Keywords */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-700">Meta Keywords</label>
-                <input
-                  type="text"
-                  className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
-                  placeholder="Comma-separated keywords"
-                  {...register('metaKeywords')}
-                />
-              </div>
-              
-              {/* Canonical URL */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-700">Canonical URL</label>
-                <input
-                  type="text"
-                  className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
-                  placeholder="https://example.com/blog/canonical-url"
-                  {...register('canonicalUrl')}
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Optional: Use this to specify the preferred URL for SEO
-                </p>
-              </div>
-              
-              {/* Robots */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-700">Robots Meta Tag</label>
-                <select
-                  className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
-                  {...register('robots')}
-                >
-                  <option value="index, follow">index, follow</option>
-                  <option value="noindex, follow">noindex, follow</option>
-                  <option value="index, nofollow">index, nofollow</option>
-                  <option value="noindex, nofollow">noindex, nofollow</option>
-                </select>
-              </div>
-              
-              {/* OG Image */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-700">Open Graph Image</label>
-                <p className="mb-2 text-xs text-gray-500">
-                  This image will be used when sharing on social media. If not provided, featured image will be used.
-                </p>
-                <FileUpload
-                  file={ogImage}
-                  onDrop={handleOgImageChange}
-                  onRemove={handleRemoveOgImage}
-                  loading={false}
-                  error={false}
-                  maxSize={5 * 1024 * 1024}
-                />
-                <input type="hidden" {...register('ogImage')} />
-              </div>
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Status message */}
         {savingStatus && (
-          <div className={`mb-6 p-3 rounded ${savingStatus.includes('Error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+          <div
+            className={`mb-6 p-3 rounded ${
+              savingStatus.includes('Error')
+                ? 'bg-red-100 text-red-700'
+                : 'bg-green-100 text-green-700'
+            }`}
+          >
             {savingStatus}
           </div>
         )}
 
         {/* Form Actions */}
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            className="rounded-lg px-5 py-2 font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all"
+        <div className="flex justify-end gap-3 sticky bottom-0 bg-white p-4 border-t border-gray-200 shadow-md rounded-b-lg">
+          <Button
+            text='Cancel'
+            className='btn-outline-dark'
             onClick={() => router.push('/admin/blogs')}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="rounded-lg px-5 py-2 font-semibold bg-primary-500 text-white hover:bg-primary-600 transition-all shadow"
+            type='button'
+          />
+          <Button
+            text={isSubmitting ? 'Saving...' : initialData ? 'Update Blog' : 'Create Blog'}
+            className='btn-primary'
             disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Saving...' : initialData ? 'Update Blog' : 'Create Blog'}
-          </button>
+            type='submit'
+            icon={initialData ? 'Check' : 'Plus'}
+            isLoading={isSubmitting}
+          />
         </div>
       </form>
+
+      {/* AI Content Generation Modal */}
+      {showContentModal && generatedContent && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-auto border border-gray-100 animate-fadeIn">
+            <div className="p-4 border-b bg-gradient-to-r from-indigo-500 to-purple-600 rounded-t-xl flex justify-between items-center">
+              <h3 className="text-lg font-bold text-white flex items-center">
+                <SparklesIcon className="h-5 w-5 mr-2" />
+                AI Generated Content
+              </h3>
+              <button 
+                onClick={() => setShowContentModal(false)}
+                className="text-white hover:text-gray-200 bg-white bg-opacity-20 rounded-full p-1"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 max-h-[50vh] overflow-auto">
+                <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: generatedContent }}></div>
+              </div>
+              
+              <div className="flex justify-end space-x-4">
+                <Button
+                  text="Discard"
+                  className="btn-outline-gray"
+                  onClick={() => setShowContentModal(false)}
+                />
+                <Button
+                  text="Apply Content"
+                  className="btn-primary bg-gradient-to-r from-indigo-500 to-purple-600"
+                  icon="CheckCircle"
+                  onClick={applyGeneratedContent}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

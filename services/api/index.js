@@ -254,9 +254,29 @@ export const analyzeSEO = async (pageData, content) => {
   return data;
 };
 
+// Blog SEO Analysis API
+export const analyzeBlogSEO = async (blogData, content, requestContentSuggestions = false) => {
+  const { data } = await http.post('/analyze-blog', { 
+    blogData, 
+    content,
+    requestContentSuggestions
+  });
+  return data;
+};
+
 export const suggestKeywords = async (params) => {
   // Expect params to include title, description, industry, and metaKeywords
+  // Can also include contentType for more specific suggestions (e.g., 'article', 'product')
   const { data } = await http.post('/suggest-keywords', params);
+  return data;
+};
+
+// Blog Content Suggestions API
+export const getBlogContentSuggestions = async (blogData, content) => {
+  const { data } = await http.post('/blog-content-suggestions', { 
+    blogData, 
+    content 
+  });
   return data;
 };
 
@@ -264,7 +284,7 @@ export const suggestKeywords = async (params) => {
 export const getSiteSettings = async () => {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5-second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     
     const { data } = await http.get('/site-settings', {
       signal: controller.signal,
@@ -272,10 +292,9 @@ export const getSiteSettings = async () => {
     });
     
     clearTimeout(timeoutId);
-    return data.settings || {}; // Return empty object if settings is null/undefined
+    return data.settings || {};
   } catch (error) {
     console.error("Failed to fetch site settings:", error);
-    // Don't throw - return empty object instead
     return {};
   }
 };
@@ -286,6 +305,6 @@ export const updateSiteSettings = async (settingsData) => {
     return data;
   } catch (error) {
     console.error("Failed to update site settings:", error);
-    throw error; // Re-throw for caller to handle
+    throw error;
   }
 };

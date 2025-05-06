@@ -17,8 +17,8 @@ const EditBlogPage = () => {
       <div className="flex justify-between items-center mb-4 px-6 py-4 rounded-lg shadow bg-gradient-to-r from-primary-700 to-primary-500">
         <h2 className="text-xl font-bold text-white drop-shadow">Edit Blog Post</h2>
       </div>
-
-      {isLoading ? (
+      <BlogForm initialData={blog} />
+      {/* {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div className="text-lg font-medium text-gray-700">Loading blog data...</div>
         </div>
@@ -32,7 +32,7 @@ const EditBlogPage = () => {
         <div className="bg-yellow-100 text-yellow-700 p-4 rounded-lg">
           Blog not found
         </div>
-      )}
+      )} */}
     </div>
   );
 };
