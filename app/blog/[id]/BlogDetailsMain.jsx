@@ -73,7 +73,7 @@ const BlogDetails = ({ blog, relatedBlogs, error }) => {
         <div className="max-w-3xl mx-auto">
           <div className="ql-container">
             <div 
-              className="ql-editor blog-content mb-6 leading-loose text-pgray-400"
+              className="ql-editor blog-content mb-6 leading-loose text-pgay-40"
               dangerouslySetInnerHTML={{ __html: blog.content }}
             />
           </div>

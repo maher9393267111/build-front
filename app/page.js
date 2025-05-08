@@ -14,6 +14,7 @@ export async function generateMetadata() {
       const iconsData = iconUrl ? {
           icon: [{ url: iconUrl }], // Use for standard favicon
           apple: [{ url: iconUrl }], // Use for Apple touch icon
+          shortcut: [{ url: iconUrl }], // Add shortcut icon
         } : undefined;
       
       // Optimize title - make it shorter (under 60 chars ideal for SEO)
@@ -24,7 +25,7 @@ export async function generateMetadata() {
       }
       
       // Optimize description - make it shorter (under 160 chars ideal for SEO)
-      let description = page.description || "Looking for reliable builders in South Wales? Let’s Build specialises in home extensions, renovations, and new builds with quality workmanship and local trust.";
+      let description = page.description || "Looking for affordable boiler installation and heat pumps in South Wales? Let's Build specialises in home extensions, renovations, and heating solutions with quality workmanship and local trust.";
       if (description.length > 160) {
         description = description.substring(0, 157) + "...";
       }
@@ -33,7 +34,7 @@ export async function generateMetadata() {
         metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://letsbuildsw.co.uk'),
         title: title,
         description: description,
-        keywords: page.metaKeywords || 'home extensions south wales, home renovations south wales, new builds south wales, house builders south wales, home construction south wales',
+        keywords: page.metaKeywords || 'affordable boiler installation south wales, heat pumps south wales, heating services south wales, home renovations south wales, energy efficient heating south wales',
         openGraph: iconUrl ? {
           images: [{ url: iconUrl }],
           title: title,
@@ -56,8 +57,8 @@ export async function generateMetadata() {
     } catch (error) {
       console.error('Error generating metadata:', error);
       return {
-        title: "Let's Build - Heating & AC Specialists in South Wales",
-        description: "Expert boiler installation, heat pumps, and air conditioning services across South Wales. Quality work & free quotes."
+        title: "Let's Build - Affordable Boiler Installation & Heat Pumps in South Wales",
+        description: "Expert affordable boiler installation, heat pumps, and air conditioning services across South Wales. Quality workmanship & free quotes."
       };
     }
   }

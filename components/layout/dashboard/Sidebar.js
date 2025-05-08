@@ -71,7 +71,33 @@ function Sidebar({ isServiceProvider, isToggled, toggleTrueFalse }) {
             name: "Settings",
             path: "settings",
             icon: <><Icon.CogIcon /></>
-        }
+        },
+
+        //forms
+        {
+            name: "Forms",
+            path: "forms",
+            icon: <><Icon.DocumentTextIcon /></>
+        },
+
+
+        //contact settings
+        // {
+        //     name: "Contact Settings",
+        //     path: "contact-settings",
+        //     icon: <><Icon.EnvelopeIcon /></>
+        // },
+        
+
+        // {
+        //     name: "Contact Customers",
+        //     path: "contact-customers",
+        //     icon: <><Icon.EnvelopeIcon /></>
+        // },
+  
+      
+        
+
     ]
 
     const serviceProviderLinks = [

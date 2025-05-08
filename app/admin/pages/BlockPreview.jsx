@@ -1053,6 +1053,56 @@ switch (block.type) {
       </div>
     );
 
+  case "form":
+    return (
+      <div className={`py-16 ${block.content?.showBackground ? 'bg-gray-50' : 'bg-white'}`}
+        style={{
+          backgroundColor: block.content?.showBackground ? block.content?.backgroundColor || "#f3f4f6" : undefined
+        }}
+      >
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto mb-10 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 relative inline-block pb-4">
+              {block.content?.sectionTitle || "Form"}
+              <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-1 bg-primary-500 rounded-full"></span>
+            </h2>
+            
+            {block.content?.description && (
+              <p className="text-gray-600 mt-2 max-w-2xl mx-auto">
+                {block.content.description}
+              </p>
+            )}
+          </div>
+          
+          <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-sm overflow-hidden p-6 border border-gray-100">
+            <div className="text-center p-6 bg-gray-50 border border-dashed border-gray-300 rounded-lg mb-4">
+              <Icon icon="ClipboardDocumentList" className="h-10 w-10 mx-auto text-gray-400 mb-2" />
+              <p className="text-gray-500 font-medium">
+                {block.content?.formId 
+                  ? `Selected Form ID: ${block.content.formId}` 
+                  : "Please select a form to display"}
+              </p>
+              <p className="text-sm text-gray-400 mt-1">
+                (The actual form will display here on the published page)
+              </p>
+            </div>
+            
+            <div className="flex justify-center">
+              <button
+                className="px-6 py-2 rounded-lg font-medium shadow-sm"
+                style={{
+                  backgroundColor: block.content?.buttonColor || "#2563eb",
+                  color: "#ffffff"
+                }}
+              >
+                {block.content?.buttonText || "Submit"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+
   default:
     return (
       <div className="p-6 border rounded bg-gray-50">

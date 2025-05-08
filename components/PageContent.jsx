@@ -1,11 +1,12 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Disclosure, Transition } from '@headlessui/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import Icon from '@components/ui/Icon';
-
+import DynamicForm from '@components/DynamicForm';
+import { getFormById, submitForm } from '@services/api';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -1102,6 +1103,145 @@ function renderBlock(block, blockIndex) {
           </div>
         </div>
       );
+  
+    // case "form": {
+    //   const [form, setForm] = useState(null);
+    //   const [loading, setLoading] = useState(true);
+    //   const [submitted, setSubmitted] = useState(false);
+    //   const [error, setError] = useState(null);
+      
+    //   useEffect(() => {
+    //     const fetchForm = async () => {
+    //       if (!block.content?.formId) {
+    //         setLoading(false);
+    //         setError("No form selected");
+    //         return;
+    //       }
+          
+    //       try {
+    //         setLoading(true);
+    //         const formData = await getFormById(block.content.formId);
+    //         setForm(formData);
+    //         setError(null);
+    //       } catch (err) {
+    //         console.error("Error fetching form:", err);
+    //         setError("Could not load the form. Please try again later.");
+    //       } finally {
+    //         setLoading(false);
+    //       }
+    //     };
+        
+    //     fetchForm();
+    //   }, [block.content?.formId]);
+      
+    //   const handleSubmitSuccess = () => {
+    //     setSubmitted(true);
+    //     // Scroll to top of form
+    //     const formElement = document.getElementById(`form-block-${blockIndex}`);
+    //     if (formElement) {
+    //       formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    //     }
+    //   };
+      
+    //   return (
+    //     <div 
+    //       id={`form-block-${blockIndex}`} 
+    //       className={`py-16 ${block.content?.showBackground ? 'bg-gray-50' : 'bg-white'}`}
+    //       style={{
+    //         backgroundColor: block.content?.showBackground ? block.content?.backgroundColor || "#f3f4f6" : undefined
+    //       }}
+    //     >
+    //       <div className="container mx-auto px-4">
+    //         <div className="ma-w-3xl mx-auto mb-12 text-center">
+    //           <h2 className="text-3xl md:text-4xl font-bold mb-6 relative inline-block pb-4">
+    //             {block.content?.sectionTitle || (form?.name || "Form")}
+    //             <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-1 bg-primary-500 rounded-full"></span>
+    //           </h2>
+              
+    //           {block.content?.description && (
+    //             <p className="text-gray-600 mt-2 max-w-2xl mx-auto text-lg">
+    //               {block.content.description}
+    //             </p>
+    //           )}
+    //         </div>
+
+    //         {/* FORM CARD */}
+            
+    //         <div className="max-w-2xl mx-auto">
+    //           {submitted ? (
+    //             <div className="bg-green-50 border-l-4 border-green-400 rounded-lg p-6 text-left shadow-md">
+    //               <div className="flex">
+    //                 <div className="flex-shrink-0">
+    //                   <Icon icon="CheckCircle" className="h-6 w-6 text-green-500" />
+    //                 </div>
+    //                 <div className="ml-3">
+    //                   <h3 className="text-lg font-semibold text-green-800 mb-1">
+    //                     Submission Successful!
+    //                   </h3>
+    //                   <p className="text-md text-green-700">
+    //                     {block.content?.successMessage || form?.successMessage || "Thank you for your submission! We'll get back to you soon."}
+    //                   </p>
+    //                   <button
+    //                     onClick={() => {
+    //                       setSubmitted(false);
+    //                       // Potentially reset form state in DynamicForm if needed, though DynamicForm handles its own reset on success
+    //                     }}
+    //                     className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+    //                   >
+    //                     Submit Another Response
+    //                   </button>
+    //                 </div>
+    //               </div>
+    //             </div>
+    //           ) : loading ? (
+    //             <div className="text-center p-10 flex flex-col items-center justify-center min-h-[300px]">
+    //               <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary-600 mb-4"></div>
+    //               <p className="mt-2 text-gray-500 text-lg">Loading form...</p>
+    //             </div>
+    //           ) : error ? (
+    //             <div className="bg-red-50 border-l-4 border-red-400 rounded-lg p-6 text-left shadow-md">
+    //               <div className="flex">
+    //                 <div className="flex-shrink-0">
+    //                  <Icon icon="AlertTriangle" className="h-6 w-6 text-red-500" />
+    //                 </div>
+    //                 <div className="ml-3">
+    //                   <h3 className="text-lg font-semibold text-red-800 mb-1">
+    //                     Form Error
+    //                   </h3>
+    //                   <p className="text-md text-red-700">{error}</p>
+    //                   {/* Optionally add a retry button */}
+    //                 </div>
+    //               </div>
+    //             </div>
+    //           ) : form ? (
+    //             <div className="bg-white rounded-xl shadow-xl overflow-hidden p-6 md:p-8 border border-gray-100">
+    //               <DynamicForm 
+    //                 form={form} 
+    //                 onSubmitSuccess={handleSubmitSuccess}
+    //                 customButtonText={block.content?.buttonText || form.submitButtonText || "Submit"}
+    //                 customButtonColor={block.content?.buttonColor || form.submitButtonColor || "#2563eb"}
+    //               />
+    //             </div>
+    //           ) : (
+    //             <div className="bg-yellow-50 border-l-4 border-yellow-400 rounded-lg p-6 text-left shadow-md">
+    //                <div className="flex">
+    //                 <div className="flex-shrink-0">
+    //                  <Icon icon="Info" className="h-6 w-6 text-yellow-500" />
+    //                 </div>
+    //                 <div className="ml-3">
+    //                   <h3 className="text-lg font-semibold text-yellow-800 mb-1">
+    //                     Form Not Available
+    //                   </h3>
+    //                   <p className="text-md text-yellow-700">No form has been selected or it could not be loaded.</p>
+    //                 </div>
+    //               </div>
+    //             </div>
+    //           )}
+    //         </div>
+    //       </div>
+    //     </div>
+    //   );
+    // }
   
     default:
       return (

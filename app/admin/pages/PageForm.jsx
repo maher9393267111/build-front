@@ -353,6 +353,7 @@ const PageForm = ({ id }) => {
     { value: "video", label: "Video Block" },
     { value: "partners", label: "Partners" },
     { value: "customers", label: "Customers" },
+    // { value: "form", label: "Form Block" },
   ];
 
   const getTemplateOptions = () => {
@@ -3902,6 +3903,205 @@ const PageForm = ({ id }) => {
                                                     icon="Plus"
                                                     type="button"
                                                   />
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            {block.type === "form" && (
+                                              <div className="space-y-3">
+                                                <Textinput
+                                                  label="Section Title"
+                                                  value={block.content?.sectionTitle || ""}
+                                                  onChange={(e) =>
+                                                    handleBlockContentChange(
+                                                      index,
+                                                      "sectionTitle",
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  placeholder="Contact Us"
+                                                />
+                                                
+                                                <Textarea
+                                                  label="Section Description"
+                                                  value={block.content?.description || ""}
+                                                  onChange={(e) =>
+                                                    handleBlockContentChange(
+                                                      index,
+                                                      "description",
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  rows={3}
+                                                  placeholder="Fill out the form below to get in touch with us"
+                                                />
+                                                
+                                                <div>
+                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                    Select Form
+                                                  </label>
+                                                  <Select
+                                                    value={block.content?.formId || ""}
+                                                    onChange={(e) =>
+                                                      handleBlockContentChange(
+                                                        index,
+                                                        "formId",
+                                                        e.target.value ? parseInt(e.target.value) : null
+                                                      )
+                                                    }
+                                                    options={[
+                                                      { value: "", label: "- Select a form -" },
+                                                      ...(block._forms || []).map((form) => ({
+                                                        value: form.id.toString(),
+                                                        label: form.title,
+                                                      }))
+                                                    ]}
+                                                  />
+                                                  <button
+                                                    type="button"
+                                                    className="mt-2 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                                                    onClick={async () => {
+                                                      try {
+                                                        const { data } = await http.get('/forms/published');
+                                                        const updatedBlocks = [...formData.blocks];
+                                                        updatedBlocks[index] = { 
+                                                          ...updatedBlocks[index], 
+                                                          _forms: data || [] 
+                                                        };
+                                                        setFormData((prev) => ({ ...prev, blocks: updatedBlocks }));
+                                                        toast.success("Forms loaded successfully");
+                                                      } catch (error) {
+                                                        console.error("Error loading forms:", error);
+                                                        toast.error("Failed to load forms");
+                                                      }
+                                                    }}
+                                                  >
+                                                    <Icon icon="ArrowPath" className="h-4 w-4 mr-1" />
+                                                    Load Forms
+                                                  </button>
+                                                </div>
+                                                
+                                                <div>
+                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                    Submit Button Text
+                                                  </label>
+                                                  <Textinput
+                                                    value={block.content?.buttonText || ""}
+                                                    onChange={(e) =>
+                                                      handleBlockContentChange(
+                                                        index,
+                                                        "buttonText",
+                                                        e.target.value
+                                                      )
+                                                    }
+                                                    placeholder="Submit"
+                                                  />
+                                                </div>
+                                                
+                                                <div>
+                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                    Button Color
+                                                  </label>
+                                                  <div className="flex items-center">
+                                                    <input
+                                                      type="color"
+                                                      value={block.content?.buttonColor || "#2563eb"}
+                                                      onChange={(e) =>
+                                                        handleBlockContentChange(
+                                                          index,
+                                                          "buttonColor",
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                      className="h-9 w-16 p-1 border rounded mr-2"
+                                                    />
+                                                    <Textinput
+                                                      value={block.content?.buttonColor || "#2563eb"}
+                                                      onChange={(e) =>
+                                                        handleBlockContentChange(
+                                                          index,
+                                                          "buttonColor",
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                      placeholder="#2563eb"
+                                                    />
+                                                  </div>
+                                                </div>
+                                                
+                                                <div>
+                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                    Success Message
+                                                  </label>
+                                                  <Textarea
+                                                    value={block.content?.successMessage || ""}
+                                                    onChange={(e) =>
+                                                      handleBlockContentChange(
+                                                        index,
+                                                        "successMessage",
+                                                        e.target.value
+                                                      )
+                                                    }
+                                                    rows={2}
+                                                    placeholder="Thank you for your submission! We'll get back to you soon."
+                                                  />
+                                                </div>
+
+                                                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                                  <div className="flex items-center mb-2">
+                                                    <input
+                                                      type="checkbox"
+                                                      className="h-4 w-4 text-primary-600 border-gray-300 rounded mr-2"
+                                                      checked={block.content?.showBackground || false}
+                                                      onChange={(e) =>
+                                                        handleBlockContentChange(
+                                                          index,
+                                                          "showBackground",
+                                                          e.target.checked
+                                                        )
+                                                      }
+                                                      id={`show-bg-${index}`}
+                                                    />
+                                                    <label
+                                                      htmlFor={`show-bg-${index}`}
+                                                      className="text-sm text-gray-700"
+                                                    >
+                                                      Show Background
+                                                    </label>
+                                                  </div>
+                                                  
+                                                  {block.content?.showBackground && (
+                                                    <div>
+                                                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                        Background Color
+                                                      </label>
+                                                      <div className="flex items-center">
+                                                        <input
+                                                          type="color"
+                                                          value={block.content?.backgroundColor || "#f3f4f6"}
+                                                          onChange={(e) =>
+                                                            handleBlockContentChange(
+                                                              index,
+                                                              "backgroundColor",
+                                                              e.target.value
+                                                            )
+                                                          }
+                                                          className="h-9 w-16 p-1 border rounded mr-2"
+                                                        />
+                                                        <Textinput
+                                                          value={block.content?.backgroundColor || "#f3f4f6"}
+                                                          onChange={(e) =>
+                                                            handleBlockContentChange(
+                                                              index,
+                                                              "backgroundColor",
+                                                              e.target.value
+                                                            )
+                                                          }
+                                                          placeholder="#f3f4f6"
+                                                        />
+                                                      </div>
+                                                    </div>
+                                                  )}
                                                 </div>
                                               </div>
                                             )}

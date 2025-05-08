@@ -29,19 +29,34 @@ const Table = ({ columns = [], data = [] }) => {
           ) : (
             data.map((row, rowIndex) => (
               <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                {columns.map((column, colIndex) => (
-                  <td key={colIndex} className="px-6 py-4 whitespace-nowrap">
-                    {column.Cell ? (
-                      column.Cell({ 
-                        value: column.accessor ? row[column.accessor] : undefined, 
-                        row: row,
-                        rowIndex: rowIndex 
-                      })
-                    ) : (
-                      <div className="text-sm text-gray-900">{row[column.accessor]}</div>
-                    )}
-                  </td>
-                ))}
+                {columns.map((column, colIndex) => {
+                  let cellValue;
+                  if (column.accessor) {
+                    if (typeof column.accessor === 'function') {
+                      cellValue = column.accessor(row, rowIndex);
+                    } else {
+                      cellValue = row[column.accessor];
+                    }
+                  } else {
+                    cellValue = undefined; // Or handle as needed if no accessor
+                  }
+
+                  return (
+                    <td key={colIndex} className="px-6 py-4 whitespace-nowrap">
+                      {column.Cell ? (
+                        column.Cell({ 
+                          value: cellValue, 
+                          row: row,
+                          rowIndex: rowIndex 
+                        })
+                      ) : (
+                        <div className="text-sm text-gray-900">
+                          {typeof cellValue === 'object' && cellValue !== null ? JSON.stringify(cellValue) : cellValue}
+                        </div>
+                      )}
+                    </td>
+                  );
+                })}
               </tr>
             ))
           )}

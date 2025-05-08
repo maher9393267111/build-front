@@ -61,6 +61,63 @@ export const deletePage = async (id) => {
   return data;
 };
 
+// Forms API endpoints
+export const getAllForms = async (params) => {
+  const { data } = await http.get('/forms', { params });
+  return data;
+};
+
+export const getFormById = async (id, token) => {
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const { data } = await http.get(`/forms/${id}`, { headers });
+  return data;
+};
+
+export const getFormBySlug = async (slug) => {
+  const { data } = await http.get(`/forms/by-slug/${slug}`);
+  return data;
+};
+
+export const getPublishedForms = async () => {
+  const { data } = await http.get('/forms/published');
+  return data;
+};
+
+export const createForm = async (formData) => {
+  const { data } = await http.post('/forms', formData);
+  return data;
+};
+
+export const updateForm = async (id, formData) => {
+  const { data } = await http.put(`/forms/${id}`, formData);
+  return data;
+};
+
+export const deleteForm = async (id) => {
+  const { data } = await http.delete(`/forms/${id}`);
+  return data;
+};
+
+export const submitForm = async (formId, formData) => {
+  const { data } = await http.post(`/forms/${formId}/submit`, formData);
+  return data;
+};
+
+export const getFormSubmissions = async (formId, params) => {
+  const { data } = await http.get(`/forms/${formId}/submissions`, { params });
+  return data;
+};
+
+export const getFormSubmission = async (formId, submissionId) => {
+  const { data } = await http.get(`/forms/${formId}/submissions/${submissionId}`);
+  return data;
+};
+
+export const updateFormSubmissionStatus = async (formId, submissionId, status) => {
+  const { data } = await http.put(`/forms/${formId}/submissions/${submissionId}/status`, { status });
+  return data;
+};
+
 // Blocks API endpoints
 export const getAllBlocks = async (params) => {
   const { data } = await http.get('/blocks', { params });
@@ -163,6 +220,14 @@ export const deleteFile = async (fileName, skipMediaCheck = false) => {
   const { data } = await http.delete(`/deletefile?fileName=${fileName}&skipMediaCheck=${skipMediaCheck}`);
   return data;
 };
+
+export const deleteFileNormal = async (fileName) => {
+  const { data } = await http.delete(`/deletefile-normal?fileName=${fileName}`);
+  return data;
+};
+
+
+
 
 // --------
 // Blog Category APIs
@@ -308,3 +373,10 @@ export const updateSiteSettings = async (settingsData) => {
     throw error;
   }
 };
+
+
+export const deleteFormSubmission = async (formId, submissionId) => {
+  const { data } = await http.delete(`/forms/${formId}/submissions/${submissionId}`);
+  return data;
+};
+
