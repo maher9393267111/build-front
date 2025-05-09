@@ -527,20 +527,11 @@ const DynamicForm = ({ form, onSubmitSuccess, customButtonText, customButtonColo
                   const optionValue = typeof option === 'object' ? option.value : option;
                   const optionLabel = typeof option === 'object' ? option.label : option;
                   
-                  const currentValues = Array.isArray(formData[field.id]) 
-                    ? formData[field.id] 
-                    : formData[field.id] ? [formData[field.id]] : [];
-                  
-                  const isChecked = currentValues.includes(optionValue);
+                  const isChecked = formData[field.id] === optionValue;
                   
                   const handleCheckboxChange = () => {
-                    let newValues;
-                    if (isChecked) {
-                      newValues = currentValues.filter(v => v !== optionValue);
-                    } else {
-                      newValues = [...currentValues, optionValue];
-                    }
-                    handleChange(field.id, newValues);
+                    // Only store the single selected value
+                    handleChange(field.id, optionValue);
                   };
                   
                   return (
@@ -825,7 +816,7 @@ const DynamicForm = ({ form, onSubmitSuccess, customButtonText, customButtonColo
                         alt={optionObj.label || ''}
                         className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300"
                       />
-                      {JSON.stringify(optionObj.isEnd ? 'true' : 'false')}
+                      {/* {JSON.stringify(optionObj.isEnd ? 'true' : 'false')} */}
                     </div>
                   )}
                   <h4 className={`text-sm font-medium ${isSelected ? 'font-semibold' : ''}`}>

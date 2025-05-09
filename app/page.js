@@ -2,15 +2,16 @@
 export const revalidate = 0;
 
 import PageContent from "../components/PageContent";
-import { getMainPage } from "@services/api";
+import { getMainPage, getSiteSettings } from "@services/api";
 import Layout from "@components/layout/landing/Layout";
 
 export async function generateMetadata() {
     try {
       const page = await getMainPage();
+      const settings = await getSiteSettings();
   
       // Prepare icon data if ogImage exists
-      const iconUrl = page.ogImage?.url; 
+      const iconUrl = page.ogImage?.url || settings?.ogImage?.url; 
       const iconsData = iconUrl ? {
           icon: [{ url: iconUrl }], // Use for standard favicon
           apple: [{ url: iconUrl }], // Use for Apple touch icon
@@ -32,15 +33,25 @@ export async function generateMetadata() {
   
       const metadata = {
         metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://letsbuildsw.co.uk'),
-        title: title,
-        description: description,
-        keywords: page.metaKeywords || 'affordable boiler installation south wales, heat pumps south wales, heating services south wales, home renovations south wales, energy efficient heating south wales',
-        openGraph: iconUrl ? {
-          images: [{ url: iconUrl }],
-          title: title,
-          description: description.substring(0, 160), // Ensure OG description is also truncated
-        } : undefined,
+        title: title || settings.title,
+        description: description || settings.metaDescription ,
+        keywords: page.metaKeywords || settings.metaKeywords || 'affordable boiler installation south wales, heat pumps south wales, heating services south wales, home renovations south wales, energy efficient heating south wales',
+        openGraph: {
+          ...(iconUrl ? { images: [{ url: iconUrl }] } : settings?.ogImage ? { images: [{ url: settings.ogImage.url }] } : {}),
+          title: title || settings.title,
+          description: description.substring(0, 160) || settings.metaDescription,
+          ...(settings?.socialLinks && {
+            facebook: settings.socialLinks.facebook,
+            twitter: settings.socialLinks.twitter,
+            instagram: settings.socialLinks.instagram,
+            linkedin: settings.socialLinks.linkedin,
+            youtube: settings.socialLinks.youtube,
+          }),
+        },
         icons: iconsData,
+        other: {
+          social: settings?.socialLinks || {},
+        },
       };
   
       // Add canonical URL if available

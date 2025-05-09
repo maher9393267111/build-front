@@ -222,7 +222,16 @@ export default function SettigsPage() {
         textColor: '#374151',
         iconColor: '#4f46e5'
       },
-      linksInfo: []
+      linksInfo: [],
+      contactSection: {
+        phones: [{ number: '' }],
+        emails: [{ address: '' }],
+        siteMapUrl: '',
+        adminEmail: '',
+        address: '',
+        workingHours: '',
+        googleMapsEmbed: ''
+      }
     }
   });
 
@@ -241,6 +250,17 @@ export default function SettigsPage() {
   const watchedPrimaryColor = watch('primaryColor');
   const watchedNavTextColor = watch('navTitles.textColor');
   const watchedNavIconColor = watch('navTitles.iconColor');
+
+  // Add field arrays for phones and emails
+  const phonesArray = useFieldArray({
+    control,
+    name: "contactSection.phones"
+  });
+
+  const emailsArray = useFieldArray({
+    control,
+    name: "contactSection.emails"
+  });
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -276,7 +296,16 @@ export default function SettigsPage() {
             textColor: data.navTitles?.textColor?.startsWith('#') ? data.navTitles.textColor : '#374151',
             iconColor: data.navTitles?.iconColor?.startsWith('#') ? data.navTitles.iconColor : '#4f46e5',
           },
-          linksInfo: data.linksInfo || []
+          linksInfo: data.linksInfo || [],
+          contactSection: data.contactSection || {
+            phones: [{ number: '' }],
+            emails: [{ address: '' }],
+            siteMapUrl: '',
+            adminEmail: '',
+            address: '',
+            workingHours: '',
+            googleMapsEmbed: ''
+          }
         };
         
         reset(resetData);
@@ -409,6 +438,7 @@ export default function SettigsPage() {
     { name: 'Footer', icon: <DocumentTextIcon className="w-5 h-5" /> },
     { name: 'Nav Titles', icon: <ArrowsUpDownIcon className="w-5 h-5" /> },
     { name: 'Links Info', icon: <LinkIcon className="w-5 h-5" /> },
+    { name: 'Contact', icon: <PhoneIcon className="w-5 h-5" /> },
     { name: 'Scripts', icon: <CodeBracketIcon className="w-5 h-5" /> },
   ];
 
@@ -931,6 +961,157 @@ export default function SettigsPage() {
                 setValue={setValue}
                 errors={errors}
               />
+            </Tab.Panel>
+            
+            {/* Contact Settings */}
+            <Tab.Panel className="bg-white rounded-lg p-2 md:p-4">
+              <div className="space-y-4 md:space-y-6">
+                {/* Phones Section */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-md font-semibold text-gray-800">Phone Numbers</h3>
+                    <button
+                      type="button"
+                      onClick={() => phonesArray.append({ number: '' })}
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md bg-primary-50 text-primary-600 hover:bg-primary-100"
+                    >
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      Add Phone
+                    </button>
+                  </div>
+                  
+                  {phonesArray.fields.map((field, index) => (
+                    <div key={field.id} className="flex items-center space-x-2">
+                      <div className="flex-1">
+                        <label className="block mb-2 text-sm font-semibold text-gray-700">
+                          Phone #{index + 1}
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                          placeholder="+1 (123) 456-7890"
+                          {...register(`contactSection.phones.${index}.number`)}
+                        />
+                      </div>
+                      {phonesArray.fields.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => phonesArray.remove(index)}
+                          className="mt-7 p-2 rounded-full hover:bg-red-100 text-red-500"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Emails Section */}
+                <div className="space-y-3 pt-4 border-t">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-md font-semibold text-gray-800">Email Addresses</h3>
+                    <button
+                      type="button"
+                      onClick={() => emailsArray.append({ address: '' })}
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md bg-primary-50 text-primary-600 hover:bg-primary-100"
+                    >
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      Add Email
+                    </button>
+                  </div>
+                  
+                  {emailsArray.fields.map((field, index) => (
+                    <div key={field.id} className="flex items-center space-x-2">
+                      <div className="flex-1">
+                        <label className="block mb-2 text-sm font-semibold text-gray-700">
+                          Email #{index + 1}
+                        </label>
+                        <input
+                          type="email"
+                          className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                          placeholder="contact@example.com"
+                          {...register(`contactSection.emails.${index}.address`)}
+                        />
+                      </div>
+                      {emailsArray.fields.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => emailsArray.remove(index)}
+                          className="mt-7 p-2 rounded-full hover:bg-red-100 text-red-500"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Admin Email */}
+                <div className="pt-4 border-t">
+                  <label className="block mb-2 text-sm font-semibold text-gray-700">
+                    Admin Email (for receiving messages)
+                  </label>
+                  <input
+                    type="email"
+                    className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                    placeholder="admin@example.com"
+                    {...register('contactSection.adminEmail')}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">This email will receive form submissions and contact messages.</p>
+                </div>
+                
+                {/* Site Map URL */}
+                <div>
+                  <label className="block mb-2 text-sm font-semibold text-gray-700">
+                    Site Map URL
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                    placeholder="https://example.com/sitemap.xml"
+                    {...register('contactSection.siteMapUrl')}
+                  />
+                </div>
+                
+                {/* Physical Address */}
+                <div>
+                  <label className="block mb-2 text-sm font-semibold text-gray-700">
+                    Physical Address
+                  </label>
+                  <textarea
+                    className="w-full h-24 rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                    placeholder="123 Business Street, City, State, ZIP"
+                    {...register('contactSection.address')}
+                  ></textarea>
+                </div>
+                
+                {/* Working Hours */}
+                <div>
+                  <label className="block mb-2 text-sm font-semibold text-gray-700">
+                    Working Hours
+                  </label>
+                  <textarea
+                    className="w-full h-24 rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                    placeholder="Monday-Friday: 9:00 AM - 5:00 PM&#10;Saturday: 10:00 AM - 2:00 PM&#10;Sunday: Closed"
+                    {...register('contactSection.workingHours')}
+                  ></textarea>
+                </div>
+                
+                {/* Google Maps Embed */}
+                <div>
+                  <label className="block mb-2 text-sm font-semibold text-gray-700">
+                    Google Maps Embed Code
+                  </label>
+                  <textarea
+                    className="w-full h-24 rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none font-mono text-sm"
+                    placeholder="<iframe src='https://maps.google.com/...'></iframe>"
+                    {...register('contactSection.googleMapsEmbed')}
+                  ></textarea>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Paste the embed code from Google Maps to show your location on the contact page.
+                  </p>
+                </div>
+              </div>
             </Tab.Panel>
             
             {/* Custom Scripts */}

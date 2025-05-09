@@ -111,15 +111,15 @@ const AdminFormsMain = ({ initialForms, initialTotalPages, initialCurrentPage })
         </span>
       ),
     },
-    // {
-    //   Header: 'Submissions',
-    //   accessor: '_count.submissions',
-    //   Cell: ({ value }) => (
-    //     <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-    //       {value} {value === 1 ? 'submission' : 'submissions'}
-    //     </span>
-    //   ),
-    // },
+    {
+      Header: 'Submissions',
+      accessor: '_count.submissions',
+      Cell: ({ value }) => (
+        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+          {value} {value === 1 ? 'submission' : 'submissions'}
+        </span>
+      ),
+    },
     {
       Header: 'Status',
       accessor: 'status',
@@ -153,23 +153,23 @@ const AdminFormsMain = ({ initialForms, initialTotalPages, initialCurrentPage })
           >
             <Icon icon="PencilSquare" className="h-5 w-5" />
           </button>
-          {/* <button
+          <button
             className="p-2 bg-indigo-50 text-indigo-500 rounded-lg hover:bg-indigo-100"
             type="button"
             onClick={() => handlePreview(row.id)}
           >
             <Icon icon="Eye" className="h-5 w-5" />
-          </button> */}
+          </button>
 
 
           
-          {/* <button
+          <button
             className="p-2 bg-green-50 text-green-500 rounded-lg hover:bg-green-100"
             type="button"
             onClick={() => handleViewSubmissions(row.id)}
           >
             <Icon icon="ClipboardDocumentCheck" className="h-5 w-5" />
-          </button> */}
+          </button>
           <button
             className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100"
             type="button"

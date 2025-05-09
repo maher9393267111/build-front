@@ -76,6 +76,7 @@ const PageForm = ({ id }) => {
     show: false,
     blockIndex: null,
   });
+  const [publishedForms, setPublishedForms] = useState([]); // Added state for published forms
 
   const [formData, setFormData] = useState({
     title: "",
@@ -94,63 +95,91 @@ const PageForm = ({ id }) => {
   useEffect(() => {
     // loadBlockTemplates();
     if (isEditMode) {
+      // loadPage will be called by the next useEffect hook once publishedForms are ready
+    }
+  }, [id]); // Removed loadPage call from here, will be handled by the effect below
+
+  // Effect to fetch forms ONCE on mount
+  useEffect(() => {
+    const fetchForms = async () => {
+      try {
+        console.log("Attempting to fetch published forms...");
+        const { data } = await http.get("/forms/published");
+        setPublishedForms(data || []);
+        console.log("Fetched published forms successfully:", data);
+      } catch (error) {
+        console.error("Error loading published forms on init:", error);
+        toast.error("Failed to load available forms for block selection");
+        setPublishedForms([]); // Ensure it's an array on error
+      }
+    };
+    fetchForms();
+  }, []); // Empty dependency array: runs only on mount
+
+  // Effect to load page data when in edit mode, reacts to publishedForms update
+  useEffect(() => {
+    // loadBlockTemplates(); // This is commented out in original code
+    if (isEditMode) {
+      // This ensures loadPage runs when id, isEditMode, or publishedForms change.
+      // If publishedForms are fetched after the initial render, loadPage will re-run with them.
+      // console.log("useEffect for loadPage triggered. isEditMode:", isEditMode, "ID:", id, "publishedForms count:", publishedForms.length);
       loadPage();
     }
-  }, [id]);
+  }, [id, isEditMode, publishedForms]);
 
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [activeTab, setActiveTab] = useState("page"); // 'page' or 'block' or 'seo'
-  
+
   // Function to handle SEO suggestions
   const handleSeoSuggestions = (seoData) => {
     if (!seoData) return;
-    
+
     // Handle applied suggestions
     if (seoData.applySuggestion) {
       // Prevent any form submission
       if (seoData.preventDefault) {
         seoData.preventDefault();
       }
-      
+
       const { type, value } = seoData;
-      
+
       // Apply the suggestion based on type
-      switch(type) {
-        case 'title':
-          setFormData(prev => ({ ...prev, metaTitle: value }));
-          toast.success('Title suggestion applied successfully');
+      switch (type) {
+        case "title":
+          setFormData((prev) => ({ ...prev, metaTitle: value }));
+          toast.success("Title suggestion applied successfully");
           break;
-        case 'metaDescription':
-          setFormData(prev => ({ ...prev, description: value }));
-          toast.success('Meta description suggestion applied successfully');
+        case "metaDescription":
+          setFormData((prev) => ({ ...prev, description: value }));
+          toast.success("Meta description suggestion applied successfully");
           break;
-        case 'keywords':
-          setFormData(prev => ({ ...prev, metaKeywords: value }));
-          toast.success('Keywords applied successfully');
+        case "keywords":
+          setFormData((prev) => ({ ...prev, metaKeywords: value }));
+          toast.success("Keywords applied successfully");
           break;
         default:
           break;
       }
       return;
     }
-    
+
     // Update formData with SEO suggestions if they exist
     const updates = {};
-    
+
     if (seoData.titleSuggestion && !formData.metaTitle) {
       updates.metaTitle = seoData.titleSuggestion;
     }
-    
+
     if (seoData.metaDescriptionSuggestion && !formData.description) {
       updates.description = seoData.metaDescriptionSuggestion;
     }
-    
+
     if (seoData.recommendedKeywords?.length > 0 && !formData.metaKeywords) {
-      updates.metaKeywords = seoData.recommendedKeywords.join(', ');
+      updates.metaKeywords = seoData.recommendedKeywords.join(", ");
     }
-    
+
     if (Object.keys(updates).length > 0) {
-      setFormData(prev => ({ ...prev, ...updates }));
+      setFormData((prev) => ({ ...prev, ...updates }));
       toast.info("SEO suggestions applied to your page metadata.");
     }
   };
@@ -180,24 +209,36 @@ const PageForm = ({ id }) => {
 
   const loadPage = async () => {
     try {
-      // setLoading(true);
-      const data = await getPageById(id);
+      setLoading(true); // Uncommented for better UX
+      const pageData = await getPageById(id);
+      console.log("Page data fetched:", pageData);
+      console.log("Current publishedForms state in loadPage:", publishedForms);
+
       setFormData({
-        title: data.title,
-        slug: data.slug,
-        description: data.description || "",
-        metaTitle: data.metaTitle || "",
-        metaKeywords: data.metaKeywords || "",
-        ogImage: data.ogImage || "",
-        status: data.status,
-        isMainPage: data.isMainPage || false,
-        canonicalUrl: data.canonicalUrl || "",
-        robots: data.robots || "index, follow",
-        structuredData: data.structuredData ? JSON.stringify(data.structuredData, null, 2) : "",
-        blocks: (data.blocks || []).map((block) => ({
-          ...block,
-          isExpanded: false,
-        })),
+        title: pageData.title,
+        slug: pageData.slug,
+        description: pageData.description || "",
+        metaTitle: pageData.metaTitle || "",
+        metaKeywords: pageData.metaKeywords || "",
+        ogImage: pageData.ogImage || "",
+        status: pageData.status,
+        isMainPage: pageData.isMainPage || false,
+        canonicalUrl: pageData.canonicalUrl || "",
+        robots: pageData.robots || "index, follow",
+        structuredData: pageData.structuredData
+          ? JSON.stringify(pageData.structuredData, null, 2)
+          : "",
+        blocks: (pageData.blocks || []).map((block) => {
+          const newBlockData = {
+            ...block,
+            isExpanded: false,
+          };
+          if (block.type === 'form') {
+            newBlockData._forms = publishedForms || []; // Populate _forms from state
+            console.log(`Block ${block.id || 'new'} is form, _forms set to:`, publishedForms);
+          }
+          return newBlockData;
+        }),
       });
       setLoading(false);
     } catch (error) {
@@ -234,16 +275,17 @@ const PageForm = ({ id }) => {
       isExpanded: true,
     };
 
+    if (type === 'form') {
+      newBlock._forms = publishedForms || []; // Add forms if it's a form block
+      console.log("Adding new form block, _forms set to:", publishedForms);
+    }
+
     setFormData((prev) => ({
       ...prev,
       blocks: [...prev.blocks, newBlock],
     }));
-
-
-
-
   };
-// In handleAddBlock function, add initialization for portfolio blocks
+  // In handleAddBlock function, add initialization for portfolio blocks
 
   const handleAddTemplateBlock = (templateId) => {
     const template = templates.find((t) => t.id === parseInt(templateId));
@@ -315,19 +357,21 @@ const PageForm = ({ id }) => {
         blocks: formData.blocks.map((block) => {
           return { ...block, content: block.content || {} };
         }),
-        structuredData: formData.structuredData ? JSON.parse(formData.structuredData) : null,
+        structuredData: formData.structuredData
+          ? JSON.parse(formData.structuredData)
+          : null,
       };
 
       if (isEditMode) {
         await updatePage(id, submissionData);
         toast.success("Page updated successfully");
         // Invalidate the query after successful update
-        queryClient.invalidateQueries('publishedPages');
+        queryClient.invalidateQueries("publishedPages");
       } else {
         await createPage(submissionData);
         toast.success("Page created successfully");
         // Invalidate the query after successful creation
-        queryClient.invalidateQueries('publishedPages');
+        queryClient.invalidateQueries("publishedPages");
         router.push("/admin/pages");
       }
 
@@ -353,7 +397,7 @@ const PageForm = ({ id }) => {
     { value: "video", label: "Video Block" },
     { value: "partners", label: "Partners" },
     { value: "customers", label: "Customers" },
-    // { value: "form", label: "Form Block" },
+    { value: "form", label: "Form Block" },
   ];
 
   const getTemplateOptions = () => {
@@ -440,18 +484,12 @@ const PageForm = ({ id }) => {
     // Handle media library selection
     if (e.mediaLibraryFile) {
       const mediaFile = e.mediaLibraryFile;
-      handleItemChange(
-        blockIndex,
-        "slides",
-        slideIndex,
-        "imageUrl",
-        {
-          _id: mediaFile._id,
-          url: mediaFile.url,
-          fromMediaLibrary: true,
-          mediaId: mediaFile.mediaId
-        }
-      );
+      handleItemChange(blockIndex, "slides", slideIndex, "imageUrl", {
+        _id: mediaFile._id,
+        url: mediaFile.url,
+        fromMediaLibrary: true,
+        mediaId: mediaFile.mediaId,
+      });
       return;
     }
 
@@ -470,11 +508,11 @@ const PageForm = ({ id }) => {
 
     try {
       const { data } = await http.post("/uploadfile", formData);
-      const imageObj = { 
-        _id: data._id, 
+      const imageObj = {
+        _id: data._id,
         url: data.url,
         fromMediaLibrary: data.fromMediaLibrary || false,
-        mediaId: data.mediaId
+        mediaId: data.mediaId,
       };
       handleItemChange(blockIndex, "slides", slideIndex, "imageUrl", imageObj);
       setUploadStates((prev) => ({
@@ -503,8 +541,8 @@ const PageForm = ({ id }) => {
           _id: mediaFile._id,
           url: mediaFile.url,
           fromMediaLibrary: true,
-          mediaId: mediaFile.mediaId
-        }
+          mediaId: mediaFile.mediaId,
+        },
       }));
       return;
     }
@@ -525,11 +563,11 @@ const PageForm = ({ id }) => {
     try {
       // Use http instance for consistency
       const { data } = await http.post("/uploadfile", formData);
-      const imageObj = { 
-        _id: data._id, 
+      const imageObj = {
+        _id: data._id,
         url: data.url,
         fromMediaLibrary: data.fromMediaLibrary || false,
-        mediaId: data.mediaId
+        mediaId: data.mediaId,
       };
 
       setFormData((prev) => ({
@@ -553,9 +591,6 @@ const PageForm = ({ id }) => {
     }
   };
 
-
- 
-
   const handleRemoveOgImage = async (identifier, isFromLibrary = false) => {
     // Set loading state for the specific identifier
     setUploadStates((prev) => ({
@@ -566,7 +601,11 @@ const PageForm = ({ id }) => {
     const currentOgImage = formData.ogImage;
 
     try {
-      if (currentOgImage?._id && !isFromLibrary && !currentOgImage.fromMediaLibrary) {
+      if (
+        currentOgImage?._id &&
+        !isFromLibrary &&
+        !currentOgImage.fromMediaLibrary
+      ) {
         // If it's not from the media library, delete from S3
         await http.delete(`/deletefile?fileName=${currentOgImage._id}`);
       }
@@ -600,7 +639,11 @@ const PageForm = ({ id }) => {
     const currentImageUrl =
       formData.blocks[blockIndex]?.content?.slides?.[slideIndex]?.imageUrl;
 
-    if (currentImageUrl && currentImageUrl._id && !currentImageUrl.fromMediaLibrary) {
+    if (
+      currentImageUrl &&
+      currentImageUrl._id &&
+      !currentImageUrl.fromMediaLibrary
+    ) {
       try {
         await http.delete(`/deletefile?fileName=${currentImageUrl._id}`);
       } catch (error) {
@@ -632,7 +675,7 @@ const PageForm = ({ id }) => {
         _id: mediaFile._id,
         url: mediaFile.url,
         fromMediaLibrary: true,
-        mediaId: mediaFile.mediaId
+        mediaId: mediaFile.mediaId,
       });
       return;
     }
@@ -653,11 +696,11 @@ const PageForm = ({ id }) => {
 
     try {
       const { data } = await http.post("/uploadfile", formData);
-      const imageObj = { 
-        _id: data._id, 
+      const imageObj = {
+        _id: data._id,
         url: data.url,
         fromMediaLibrary: data.fromMediaLibrary || false,
-        mediaId: data.mediaId
+        mediaId: data.mediaId,
       };
       handleBlockContentChange(blockIndex, "imageUrl", imageObj);
       setUploadStates((prev) => ({
@@ -701,7 +744,7 @@ const PageForm = ({ id }) => {
       [uploadKey]: { loading: false, error: null },
     }));
   };
-    const handleToggleBlock = (index) => {
+  const handleToggleBlock = (index) => {
     const updatedBlocks = [...formData.blocks];
     updatedBlocks[index] = {
       ...updatedBlocks[index],
@@ -733,12 +776,26 @@ const PageForm = ({ id }) => {
         if (element) {
           element.scrollIntoView({ behavior: "smooth", block: "start" });
           // Optional: Add a visual cue, like a brief highlight
-          element.classList.add('ring-2', 'ring-primary-500', 'ring-offset-2', 'transition-shadow', 'duration-1000', 'ease-out');
+          element.classList.add(
+            "ring-2",
+            "ring-primary-500",
+            "ring-offset-2",
+            "transition-shadow",
+            "duration-1000",
+            "ease-out"
+          );
           setTimeout(() => {
-             element.classList.remove('ring-2', 'ring-primary-500', 'ring-offset-2', 'transition-shadow', 'duration-1000', 'ease-out');
+            element.classList.remove(
+              "ring-2",
+              "ring-primary-500",
+              "ring-offset-2",
+              "transition-shadow",
+              "duration-1000",
+              "ease-out"
+            );
           }, 1000); // Remove highlight after 1 second
         } else {
-           console.warn(`Scroll target element not found: #${draggableId}`);
+          console.warn(`Scroll target element not found: #${draggableId}`);
         }
       }, 100); // Small delay (100ms) to ensure render completes
     }
@@ -752,18 +809,12 @@ const PageForm = ({ id }) => {
     // Handle media library selection
     if (e.mediaLibraryFile) {
       const mediaFile = e.mediaLibraryFile;
-      handleItemChange(
-        blockIndex,
-        "products",
-        productIndex,
-        "imageUrl",
-        {
-          _id: mediaFile._id,
-          url: mediaFile.url,
-          fromMediaLibrary: true,
-          mediaId: mediaFile.mediaId
-        }
-      );
+      handleItemChange(blockIndex, "products", productIndex, "imageUrl", {
+        _id: mediaFile._id,
+        url: mediaFile.url,
+        fromMediaLibrary: true,
+        mediaId: mediaFile.mediaId,
+      });
       return;
     }
 
@@ -783,11 +834,11 @@ const PageForm = ({ id }) => {
 
     try {
       const { data } = await http.post("/uploadfile", formData);
-      const imageObj = { 
-        _id: data._id, 
+      const imageObj = {
+        _id: data._id,
         url: data.url,
         fromMediaLibrary: data.fromMediaLibrary || false,
-        mediaId: data.mediaId
+        mediaId: data.mediaId,
       };
       handleItemChange(
         blockIndex,
@@ -887,18 +938,12 @@ const PageForm = ({ id }) => {
     // Handle media library selection
     if (e.mediaLibraryFile) {
       const mediaFile = e.mediaLibraryFile;
-      handleItemChange(
-        blockIndex,
-        "partners",
-        partnerIndex,
-        "imageUrl",
-        {
-          _id: mediaFile._id,
-          url: mediaFile.url,
-          fromMediaLibrary: true,
-          mediaId: mediaFile.mediaId
-        }
-      );
+      handleItemChange(blockIndex, "partners", partnerIndex, "imageUrl", {
+        _id: mediaFile._id,
+        url: mediaFile.url,
+        fromMediaLibrary: true,
+        mediaId: mediaFile.mediaId,
+      });
       return;
     }
 
@@ -918,20 +963,27 @@ const PageForm = ({ id }) => {
 
     try {
       const { data } = await http.post("/uploadfile", formData);
-      const imageObj = { 
-        _id: data._id, 
+      const imageObj = {
+        _id: data._id,
         url: data.url,
         fromMediaLibrary: data.fromMediaLibrary || false,
-        mediaId: data.mediaId
+        mediaId: data.mediaId,
       };
-      handleItemChange(blockIndex, "partners", partnerIndex, "imageUrl", imageObj);
+      handleItemChange(
+        blockIndex,
+        "partners",
+        partnerIndex,
+        "imageUrl",
+        imageObj
+      );
       setUploadStates((prev) => ({
         ...prev,
         [uploadKey]: { loading: false, error: null },
       }));
     } catch (error) {
       console.error("Upload failed:", error);
-      const errorMessage = error.response?.data?.error || "Failed to upload image.";
+      const errorMessage =
+        error.response?.data?.error || "Failed to upload image.";
       setUploadStates((prev) => ({
         ...prev,
         [uploadKey]: { loading: false, error: errorMessage },
@@ -943,14 +995,21 @@ const PageForm = ({ id }) => {
   const handleRemovePartnerImage = async (identifier) => {
     const { blockIndex, partnerIndex } = identifier;
     const uploadKey = `partner-${blockIndex}-${partnerIndex}`;
-    const currentImageUrl = formData.blocks[blockIndex]?.content?.partners?.[partnerIndex]?.imageUrl;
+    const currentImageUrl =
+      formData.blocks[blockIndex]?.content?.partners?.[partnerIndex]?.imageUrl;
 
-    if (currentImageUrl && currentImageUrl._id && !currentImageUrl.fromMediaLibrary) {
+    if (
+      currentImageUrl &&
+      currentImageUrl._id &&
+      !currentImageUrl.fromMediaLibrary
+    ) {
       try {
         await http.delete(`/deletefile?fileName=${currentImageUrl._id}`);
       } catch (error) {
         console.error("Delete failed:", error);
-        toast.warn("Could not delete image from server, but removed from partner.");
+        toast.warn(
+          "Could not delete image from server, but removed from partner."
+        );
       }
     }
 
@@ -1036,7 +1095,7 @@ const PageForm = ({ id }) => {
                           ]}
                         />
 
-<div className="mb-4">
+                        <div className="mb-4">
                           <label className="flex items-center">
                             <input
                               type="checkbox"
@@ -1050,7 +1109,9 @@ const PageForm = ({ id }) => {
                           </label>
                           {formData.isMainPage && (
                             <p className="text-amber-600 text-sm mt-1">
-                              Note: Only one page can be set as the main page. Setting this page as main will unset any existing main page.
+                              Note: Only one page can be set as the main page.
+                              Setting this page as main will unset any existing
+                              main page.
                             </p>
                           )}
                         </div>
@@ -1085,8 +1146,6 @@ const PageForm = ({ id }) => {
                   >
                     <Disclosure.Panel className="px-4 py-5 text-sm text-gray-500">
                       <div className="space-y-4">
-                       
-
                         <Textinput
                           label="Meta Title"
                           name="metaTitle"
@@ -1124,10 +1183,22 @@ const PageForm = ({ id }) => {
                           onChange={handleChange}
                           helper="Controls how search engines should handle this page"
                           options={[
-                            { value: "index, follow", label: "Index, Follow (default)" },
-                            { value: "noindex, follow", label: "NoIndex, Follow" },
-                            { value: "index, nofollow", label: "Index, NoFollow" },
-                            { value: "noindex, nofollow", label: "NoIndex, NoFollow" }
+                            {
+                              value: "index, follow",
+                              label: "Index, Follow (default)",
+                            },
+                            {
+                              value: "noindex, follow",
+                              label: "NoIndex, Follow",
+                            },
+                            {
+                              value: "index, nofollow",
+                              label: "Index, NoFollow",
+                            },
+                            {
+                              value: "noindex, nofollow",
+                              label: "NoIndex, NoFollow",
+                            },
                           ]}
                         />
                         <Textarea
@@ -1141,12 +1212,11 @@ const PageForm = ({ id }) => {
                           helper="Add structured data in JSON-LD format for enhanced search results"
                         />
 
-<SeoDashboard 
-                pageData={formData}
-                onUpdateSuggestions={handleSeoSuggestions}
-              />
+                        <SeoDashboard
+                          pageData={formData}
+                          onUpdateSuggestions={handleSeoSuggestions}
+                        />
 
-                        
                         <div className="mb-4">
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Open Graph Image
@@ -1154,7 +1224,12 @@ const PageForm = ({ id }) => {
                           <MediaUpload
                             file={formData.ogImage}
                             onDrop={(e) => handleOgImageUpload(e, "ogImage")}
-                            onRemove={() => handleRemoveOgImage("ogImage", formData.ogImage?.fromMediaLibrary)}
+                            onRemove={() =>
+                              handleRemoveOgImage(
+                                "ogImage",
+                                formData.ogImage?.fromMediaLibrary
+                              )
+                            }
                             loading={uploadStates["ogImage"]?.loading}
                             error={uploadStates["ogImage"]?.error}
                             identifier="ogImage"
@@ -1242,7 +1317,11 @@ const PageForm = ({ id }) => {
                                         ref={provided.innerRef}
                                         {...provided.draggableProps}
                                         className="border border-gray-200 p-4 rounded-lg bg-white shadow-md hover:shadow-lg transition-shadow duration-200"
-                                        id={ block.id ? `block-${block.id}` : `block-new-${index}` }
+                                        id={
+                                          block.id
+                                            ? `block-${block.id}`
+                                            : `block-new-${index}`
+                                        }
                                       >
                                         <div className="flex justify-between items-center mb-3">
                                           <div className="flex items-center flex-grow">
@@ -1280,7 +1359,10 @@ const PageForm = ({ id }) => {
                                               }
                                               aria-label="Preview block"
                                             >
-                                              <Icon icon="Eye" className="h-5 w-5" />
+                                              <Icon
+                                                icon="Eye"
+                                                className="h-5 w-5"
+                                              />
                                             </button>
                                             <button
                                               type="button"
@@ -1312,7 +1394,10 @@ const PageForm = ({ id }) => {
                                               }
                                               aria-label="Remove block"
                                             >
-                                              <Icon icon="XMark" className="h-5 w-5" />
+                                              <Icon
+                                                icon="XMark"
+                                                className="h-5 w-5"
+                                              />
                                             </button>
                                           </div>
                                         </div>
@@ -1633,11 +1718,6 @@ const PageForm = ({ id }) => {
                                                 </div>
                                               </div>
                                             )}
-
-
-
-
-
 
                                             {block.type === "features" && (
                                               <div className="space-y-3">
@@ -1988,12 +2068,31 @@ const PageForm = ({ id }) => {
                                                               file={
                                                                 slide.imageUrl
                                                               }
-                                                              onDrop={(e) => handleSlideImageUpload(e, identifier)}
-                                                              onRemove={() => handleRemoveSlideImage(identifier, slide.imageUrl?.fromMediaLibrary)}
-                                                              loading={uState.loading}
-                                                              error={uState.error}
-                                                              maxSize={5 * 1024 * 1024}
-                                                              identifier={identifier}
+                                                              onDrop={(e) =>
+                                                                handleSlideImageUpload(
+                                                                  e,
+                                                                  identifier
+                                                                )
+                                                              }
+                                                              onRemove={() =>
+                                                                handleRemoveSlideImage(
+                                                                  identifier,
+                                                                  slide.imageUrl
+                                                                    ?.fromMediaLibrary
+                                                                )
+                                                              }
+                                                              loading={
+                                                                uState.loading
+                                                              }
+                                                              error={
+                                                                uState.error
+                                                              }
+                                                              maxSize={
+                                                                5 * 1024 * 1024
+                                                              }
+                                                              identifier={
+                                                                identifier
+                                                              }
                                                             />
                                                           </div>
                                                           <div className="sm:col-span-2 space-y-3">
@@ -3144,8 +3243,8 @@ const PageForm = ({ id }) => {
                                                                             e
                                                                               .target
                                                                               .value
-                                                                        )
-                                                                      }
+                                                                          )
+                                                                        }
                                                                         className="mt-1"
                                                                       />
                                                                     </div>
@@ -3711,17 +3810,31 @@ const PageForm = ({ id }) => {
                                               <div className="space-y-3">
                                                 <Textinput
                                                   label="Section Title"
-                                                  value={block.content?.sectionTitle || ""}
+                                                  value={
+                                                    block.content
+                                                      ?.sectionTitle || ""
+                                                  }
                                                   onChange={(e) =>
-                                                    handleBlockContentChange(index, "sectionTitle", e.target.value)
+                                                    handleBlockContentChange(
+                                                      index,
+                                                      "sectionTitle",
+                                                      e.target.value
+                                                    )
                                                   }
                                                   placeholder="Our Partners"
                                                 />
                                                 <Textarea
                                                   label="Section Description"
-                                                  value={block.content?.sectionDescription || ""}
+                                                  value={
+                                                    block.content
+                                                      ?.sectionDescription || ""
+                                                  }
                                                   onChange={(e) =>
-                                                    handleBlockContentChange(index, "sectionDescription", e.target.value)
+                                                    handleBlockContentChange(
+                                                      index,
+                                                      "sectionDescription",
+                                                      e.target.value
+                                                    )
                                                   }
                                                   rows={2}
                                                   placeholder="Brief description about your partners"
@@ -3729,21 +3842,38 @@ const PageForm = ({ id }) => {
 
                                                 <div>
                                                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Colored Description Section Background
+                                                    Colored Description Section
+                                                    Background
                                                   </label>
                                                   <div className="flex items-center">
                                                     <input
                                                       type="color"
-                                                      value={block.content?.coloredSectionBg || "#f3f4f6"}
+                                                      value={
+                                                        block.content
+                                                          ?.coloredSectionBg ||
+                                                        "#f3f4f6"
+                                                      }
                                                       onChange={(e) =>
-                                                        handleBlockContentChange(index, "coloredSectionBg", e.target.value)
+                                                        handleBlockContentChange(
+                                                          index,
+                                                          "coloredSectionBg",
+                                                          e.target.value
+                                                        )
                                                       }
                                                       className="h-9 w-16 p-1 border rounded mr-2"
                                                     />
                                                     <Textinput
-                                                      value={block.content?.coloredSectionBg || "#f3f4f6"}
+                                                      value={
+                                                        block.content
+                                                          ?.coloredSectionBg ||
+                                                        "#f3f4f6"
+                                                      }
                                                       onChange={(e) =>
-                                                        handleBlockContentChange(index, "coloredSectionBg", e.target.value)
+                                                        handleBlockContentChange(
+                                                          index,
+                                                          "coloredSectionBg",
+                                                          e.target.value
+                                                        )
                                                       }
                                                       placeholder="#f3f4f6"
                                                     />
@@ -3752,21 +3882,38 @@ const PageForm = ({ id }) => {
 
                                                 <div>
                                                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Colored Description Section Text Color
+                                                    Colored Description Section
+                                                    Text Color
                                                   </label>
                                                   <div className="flex items-center">
                                                     <input
                                                       type="color"
-                                                      value={block.content?.coloredSectionTextColor || "#000000"}
+                                                      value={
+                                                        block.content
+                                                          ?.coloredSectionTextColor ||
+                                                        "#000000"
+                                                      }
                                                       onChange={(e) =>
-                                                        handleBlockContentChange(index, "coloredSectionTextColor", e.target.value)
+                                                        handleBlockContentChange(
+                                                          index,
+                                                          "coloredSectionTextColor",
+                                                          e.target.value
+                                                        )
                                                       }
                                                       className="h-9 w-16 p-1 border rounded mr-2"
                                                     />
                                                     <Textinput
-                                                      value={block.content?.coloredSectionTextColor || "#000000"}
+                                                      value={
+                                                        block.content
+                                                          ?.coloredSectionTextColor ||
+                                                        "#000000"
+                                                      }
                                                       onChange={(e) =>
-                                                        handleBlockContentChange(index, "coloredSectionTextColor", e.target.value)
+                                                        handleBlockContentChange(
+                                                          index,
+                                                          "coloredSectionTextColor",
+                                                          e.target.value
+                                                        )
                                                       }
                                                       placeholder="#000000"
                                                     />
@@ -3775,27 +3922,50 @@ const PageForm = ({ id }) => {
 
                                                 <Textinput
                                                   label="Colored Section Text"
-                                                  value={block.content?.coloredSectionText || ""}
+                                                  value={
+                                                    block.content
+                                                      ?.coloredSectionText || ""
+                                                  }
                                                   onChange={(e) =>
-                                                    handleBlockContentChange(index, "coloredSectionText", e.target.value)
+                                                    handleBlockContentChange(
+                                                      index,
+                                                      "coloredSectionText",
+                                                      e.target.value
+                                                    )
                                                   }
                                                   placeholder="Over 2500 companies use our tools to better their business."
                                                 />
 
                                                 <Textinput
                                                   label="Colored Section Link Text"
-                                                  value={block.content?.coloredSectionLinkText || ""}
+                                                  value={
+                                                    block.content
+                                                      ?.coloredSectionLinkText ||
+                                                    ""
+                                                  }
                                                   onChange={(e) =>
-                                                    handleBlockContentChange(index, "coloredSectionLinkText", e.target.value)
+                                                    handleBlockContentChange(
+                                                      index,
+                                                      "coloredSectionLinkText",
+                                                      e.target.value
+                                                    )
                                                   }
                                                   placeholder="Read our customer stories"
                                                 />
 
                                                 <Textinput
                                                   label="Colored Section Link URL"
-                                                  value={block.content?.coloredSectionLinkUrl || ""}
+                                                  value={
+                                                    block.content
+                                                      ?.coloredSectionLinkUrl ||
+                                                    ""
+                                                  }
                                                   onChange={(e) =>
-                                                    handleBlockContentChange(index, "coloredSectionLinkUrl", e.target.value)
+                                                    handleBlockContentChange(
+                                                      index,
+                                                      "coloredSectionLinkUrl",
+                                                      e.target.value
+                                                    )
                                                   }
                                                   placeholder="/customer-stories"
                                                 />
@@ -3804,88 +3974,135 @@ const PageForm = ({ id }) => {
                                                   <h4 className="font-medium text-sm">
                                                     Partner Logos:
                                                   </h4>
-                                                  {(block.content?.partners || []).map((partner, partnerIndex) => {
-                                                    const identifier = {
-                                                      blockIndex: index,
-                                                      partnerIndex: partnerIndex,
-                                                    };
-                                                    const uploadKey = `partner-${index}-${partnerIndex}`;
-                                                    const uState = uploadStates[uploadKey] || {
-                                                      loading: false,
-                                                      error: null,
-                                                    };
-                                                    return (
-                                                      <div
-                                                        key={partnerIndex}
-                                                        className="border p-3 rounded bg-slate-50 space-y-3 relative"
-                                                      >
-                                                        <button
-                                                          type="button"
-                                                          onClick={() =>
-                                                            handleRemoveItem(
-                                                              index,
-                                                              "partners",
-                                                              partnerIndex
-                                                            )
-                                                          }
-                                                          className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full z-10"
-                                                          aria-label="Remove Partner"
+                                                  {(
+                                                    block.content?.partners ||
+                                                    []
+                                                  ).map(
+                                                    (partner, partnerIndex) => {
+                                                      const identifier = {
+                                                        blockIndex: index,
+                                                        partnerIndex:
+                                                          partnerIndex,
+                                                      };
+                                                      const uploadKey = `partner-${index}-${partnerIndex}`;
+                                                      const uState =
+                                                        uploadStates[
+                                                          uploadKey
+                                                        ] || {
+                                                          loading: false,
+                                                          error: null,
+                                                        };
+                                                      return (
+                                                        <div
+                                                          key={partnerIndex}
+                                                          className="border p-3 rounded bg-slate-50 space-y-3 relative"
                                                         >
-                                                          <Icon
-                                                            icon="XMark"
-                                                            className="h-4 w-4"
-                                                          />
-                                                        </button>
+                                                          <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                              handleRemoveItem(
+                                                                index,
+                                                                "partners",
+                                                                partnerIndex
+                                                              )
+                                                            }
+                                                            className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full z-10"
+                                                            aria-label="Remove Partner"
+                                                          >
+                                                            <Icon
+                                                              icon="XMark"
+                                                              className="h-4 w-4"
+                                                            />
+                                                          </button>
 
-                                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                                          <div className="sm:col-span-1">
-                                                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                              Partner {partnerIndex + 1} Logo*
-                                                            </label>
-                                                            <MediaUpload
-                                                              file={partner.imageUrl}
-                                                              onDrop={(e) => handlePartnerImageUpload(e, identifier)}
-                                                              onRemove={() => handleRemovePartnerImage(identifier)}
-                                                              loading={uState.loading}
-                                                              error={uState.error}
-                                                              maxSize={5 * 1024 * 1024}
-                                                              identifier={identifier}
-                                                            />
-                                                          </div>
-                                                          <div className="sm:col-span-2 space-y-3">
-                                                            <Textinput
-                                                              label={`Partner ${partnerIndex + 1} Name`}
-                                                              value={partner.name || ""}
-                                                              onChange={(e) =>
-                                                                handleItemChange(
-                                                                  index,
-                                                                  "partners",
-                                                                  partnerIndex,
-                                                                  "name",
-                                                                  e.target.value
-                                                                )
-                                                              }
-                                                              placeholder="Partner name"
-                                                            />
-                                                            <Textinput
-                                                              label={`Partner ${partnerIndex + 1} URL`}
-                                                              value={partner.url || ""}
-                                                              onChange={(e) =>
-                                                                handleItemChange(
-                                                                  index,
-                                                                  "partners",
-                                                                  partnerIndex,
-                                                                  "url",
-                                                                  e.target.value
-                                                                )
-                                                              }
-                                                              placeholder="https://partner-website.com"
-                                                            />
+                                                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                            <div className="sm:col-span-1">
+                                                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                                Partner{" "}
+                                                                {partnerIndex +
+                                                                  1}{" "}
+                                                                Logo*
+                                                              </label>
+                                                              <MediaUpload
+                                                                file={
+                                                                  partner.imageUrl
+                                                                }
+                                                                onDrop={(e) =>
+                                                                  handlePartnerImageUpload(
+                                                                    e,
+                                                                    identifier
+                                                                  )
+                                                                }
+                                                                onRemove={() =>
+                                                                  handleRemovePartnerImage(
+                                                                    identifier
+                                                                  )
+                                                                }
+                                                                loading={
+                                                                  uState.loading
+                                                                }
+                                                                error={
+                                                                  uState.error
+                                                                }
+                                                                maxSize={
+                                                                  5 *
+                                                                  1024 *
+                                                                  1024
+                                                                }
+                                                                identifier={
+                                                                  identifier
+                                                                }
+                                                              />
+                                                            </div>
+                                                            <div className="sm:col-span-2 space-y-3">
+                                                              <Textinput
+                                                                label={`Partner ${
+                                                                  partnerIndex +
+                                                                  1
+                                                                } Name`}
+                                                                value={
+                                                                  partner.name ||
+                                                                  ""
+                                                                }
+                                                                onChange={(e) =>
+                                                                  handleItemChange(
+                                                                    index,
+                                                                    "partners",
+                                                                    partnerIndex,
+                                                                    "name",
+                                                                    e.target
+                                                                      .value
+                                                                  )
+                                                                }
+                                                                placeholder="Partner name"
+                                                              />
+                                                              <Textinput
+                                                                label={`Partner ${
+                                                                  partnerIndex +
+                                                                  1
+                                                                } URL`}
+                                                                value={
+                                                                  partner.url ||
+                                                                  ""
+                                                                }
+                                                                onChange={(e) =>
+                                                                  handleItemChange(
+                                                                    index,
+                                                                    "partners",
+                                                                    partnerIndex,
+                                                                    "url",
+                                                                    e.target
+                                                                      .value
+                                                                  )
+                                                                }
+                                                                placeholder="https://partner-website.com"
+                                                              />
+                                                            </div>
                                                           </div>
                                                         </div>
-                                                      </div>
-                                                    );
-                                                  })}
+                                                      );
+                                                    }
+                                                  )}
                                                   <Button
                                                     text="Add Partner"
                                                     className="btn-outline-primary btn-sm"
@@ -3911,7 +4128,10 @@ const PageForm = ({ id }) => {
                                               <div className="space-y-3">
                                                 <Textinput
                                                   label="Section Title"
-                                                  value={block.content?.sectionTitle || ""}
+                                                  value={
+                                                    block.content
+                                                      ?.sectionTitle || ""
+                                                  }
                                                   onChange={(e) =>
                                                     handleBlockContentChange(
                                                       index,
@@ -3921,10 +4141,13 @@ const PageForm = ({ id }) => {
                                                   }
                                                   placeholder="Contact Us"
                                                 />
-                                                
+
                                                 <Textarea
                                                   label="Section Description"
-                                                  value={block.content?.description || ""}
+                                                  value={
+                                                    block.content
+                                                      ?.description || ""
+                                                  }
                                                   onChange={(e) =>
                                                     handleBlockContentChange(
                                                       index,
@@ -3935,58 +4158,98 @@ const PageForm = ({ id }) => {
                                                   rows={3}
                                                   placeholder="Fill out the form below to get in touch with us"
                                                 />
-                                                
+
                                                 <div>
                                                   <label className="block text-xs font-medium text-gray-700 mb-1">
                                                     Select Form
                                                   </label>
                                                   <Select
-                                                    value={block.content?.formId || ""}
+                                                    value={
+                                                      block.content?.formId ||
+                                                      ""
+                                                    }
                                                     onChange={(e) =>
                                                       handleBlockContentChange(
                                                         index,
                                                         "formId",
-                                                        e.target.value ? parseInt(e.target.value) : null
+                                                        e.target.value
+                                                          ? parseInt(
+                                                              e.target.value
+                                                            )
+                                                          : null
                                                       )
                                                     }
                                                     options={[
-                                                      { value: "", label: "- Select a form -" },
-                                                      ...(block._forms || []).map((form) => ({
-                                                        value: form.id.toString(),
+                                                      {
+                                                        value: "",
+                                                        label:
+                                                          "- Select a form -",
+                                                      },
+                                                      ...(
+                                                        block._forms || []
+                                                      ).map((form) => ({
+                                                        value:
+                                                          form.id.toString(),
                                                         label: form.title,
-                                                      }))
+                                                      })),
                                                     ]}
                                                   />
+                                                  {/* The "Load Forms" button below will be removed */}
+                                                  {/*
                                                   <button
                                                     type="button"
                                                     className="mt-2 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                                                     onClick={async () => {
                                                       try {
-                                                        const { data } = await http.get('/forms/published');
-                                                        const updatedBlocks = [...formData.blocks];
-                                                        updatedBlocks[index] = { 
-                                                          ...updatedBlocks[index], 
-                                                          _forms: data || [] 
+                                                        const { data } =
+                                                          await http.get(
+                                                            "/forms/published"
+                                                          );
+                                                        const updatedBlocks = [
+                                                          ...formData.blocks,
+                                                        ];
+                                                        updatedBlocks[index] = {
+                                                          ...updatedBlocks[
+                                                            index
+                                                          ],
+                                                          _forms: data || [],
                                                         };
-                                                        setFormData((prev) => ({ ...prev, blocks: updatedBlocks }));
-                                                        toast.success("Forms loaded successfully");
+                                                        setFormData((prev) => ({
+                                                          ...prev,
+                                                          blocks: updatedBlocks,
+                                                        }));
+                                                        toast.success(
+                                                          "Forms loaded successfully"
+                                                        );
                                                       } catch (error) {
-                                                        console.error("Error loading forms:", error);
-                                                        toast.error("Failed to load forms");
+                                                        console.error(
+                                                          "Error loading forms:",
+                                                          error
+                                                        );
+                                                        toast.error(
+                                                          "Failed to load forms"
+                                                        );
                                                       }
                                                     }}
                                                   >
-                                                    <Icon icon="ArrowPath" className="h-4 w-4 mr-1" />
+                                                    <Icon
+                                                      icon="ArrowPath"
+                                                      className="h-4 w-4 mr-1"
+                                                    />
                                                     Load Forms
                                                   </button>
+                                                  */}
                                                 </div>
-                                                
+
                                                 <div>
                                                   <label className="block text-xs font-medium text-gray-700 mb-1">
                                                     Submit Button Text
                                                   </label>
                                                   <Textinput
-                                                    value={block.content?.buttonText || ""}
+                                                    value={
+                                                      block.content
+                                                        ?.buttonText || ""
+                                                    }
                                                     onChange={(e) =>
                                                       handleBlockContentChange(
                                                         index,
@@ -3997,7 +4260,7 @@ const PageForm = ({ id }) => {
                                                     placeholder="Submit"
                                                   />
                                                 </div>
-                                                
+
                                                 <div>
                                                   <label className="block text-xs font-medium text-gray-700 mb-1">
                                                     Button Color
@@ -4005,7 +4268,11 @@ const PageForm = ({ id }) => {
                                                   <div className="flex items-center">
                                                     <input
                                                       type="color"
-                                                      value={block.content?.buttonColor || "#2563eb"}
+                                                      value={
+                                                        block.content
+                                                          ?.buttonColor ||
+                                                        "#2563eb"
+                                                      }
                                                       onChange={(e) =>
                                                         handleBlockContentChange(
                                                           index,
@@ -4016,7 +4283,11 @@ const PageForm = ({ id }) => {
                                                       className="h-9 w-16 p-1 border rounded mr-2"
                                                     />
                                                     <Textinput
-                                                      value={block.content?.buttonColor || "#2563eb"}
+                                                      value={
+                                                        block.content
+                                                          ?.buttonColor ||
+                                                        "#2563eb"
+                                                      }
                                                       onChange={(e) =>
                                                         handleBlockContentChange(
                                                           index,
@@ -4028,13 +4299,16 @@ const PageForm = ({ id }) => {
                                                     />
                                                   </div>
                                                 </div>
-                                                
+
                                                 <div>
                                                   <label className="block text-xs font-medium text-gray-700 mb-1">
                                                     Success Message
                                                   </label>
                                                   <Textarea
-                                                    value={block.content?.successMessage || ""}
+                                                    value={
+                                                      block.content
+                                                        ?.successMessage || ""
+                                                    }
                                                     onChange={(e) =>
                                                       handleBlockContentChange(
                                                         index,
@@ -4052,7 +4326,11 @@ const PageForm = ({ id }) => {
                                                     <input
                                                       type="checkbox"
                                                       className="h-4 w-4 text-primary-600 border-gray-300 rounded mr-2"
-                                                      checked={block.content?.showBackground || false}
+                                                      checked={
+                                                        block.content
+                                                          ?.showBackground ||
+                                                        false
+                                                      }
                                                       onChange={(e) =>
                                                         handleBlockContentChange(
                                                           index,
@@ -4069,8 +4347,9 @@ const PageForm = ({ id }) => {
                                                       Show Background
                                                     </label>
                                                   </div>
-                                                  
-                                                  {block.content?.showBackground && (
+
+                                                  {block.content
+                                                    ?.showBackground && (
                                                     <div>
                                                       <label className="block text-xs font-medium text-gray-700 mb-1">
                                                         Background Color
@@ -4078,7 +4357,11 @@ const PageForm = ({ id }) => {
                                                       <div className="flex items-center">
                                                         <input
                                                           type="color"
-                                                          value={block.content?.backgroundColor || "#f3f4f6"}
+                                                          value={
+                                                            block.content
+                                                              ?.backgroundColor ||
+                                                            "#f3f4f6"
+                                                          }
                                                           onChange={(e) =>
                                                             handleBlockContentChange(
                                                               index,
@@ -4089,7 +4372,11 @@ const PageForm = ({ id }) => {
                                                           className="h-9 w-16 p-1 border rounded mr-2"
                                                         />
                                                         <Textinput
-                                                          value={block.content?.backgroundColor || "#f3f4f6"}
+                                                          value={
+                                                            block.content
+                                                              ?.backgroundColor ||
+                                                            "#f3f4f6"
+                                                          }
                                                           onChange={(e) =>
                                                             handleBlockContentChange(
                                                               index,
@@ -4191,7 +4478,6 @@ const PageForm = ({ id }) => {
               >
                 Block
               </button>
-            
             </div>
             <button
               type="button"
@@ -4203,9 +4489,11 @@ const PageForm = ({ id }) => {
           </div>
 
           {/* Page tab content */}
-                   {/* Page tab content */}
-                   {activeTab === "page" && (
-            <div className="p-4 space-y-5"> {/* Added consistent padding and vertical spacing */}
+          {/* Page tab content */}
+          {activeTab === "page" && (
+            <div className="p-4 space-y-5">
+              {" "}
+              {/* Added consistent padding and vertical spacing */}
               {/* Page title card - Simplified */}
               <div className="border rounded-lg p-3 bg-gray-50">
                 <div className="flex items-center">
@@ -4213,7 +4501,10 @@ const PageForm = ({ id }) => {
                     icon="DocumentText"
                     className="h-5 w-5 text-gray-600 mr-2 flex-shrink-0"
                   />
-                  <h2 className="text-sm font-semibold text-gray-800 truncate flex-grow" title={formData.title || "Untitled Page"}>
+                  <h2
+                    className="text-sm font-semibold text-gray-800 truncate flex-grow"
+                    title={formData.title || "Untitled Page"}
+                  >
                     {formData.title || "Untitled Page"}
                   </h2>
                   {/* Optional: Add functionality later if needed
@@ -4223,10 +4514,11 @@ const PageForm = ({ id }) => {
                    */}
                 </div>
               </div>
-
               {/* Featured image */}
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700 block">Featured Image</label>
+                <label className="text-sm font-medium text-gray-700 block">
+                  Featured Image
+                </label>
                 {formData.ogImage ? (
                   <div className="relative group">
                     <img
@@ -4263,22 +4555,27 @@ const PageForm = ({ id }) => {
                     />
                   </button>
                 )}
-                 <p className="text-xs text-gray-500 mt-1">
-                    Used for social sharing (OG Image). Recommended: 1200x630.
-                 </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Used for social sharing (OG Image). Recommended: 1200x630.
+                </p>
               </div>
-
               {/* Info rows - Structured with Disclosure for less critical info */}
-               <div className="space-y-3 border-t border-gray-200 pt-4">
-                <h3 className="text-sm font-medium text-gray-800 mb-2">Page Details</h3>
+              <div className="space-y-3 border-t border-gray-200 pt-4">
+                <h3 className="text-sm font-medium text-gray-800 mb-2">
+                  Page Details
+                </h3>
 
                 {/* Status */}
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-600 font-medium">Status:</span>
-                   {/* Consider making this a dropdown/select later */}
-                  <div className={`flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      formData.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
+                  {/* Consider making this a dropdown/select later */}
+                  <div
+                    className={`flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                      formData.status === "published"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
                     <Icon
                       icon={
                         formData.status === "published"
@@ -4288,9 +4585,7 @@ const PageForm = ({ id }) => {
                       className="h-3 w-3 mr-1"
                     />
                     <span>
-                      {formData.status === "published"
-                        ? "Published"
-                        : "Draft"}
+                      {formData.status === "published" ? "Published" : "Draft"}
                     </span>
                   </div>
                 </div>
@@ -4298,19 +4593,26 @@ const PageForm = ({ id }) => {
                 {/* Slug */}
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-600 font-medium">Slug:</span>
-                  <span className="text-gray-800 bg-gray-100 px-2 py-0.5 rounded text-xs truncate max-w-[160px]" title={formData.slug}>
+                  <span
+                    className="text-gray-800 bg-gray-100 px-2 py-0.5 rounded text-xs truncate max-w-[160px]"
+                    title={formData.slug}
+                  >
                     /{formData.slug}
                   </span>
                 </div>
 
-                 {/* Last Edited / Publish Date */}
-                 <div className="flex justify-between items-center text-sm">
-                   <span className="text-gray-600 font-medium">Published:</span>
-                   <span className="text-gray-700 text-xs">
+                {/* Last Edited / Publish Date */}
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 font-medium">Published:</span>
+                  <span className="text-gray-700 text-xs">
                     {/* Add logic for actual publish date later */}
-                     {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                   </span>
-                 </div>
+                    {new Date().toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                </div>
 
                 {/* Collapsible Section for less critical info */}
                 <Disclosure>
@@ -4320,7 +4622,9 @@ const PageForm = ({ id }) => {
                         <span>More Details</span>
                         <Icon
                           icon="ChevronDown"
-                          className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`}
+                          className={`h-4 w-4 transition-transform ${
+                            open ? "rotate-180" : ""
+                          }`}
                         />
                       </Disclosure.Button>
                       <Transition
@@ -4333,24 +4637,31 @@ const PageForm = ({ id }) => {
                       >
                         <Disclosure.Panel className="pt-2 space-y-3">
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-600 font-medium">Author:</span>
+                            <span className="text-gray-600 font-medium">
+                              Author:
+                            </span>
                             <span className="text-gray-800 bg-gray-100 px-2 py-0.5 rounded text-xs">
                               admin {/* Replace with dynamic author later */}
                             </span>
                           </div>
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-600 font-medium">Template:</span>
-                             <span className="text-gray-800 text-xs">
-                              Default {/* Replace with dynamic template later */}
-                             </span>
+                            <span className="text-gray-600 font-medium">
+                              Template:
+                            </span>
+                            <span className="text-gray-800 text-xs">
+                              Default{" "}
+                              {/* Replace with dynamic template later */}
+                            </span>
                           </div>
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-600 font-medium">Parent:</span>
+                            <span className="text-gray-600 font-medium">
+                              Parent:
+                            </span>
                             <span className="text-gray-800 text-xs">
                               None {/* Replace with dynamic parent later */}
-                             </span>
+                            </span>
                           </div>
-                           {/* Lock Modified Date Toggle - Simplified */}
+                          {/* Lock Modified Date Toggle - Simplified */}
                           {/* <div className="flex justify-between items-center pt-2 border-t border-gray-100 mt-2">
                             <label htmlFor="lockDateToggle" className="text-sm text-gray-600 font-medium cursor-pointer">
                               Lock Set as Main Page (Homepage)Modified Date
@@ -4369,35 +4680,31 @@ const PageForm = ({ id }) => {
                   )}
                 </Disclosure>
               </div>
-
               {/* SEO section */}
               <div className="space-y-3 border-t border-gray-200 pt-4">
-                 <h3 className="text-sm font-medium text-gray-800 mb-2">SEO Settings</h3>
-                  <div>
-                
-                    <Textinput
-                          label="Meta Title"
-                          name="metaTitle"
-                          placeholder="Page Title"
-                          value={formData.metaTitle}
-                          onChange={handleChange}
-                          required
-                        />
-                 
-                  </div>
-                  <div>
-             
-                    <Textinput
-                      label="Meta Keywords"
-                      name="metaKeywords"
-                     
-                      value={formData.metaKeywords}
-                      onChange={handleChange}
-                      placeholder="Keywords, comma-separated"
-                    />
-                  </div>
+                <h3 className="text-sm font-medium text-gray-800 mb-2">
+                  SEO Settings
+                </h3>
+                <div>
+                  <Textinput
+                    label="Meta Title"
+                    name="metaTitle"
+                    placeholder="Page Title"
+                    value={formData.metaTitle}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Textinput
+                    label="Meta Keywords"
+                    name="metaKeywords"
+                    value={formData.metaKeywords}
+                    onChange={handleChange}
+                    placeholder="Keywords, comma-separated"
+                  />
+                </div>
               </div>
-
               {/* Move to trash button */}
               {/* <div className="border-t border-gray-200 pt-4">
                 <button
@@ -4412,12 +4719,8 @@ const PageForm = ({ id }) => {
                   Move to trash
                 </button>
               </div> */}
-
             </div>
           )}
-
-
-     
 
           {/* Block tab content */}
           {activeTab === "block" && (
@@ -4428,7 +4731,6 @@ const PageForm = ({ id }) => {
                     <div
                       {...provided.droppableProps}
                       ref={provided.innerRef}
-                    
                       className="space-y-3 "
                     >
                       {formData.blocks.map((block, index) => (
@@ -4444,7 +4746,9 @@ const PageForm = ({ id }) => {
                               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden border border-gray-200"
                             >
                               <div className="flex justify-between items-center p-3 bg-gray-50 border-b border-gray-200">
-                                <div className="flex items-center flex-grow min-w-0"> {/* Added flex-grow and min-w-0 */}
+                                <div className="flex items-center flex-grow min-w-0">
+                                  {" "}
+                                  {/* Added flex-grow and min-w-0 */}
                                   <div
                                     {...providedDraggable.dragHandleProps} // Apply drag handle here
                                     className="mr-2 cursor-move p-1 text-gray-400 hover:text-gray-600" // Added padding for easier grabbing
@@ -4455,11 +4759,21 @@ const PageForm = ({ id }) => {
                                       className="h-5 w-5"
                                     />
                                   </div>
-                                  <h3 className="font-medium text-gray-700 text-sm truncate"> {/* Added text-sm and truncate */}
-                                    {block.title || `${block.type.charAt(0).toUpperCase() + block.type.slice(1)} Block` || "Untitled Block"} {/* Show type if title empty */}
+                                  <h3 className="font-medium text-gray-700 text-sm truncate">
+                                    {" "}
+                                    {/* Added text-sm and truncate */}
+                                    {block.title ||
+                                      `${
+                                        block.type.charAt(0).toUpperCase() +
+                                        block.type.slice(1)
+                                      } Block` ||
+                                      "Untitled Block"}{" "}
+                                    {/* Show type if title empty */}
                                   </h3>
                                 </div>
-                                <div className="flex items-center space-x-1 ml-2"> {/* Reduced space */}
+                                <div className="flex items-center space-x-1 ml-2">
+                                  {" "}
+                                  {/* Reduced space */}
                                   {/* <button
                                     onClick={() =>
                                       handleBlockPreviewToggle(index)
@@ -4469,12 +4783,12 @@ const PageForm = ({ id }) => {
                                   >
                                     <Icon icon="Eye" className="h-4 w-4" />
                                   </button> */}
-                                 <button
+                                  <button
                                     onClick={() => handleToggleBlockTab(index)}
                                     className={`p-1 rounded ${
                                       block.isExpanded
-                                        ? 'text-green-600 hover:text-green-800' // Green when expanded
-                                        : 'text-red-600 hover:text-red-800' // Red when collapsed
+                                        ? "text-green-600 hover:text-green-800" // Green when expanded
+                                        : "text-red-600 hover:text-red-800" // Red when collapsed
                                     }`}
                                     aria-label="Edit Block"
                                   >
@@ -4489,7 +4803,6 @@ const PageForm = ({ id }) => {
                                   </button>
                                 </div>
                               </div>
-                            
                             </div>
                           )}
                         </Draggable>

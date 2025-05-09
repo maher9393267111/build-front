@@ -1319,13 +1319,13 @@ const FormForm = ({ id }) => {
                     icon="XMark"
                     onClick={() => router.push("/admin/forms")}
                   />
-                  {/* <Button
+                  <Button
                     text="Preview Form"
                     className="btn-info"
                     icon="Eye"
                     onClick={handlePreview}
                     type="button"
-                  /> */}
+                  />
                   <Button
                     text={isEditMode ? "Update Form" : "Create Form"}
                     className="btn-primary"
@@ -1339,7 +1339,7 @@ const FormForm = ({ id }) => {
             </form>
 
             {/* Preview Modal */}
-            {/* <Modal
+            <Modal
   title={formData.title || 'Form Preview'}
   open={isPreviewModalOpen}
   onClose={closePreviewModal}
@@ -1351,7 +1351,7 @@ const FormForm = ({ id }) => {
       <PreviewForm formData={formData} />
     </div>
   </div>
-</Modal> */}
+</Modal>
 
               </div>
             </div>
