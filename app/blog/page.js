@@ -1,3 +1,7 @@
+
+//no cache
+export const revalidate = 0;
+
 import { getBlogs, getBlogCategories, getSiteSettings } from '@services/api';
 import Layout from '@components/layout/landing/Layout';
 import BlogGridMain from './BlogGridMain';

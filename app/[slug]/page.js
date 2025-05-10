@@ -1,4 +1,5 @@
-
+//no cache
+export const revalidate = 0;
 import PageContent from '../../components/PageContent';
 import { getPageBySlug } from '@services/api';
 import Layout from '@components/layout/landing/Layout';

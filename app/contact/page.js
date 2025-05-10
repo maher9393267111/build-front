@@ -1,3 +1,6 @@
+//no cache
+export const revalidate = 0;
+
 // Remove 'use client' - this is now a server component
 import Layout from '@components/layout/landing/Layout'
 import { getSiteSettings } from '@services/api'
