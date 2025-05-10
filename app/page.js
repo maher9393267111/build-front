@@ -11,7 +11,7 @@ export async function generateMetadata() {
       const settings = await getSiteSettings();
   
       // Prepare icon data if ogImage exists
-      const iconUrl = page.ogImage?.url || settings?.ogImage?.url; 
+      const iconUrl = settings.ogImage?.url || page?.ogImage?.url; 
       const iconsData = iconUrl ? {
           icon: [{ url: iconUrl }], // Use for standard favicon
           apple: [{ url: iconUrl }], // Use for Apple touch icon

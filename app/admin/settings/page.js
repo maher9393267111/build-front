@@ -231,7 +231,14 @@ export default function SettigsPage() {
         address: '',
         workingHours: '',
         googleMapsEmbed: ''
-      }
+      },
+      // New SEO fields for static pages
+      blogMetaTitle: '',
+      blogMetaDescription: '',
+      blogMetaKeywords: '',
+      contactMetaTitle: '',
+      contactMetaDescription: '',
+      contactMetaKeywords: '',
     }
   });
 
@@ -305,7 +312,14 @@ export default function SettigsPage() {
             address: '',
             workingHours: '',
             googleMapsEmbed: ''
-          }
+          },
+          // Initialize new SEO fields
+          blogMetaTitle: data.blogMetaTitle || '',
+          blogMetaDescription: data.blogMetaDescription || '',
+          blogMetaKeywords: data.blogMetaKeywords || '',
+          contactMetaTitle: data.contactMetaTitle || '',
+          contactMetaDescription: data.contactMetaDescription || '',
+          contactMetaKeywords: data.contactMetaKeywords || '',
         };
         
         reset(resetData);
@@ -572,7 +586,7 @@ export default function SettigsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   <div>
                     <label className="block mb-2 text-sm font-semibold text-gray-700">
-                      Meta Title
+                      Meta Title (Default)
                     </label>
                     <input
                       type="text"
@@ -581,13 +595,13 @@ export default function SettigsPage() {
                       {...register('metaTitle')}
                     />
                     <p className="mt-1 text-xs text-gray-500">
-                      Recommended length: 50-60 characters
+                      Recommended length: 50-60 characters. Used as default if specific page SEO is not set.
                     </p>
                   </div>
                   
                   <div>
                     <label className="block mb-2 text-sm font-semibold text-gray-700">
-                      Meta Keywords
+                      Meta Keywords (Default)
                     </label>
                     <input
                       type="text"
@@ -600,7 +614,7 @@ export default function SettigsPage() {
                 
                 <div>
                   <label className="block mb-2 text-sm font-semibold text-gray-700">
-                    Meta Description
+                    Meta Description (Default)
                   </label>
                   <textarea
                     className="w-full h-24 rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
@@ -608,13 +622,13 @@ export default function SettigsPage() {
                     {...register('metaDescription')}
                   ></textarea>
                   <p className="mt-1 text-xs text-gray-500">
-                    Recommended length: 150-160 characters
+                    Recommended length: 150-160 characters. Used as default.
                   </p>
                 </div>
                 
                 <div>
                   <label className="block mb-2 text-sm font-semibold text-gray-700">
-                    OG Image
+                    OG Image (Default)
                   </label>
                   <FileUpload
                     file={watch('ogImage')}
@@ -624,8 +638,94 @@ export default function SettigsPage() {
                     error={!!errors.ogImage}
                   />
                   <p className="mt-1 text-xs text-gray-500">
-                    This image will be used when sharing on social media.
+                    This image will be used when sharing on social media (default).
                   </p>
+                </div>
+              </div>
+
+              {/* Static Pages SEO Section */}
+              <div className="pt-6 mt-6 border-t border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Static Pages SEO
+                </h3>
+                <div className="space-y-4 md:space-y-6">
+                  {/* Blog Page SEO */}
+                  <div className="p-4 border border-gray-100 rounded-lg bg-gray-50">
+                    <h4 className="text-md font-semibold text-gray-700 mb-3">Blog Page</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                          Blog Meta Title
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                          placeholder="Meta title for blog page"
+                          {...register('blogMetaTitle')}
+                        />
+                      </div>
+                      <div>
+                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                          Blog Meta Description
+                        </label>
+                        <textarea
+                          className="w-full h-20 rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                          placeholder="Meta description for blog page"
+                          {...register('blogMetaDescription')}
+                        ></textarea>
+                      </div>
+                      <div>
+                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                          Blog Meta Keywords
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                          placeholder="Comma-separated keywords for blog page"
+                          {...register('blogMetaKeywords')}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact Page SEO */}
+                  <div className="p-4 border border-gray-100 rounded-lg bg-gray-50">
+                    <h4 className="text-md font-semibold text-gray-700 mb-3">Contact Page</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                          Contact Meta Title
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                          placeholder="Meta title for contact page"
+                          {...register('contactMetaTitle')}
+                        />
+                      </div>
+                      <div>
+                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                          Contact Meta Description
+                        </label>
+                        <textarea
+                          className="w-full h-20 rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                          placeholder="Meta description for contact page"
+                          {...register('contactMetaDescription')}
+                        ></textarea>
+                      </div>
+                      <div>
+                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                          Contact Meta Keywords
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                          placeholder="Comma-separated keywords for contact page"
+                          {...register('contactMetaKeywords')}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Tab.Panel>

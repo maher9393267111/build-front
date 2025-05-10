@@ -1,6 +1,6 @@
 'use server';
 import { cookies } from 'next/headers';
-import { getBlogBySlug, getRelatedBlogs } from '@services/api';
+import { getBlogBySlug, getRelatedBlogs, getRecentPosts, getCategoriesWithCounts, getNextPreviousBlog } from '@services/api';
 import Layout from '@components/layout/landing/Layout';
 import BlogDetails from './BlogDetailsMain';
 import { generateBlogMetadata } from './BlogSeo';
@@ -26,19 +26,41 @@ export default async function BlogPage({ params }) {
   const { id } = params;
   let blog = null;
   let relatedBlogs = [];
+  let recentPosts = [];
+  let categories = [];
+  let navigation = { next: null, previous: null };
 
   try {
     blog = await getBlogBySlug(id);
+    
     if (blog?.id && blog?.categoryId) {
-      relatedBlogs = await getRelatedBlogs({ id: blog.id, categoryId: blog.categoryId });
+      // Fetch all data in parallel for better performance
+      const [relatedData, recentData, categoriesData, navigationData] = await Promise.all([
+        getRelatedBlogs({ id: blog.id, categoryId: blog.categoryId }),
+        getRecentPosts(3),
+        getCategoriesWithCounts(),
+        getNextPreviousBlog(blog.id)
+      ]);
+      
+      relatedBlogs = relatedData;
+      recentPosts = recentData;
+      categories = categoriesData;
+      navigation = navigationData;
     }
   } catch (error) {
-    console.error('Failed to fetch blog:', error);
+    console.error('Failed to fetch blog data:', error);
   }
 
   return (
     <Layout headerStyle={1}>
-      <BlogDetails blog={blog} relatedBlogs={relatedBlogs} error={!blog ? 'Blog not found' : null} />
+      <BlogDetails 
+        blog={blog} 
+        relatedBlogs={relatedBlogs} 
+        recentPosts={recentPosts}
+        categories={categories}
+        navigation={navigation}
+        error={!blog ? 'Blog not found' : null} 
+      />
     </Layout>
   );
 }

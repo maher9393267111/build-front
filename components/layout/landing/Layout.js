@@ -30,7 +30,7 @@ const Layout = ({ headerStyle, footerStyle, children, headerBg, breadcrumbTitle,
     const {showPopupMyProfile} = useSelector(state => state.profile); 
     const { settings } = useSelector(state => state.settings);
     
-    console.log("Settings from Redux:", settings);
+    // console.log("Settings from Redux:", settings);
 
     // Fetch published pages using react-query
     const { data: pagesData, isLoading } = useQuery('publishedPages', getPublishedPages, {

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
@@ -20,7 +20,45 @@ import BlogSeoDashboard from '@components/SEO/Blog/BlogSeoDashboard';
 // Dynamically import ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
-// Quill modules configuration
+// Custom CSS styles for the sticky header
+const stickyToolbarStyles = `
+  .quill-container {
+    position: relative;
+  }
+  .quill-container .ql-toolbar {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+    border-top-left-radius: 0.375rem;
+    border-top-right-radius: 0.375rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  .ql-container {
+    border-bottom-left-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+  }
+  /* Prevent empty anchor scrolling */
+  .ql-editor h1[id=""], .ql-editor h2[id=""], .ql-editor h3[id=""], 
+  .ql-editor h4[id=""], .ql-editor h5[id=""], .ql-editor h6[id=""] {
+    scroll-margin-top: 80px;
+  }
+  
+  /* Disable default header anchor behavior */
+  .ql-editor h1, .ql-editor h2, .ql-editor h3, 
+  .ql-editor h4, .ql-editor h5, .ql-editor h6 {
+    scroll-behavior: auto !important;
+  }
+  
+  /* Override Quill's default scrolling behavior for pickers */
+  .ql-picker.ql-expanded .ql-picker-options {
+    position: absolute !important;
+    top: 100% !important;
+    z-index: 50 !important;
+  }
+`;
+
+// Quill modules configuration (standard, no custom handlers here)
 const quillModules = {
   toolbar: [
     [{ font: [] }],
@@ -152,6 +190,9 @@ const BlogForm = ({ initialData = null }) => {
   const [showContentModal, setShowContentModal] = useState(false);
   const [generationPrompt, setGenerationPrompt] = useState('');
   const [generationTone, setGenerationTone] = useState('professional');
+  
+  const quillRef = useRef(null);
+  const quillEditorRef = useRef(null);
   
   console.log('initialDataXXX', initialData)
 
@@ -291,8 +332,215 @@ const BlogForm = ({ initialData = null }) => {
     }
   }, [initialData, reset]);
 
+  useEffect(() => {
+    // Handle clicking on toolbar buttons to prevent unwanted scrolling
+    const handleToolbarClick = (e) => {
+      if (e.target.closest('.ql-toolbar')) {
+        // Prevent default behavior for toolbar items
+        setTimeout(() => {
+          // Remove any empty hash from URL to prevent scrolling
+          if (window.location.hash === '#') {
+            history.pushState('', document.title, window.location.pathname + window.location.search);
+          }
+        }, 10);
+      }
+    };
+    
+    document.addEventListener('click', handleToolbarClick);
+    
+    return () => {
+      document.removeEventListener('click', handleToolbarClick);
+    };
+  }, []);
+
+  // This useCallback will contain the logic to fix the scroll issue
+  const setupQuillEventHandlers = useCallback((quill) => {
+    if (!quill) {
+      console.warn("Quill instance not provided to setupQuillEventHandlers");
+      return;
+    }
+
+    const toolbar = quill.getModule('toolbar');
+    if (!toolbar || !toolbar.container) {
+      console.warn("Quill toolbar or its container not found.");
+      return;
+    }
+    
+    // Monkey patch Quill's functionality to prevent scroll jumps
+    // This is a direct intervention to stop the scrolling behavior
+    const originalSetSelection = quill.setSelection;
+    quill.setSelection = function() {
+      // Save scroll position
+      const scrollTop = quill.scrollingContainer?.scrollTop || 0;
+      
+      // Call original method
+      const result = originalSetSelection.apply(this, arguments);
+      
+      // Restore scroll position
+      if (quill.scrollingContainer) {
+        quill.scrollingContainer.scrollTop = scrollTop;
+      }
+      
+      return result;
+    };
+    
+    // Store scroll position and selection for all toolbar interactions
+    const toolbarContainer = toolbar.container;
+    let lastScrollPosition = 0;
+    let lastSelection = null;
+    let isPickerAction = false;
+    
+    // Special handler for pickers (font size, headers, etc.)
+    const handlePickerOpen = () => {
+      if (quill.scrollingContainer) {
+        lastScrollPosition = quill.scrollingContainer.scrollTop;
+        lastSelection = quill.getSelection();
+        isPickerAction = true;
+      }
+    };
+    
+    const handlePickerSelect = () => {
+      if (!isPickerAction) return;
+      
+      // Use RAF to ensure this happens after Quill processes the change
+      requestAnimationFrame(() => {
+        if (quill.scrollingContainer) {
+          quill.scrollingContainer.scrollTop = lastScrollPosition;
+          
+          // Re-focus and restore selection
+          quill.focus();
+          if (lastSelection) {
+            quill.setSelection(lastSelection.index, lastSelection.length, 'silent');
+          }
+        }
+        isPickerAction = false;
+      });
+    };
+    
+    // Capture all picker interactions
+    toolbarContainer.querySelectorAll('.ql-picker').forEach(picker => {
+      // Capture when a picker is opened
+      picker.addEventListener('mousedown', handlePickerOpen, true);
+      
+      // Capture when an option is selected
+      picker.querySelectorAll('.ql-picker-item').forEach(item => {
+        item.addEventListener('click', handlePickerSelect, true);
+      });
+      
+      // Also handle direct label clicks (like headings that apply on click)
+      picker.querySelector('.ql-picker-label')?.addEventListener('click', handlePickerSelect, true);
+    });
+    
+    // Handle direct selections for toolbar buttons (bold, italic, etc.)
+    toolbarContainer.querySelectorAll('button:not(.ql-picker-label)').forEach(button => {
+      button.addEventListener('mousedown', () => {
+        if (quill.scrollingContainer) {
+          lastScrollPosition = quill.scrollingContainer.scrollTop;
+        }
+      }, true);
+      
+      button.addEventListener('click', () => {
+        // Restore scroll position after click
+        requestAnimationFrame(() => {
+          if (quill.scrollingContainer) {
+            quill.scrollingContainer.scrollTop = lastScrollPosition;
+            quill.focus();
+          }
+        });
+      }, true);
+    });
+    
+    // Prevent scroll position loss when formatting is applied
+    quill.on('editor-change', function() {
+      // Remove empty hash from URL to prevent scrolling
+      if (window.location.hash === '#') {
+        history.pushState('', document.title, window.location.pathname + window.location.search);
+      }
+    });
+    
+    // Override Quill's built-in scrolling for header anchors
+    const originalHistory = window.history.pushState;
+    window.history.pushState = function() {
+      // Check if it's a link to an anchor
+      if (arguments[2] && arguments[2].includes('#')) {
+        // Prevent automatic scrolling to the anchor
+        arguments[2] = window.location.pathname + window.location.search;
+      }
+      return originalHistory.apply(this, arguments);
+    };
+    
+    // Observe for any href/anchor changes in the document
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'id') {
+          // If an ID was added to a header, prevent automatic scrolling
+          if (mutation.target.tagName && /^H[1-6]$/.test(mutation.target.tagName)) {
+            const scrollPos = quill.scrollingContainer?.scrollTop || 0;
+            setTimeout(() => {
+              if (quill.scrollingContainer) {
+                quill.scrollingContainer.scrollTop = scrollPos;
+              }
+            }, 0);
+          }
+        }
+      });
+    });
+    
+    // Start observing the editor for ID attribute changes
+    observer.observe(quill.root, {
+      attributes: true,
+      subtree: true,
+      attributeFilter: ['id']
+    });
+    
+    // Store the observer in the ref for cleanup
+    quill.mutationObserver = observer;
+
+  }, []); // No dependencies needed
+
+  // Effect to set up handlers once the Quill instance is available
+  useEffect(() => {
+    if (quillRef.current) {
+      const editor = quillRef.current.getEditor();
+      if (editor && editor !== quillEditorRef.current) {
+        quillEditorRef.current = editor;
+        setupQuillEventHandlers(editor);
+      }
+    }
+    
+    return () => {
+      if (quillEditorRef.current) {
+        const quill = quillEditorRef.current;
+        // Clean up the mutation observer
+        if (quill.mutationObserver) {
+          quill.mutationObserver.disconnect();
+        }
+        
+        // Restore original history.pushState if we modified it
+        if (window.history._originalPushState) {
+          window.history.pushState = window.history._originalPushState;
+        }
+      }
+    };
+  }, [setupQuillEventHandlers]);
+
+  // Update the handleContentChange to ensure it doesn't cause scroll jumps
   const handleContentChange = (value) => {
+    const editor = quillEditorRef.current;
+    const scrollTop = editor?.scrollingContainer?.scrollTop || 0;
+    const selection = editor?.getSelection() || null;
+    
     setContent(value);
+    
+    // Restore position after state update
+    if (editor && editor.scrollingContainer) {
+      requestAnimationFrame(() => {
+        editor.scrollingContainer.scrollTop = scrollTop;
+        if (selection) {
+          editor.setSelection(selection.index, selection.length, 'silent');
+        }
+      });
+    }
   };
 
   // AI Content Generation functions
@@ -545,6 +793,28 @@ const BlogForm = ({ initialData = null }) => {
     return tempDiv.textContent || '';
   };
 
+  useEffect(() => {
+    // Prevent hash-based scrolling
+    const handleHashChange = () => {
+      if (window.location.hash === '#') {
+        setTimeout(() => {
+          history.pushState('', document.title, window.location.pathname + window.location.search);
+        }, 0);
+      }
+    };
+    
+    window.addEventListener('hashchange', handleHashChange);
+    
+    // Initial cleanup of any empty hash
+    if (window.location.hash === '#') {
+      history.pushState('', document.title, window.location.pathname + window.location.search);
+    }
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+
   return (
     <div className="flex flex-col space-y-6">
       {/* Tabs Navigation */}
@@ -719,19 +989,28 @@ const BlogForm = ({ initialData = null }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Content *
                   </label>
+                  <style jsx>{stickyToolbarStyles}</style>
                   <div
-                    className={`custom-quill${
+                    className={`custom-quill quill-container${
                       !content && savingStatus.includes('Content cannot be empty')
                         ? ' border-2 border-red-300'
                         : ''
                     }`}
                   >
                     <ReactQuill
+                      ref={quillRef}
                       theme="snow"
                       value={content}
                       onChange={handleContentChange}
                       modules={quillModules}
                       className="min-h-[400px]"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Tab') {
+                          e.preventDefault(); 
+                        }
+                      }}
+                      scrollingContainer="self"
+                      preserveWhitespace={true}
                     />
                   </div>
                   {!content && savingStatus.includes('Content cannot be empty') && (

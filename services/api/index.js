@@ -380,3 +380,29 @@ export const deleteFormSubmission = async (formId, submissionId) => {
   return data;
 };
 
+
+
+
+
+// Add these new API service functions
+
+// Get recent blog posts
+export const getRecentPosts = async (limit = 3) => {
+  const { data } = await http.get('/blogs/recent', { params: { limit } });
+  return data.posts;
+};
+
+// Get categories with post counts
+export const getCategoriesWithCounts = async () => {
+  const { data } = await http.get('/blogs/categories');
+  return data.categories;
+};
+
+// Get next and previous blog posts
+export const getNextPreviousBlog = async (id) => {
+  const { data } = await http.get(`/blogs/${id}/next-previous`);
+  return {
+    next: data.next,
+    previous: data.previous
+  };
+};

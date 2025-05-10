@@ -98,7 +98,7 @@ export default function Header1({ handleToggle, scroll, pagesData, settings }) {
     <>
       <OfferNavTitles settings={settings} />
       
-      <header className={`py-5 shadow-sm bg-white z-50 ${
+      <header className={`py-3 shadow-sm bg-white z-50 ${
         scroll ? "fixed w-full left-0 right-0 top-0 transition-all" : ""
       }`}>
         <nav className="container mx-auto flex items-center justify-between px-4 lg:px-8" aria-label="Global">
