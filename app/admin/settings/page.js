@@ -302,6 +302,7 @@ export default function SettigsPage() {
             fontSize: data.navTitles?.fontSize || 'text-md',
             textColor: data.navTitles?.textColor?.startsWith('#') ? data.navTitles.textColor : '#374151',
             iconColor: data.navTitles?.iconColor?.startsWith('#') ? data.navTitles.iconColor : '#4f46e5',
+            animationEnabled: data.navTitles?.animationEnabled !== false,
           },
           linksInfo: data.linksInfo || [],
           contactSection: data.contactSection || {
@@ -936,6 +937,23 @@ export default function SettigsPage() {
                       />
                     </div>
                   </div>
+                </div>
+                
+                {/* Animation Toggle - NEW */}
+                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <label className="flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                      {...register('navTitles.animationEnabled')}
+                    />
+                    <span className="ml-2 text-sm font-medium text-gray-700">
+                      Enable infinite sliding animation
+                    </span>
+                  </label>
+                  <p className="mt-2 text-xs text-gray-500 ml-7">
+                    When disabled, titles will be centered and static. When enabled, titles will continuously slide across the screen.
+                  </p>
                 </div>
                 
                 {/* Nav Items */}

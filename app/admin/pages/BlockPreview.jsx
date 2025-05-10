@@ -12,6 +12,10 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import dynamic from "next/dynamic";
 import "react-quill/dist/quill.snow.css";
+import React, { useState, useCallback } from "react";
+
+import Lightbox from 'react-18-image-lightbox';
+import 'react-18-image-lightbox/style.css';
 
 
 
@@ -1103,6 +1107,9 @@ switch (block.type) {
       </div>
     );
 
+  case "gallery":
+    return <GalleryBlockPreview block={block} />;
+
   default:
     return (
       <div className="p-6 border rounded bg-gray-50">
@@ -1114,6 +1121,137 @@ switch (block.type) {
 }
   };
 
+// Create a separate component for Gallery
+const GalleryBlockPreview = ({ block }) => {
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
+  
+  const galleryImages = (block.content?.galleryImages || []).filter(img => img.imageUrl?.url);
+  const imagesUrls = galleryImages.map(img => img.imageUrl.url);
+  
+  const openLightbox = useCallback((index) => {
+    setPhotoIndex(index);
+    setIsLightboxOpen(true);
+  }, []);
+  
+  return (
+    <div className="py-16 bg-white">
+      <div className="container mx-auto px-4">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                <Icon icon="Photo" className="h-6 w-6 text-primary-600" />
+                {block.content?.sectionTitle || "Photos"} 
+                {block.content?.totalCountText && (
+                  <span className="text-sm font-normal text-slate-500 ml-2">
+                    {block.content.totalCountText}
+                  </span>
+                )}
+              </h2>
+              
+              <button
+                onClick={() => openLightbox(0)}
+                className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1.5 transition-colors duration-200"
+              >
+                <span className="hidden sm:inline">{block.content?.viewAllText || "View all photos"}</span>
+                <span className="sm:hidden">View all</span>
+                <Icon icon="ChevronRight" className="w-4 h-4" />
+              </button>
+            </div>
 
-  export default BlockPreview;
+            <div className="relative">
+              <div className="grid grid-cols-12 gap-2 md:gap-3">
+                {/* Main Feature Photo */}
+                {galleryImages.length > 0 && (
+                  <div 
+                    className="col-span-12 md:col-span-6 rounded-xl overflow-hidden h-64 md:h-80 relative group cursor-pointer"
+                    onClick={() => openLightbox(0)}
+                  >
+                    <img
+                      src={galleryImages[0].imageUrl.url}
+                      alt={galleryImages[0].altText || "Featured gallery photo"}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                      <span className="text-white font-medium">{galleryImages[0].caption || ""}</span>
+                    </div>
+                    <div className="absolute top-3 right-3">
+                      <span className="bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-lg shadow-sm text-xs font-medium text-slate-800 flex items-center gap-1.5">
+                        <Icon icon="Eye" className="w-3.5 h-3.5 text-primary-600" />
+                        View
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Right Column Smaller Photos */}
+                <div className="col-span-12 md:col-span-6 grid grid-cols-2 gap-2 md:gap-3">
+                  {/* Show up to 4 additional images in the grid */}
+                  {galleryImages.slice(1, 5).map((image, index) => (
+                    <div 
+                      key={index}
+                      className="rounded-xl overflow-hidden h-32 md:h-[158px] relative group cursor-pointer"
+                      onClick={() => openLightbox(index + 1)}
+                    >
+                      <img
+                        src={image.imageUrl.url}
+                        alt={image.altText || `Gallery photo ${index + 2}`}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        {image.caption && (
+                          <div className="absolute bottom-0 left-0 right-0 p-2">
+                            <span className="text-white text-sm">{image.caption}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Show +X more overlay on the last visible image if there are more images */}
+                      {index === 3 && galleryImages.length > 5 && (
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center">
+                          <span className="text-white text-2xl font-bold mb-1">+{galleryImages.length - 5}</span>
+                          <button 
+                            className="px-3 py-1.5 bg-white/20 hover:bg-white/30 transition-colors duration-300 rounded-lg text-white text-sm font-medium backdrop-blur-sm"
+                          >
+                            View all photos
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {/* Add placeholder blocks if fewer than 4 additional images */}
+                  {Array.from({ length: Math.max(0, 4 - (galleryImages.slice(1).length)) }).map((_, index) => (
+                    <div key={`placeholder-${index}`} className="rounded-xl overflow-hidden h-32 md:h-[158px] bg-gray-100 flex items-center justify-center">
+                      <span className="text-gray-400 flex flex-col items-center">
+                        <Icon icon="Photo" className="h-8 w-8 mb-1" />
+                        <span className="text-xs">Add image</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Lightbox implementation - Uncommented */}
+        {isLightboxOpen && imagesUrls.length > 0 && (
+          <Lightbox
+            mainSrc={imagesUrls[photoIndex]}
+            nextSrc={imagesUrls[(photoIndex + 1) % imagesUrls.length]}
+            prevSrc={imagesUrls[(photoIndex + imagesUrls.length - 1) % imagesUrls.length]}
+            onCloseRequest={() => setIsLightboxOpen(false)}
+            onMovePrevRequest={() => setPhotoIndex((photoIndex + imagesUrls.length - 1) % imagesUrls.length)}
+            onMoveNextRequest={() => setPhotoIndex((photoIndex + 1) % imagesUrls.length)}
+            imageCaption={galleryImages[photoIndex]?.caption || ""}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default BlockPreview;
  

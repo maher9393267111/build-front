@@ -1,14 +1,13 @@
+// BlogForm.jsx with TipTap editor replacing React-Quill
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from 'react-query';
 import { getBlogCategories, createBlog, updateBlog } from '@services/api';
-import 'react-quill/dist/quill.snow.css';
 import http from '@services/api/http';
 import { toast } from 'react-toastify';
-import { XMarkIcon, PhotoIcon, SparklesIcon, LightBulbIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PhotoIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import MediaUpload from '@components/ui/MediaUpload';
 import Card from '@components/ui/Card';
 import Button from '@components/ui/Button';
@@ -17,65 +16,566 @@ import Textarea from '@components/ui/TextareaBlog';
 import Select from '@components/ui/SelectBlog';
 import BlogSeoDashboard from '@components/SEO/Blog/BlogSeoDashboard';
 
-// Dynamically import ReactQuill to avoid SSR issues
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+// TipTap imports
+import { useEditor, EditorContent, BubbleMenu, FloatingMenu } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Placeholder from '@tiptap/extension-placeholder';
+import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
+import Underline from '@tiptap/extension-underline';
+import TextStyle from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
+import TextAlign from '@tiptap/extension-text-align';
+import Youtube from '@tiptap/extension-youtube';
+import Highlight from '@tiptap/extension-highlight';
+import Typography from '@tiptap/extension-typography';
+import CodeBlock from '@tiptap/extension-code-block'
+import Table from '@tiptap/extension-table'
+import TableRow from '@tiptap/extension-table-row'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import FontFamily from '@tiptap/extension-font-family'
+import Subscript from '@tiptap/extension-subscript'
+import Superscript from '@tiptap/extension-superscript'
+import HorizontalRule from '@tiptap/extension-horizontal-rule'
 
-// Custom CSS styles for the sticky header
-const stickyToolbarStyles = `
-  .quill-container {
-    position: relative;
-  }
-  .quill-container .ql-toolbar {
-    position: sticky;
-    top: 0;
-    background: white;
-    z-index: 10;
-    border-top-left-radius: 0.375rem;
-    border-top-right-radius: 0.375rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  }
-  .ql-container {
-    border-bottom-left-radius: 0.375rem;
-    border-bottom-right-radius: 0.375rem;
-  }
-  /* Prevent empty anchor scrolling */
-  .ql-editor h1[id=""], .ql-editor h2[id=""], .ql-editor h3[id=""], 
-  .ql-editor h4[id=""], .ql-editor h5[id=""], .ql-editor h6[id=""] {
-    scroll-margin-top: 80px;
+// Custom TipTap Toolbar Component
+const TipTapToolbar = ({ editor }) => {
+  if (!editor) {
+    return null;
   }
   
-  /* Disable default header anchor behavior */
-  .ql-editor h1, .ql-editor h2, .ql-editor h3, 
-  .ql-editor h4, .ql-editor h5, .ql-editor h6 {
-    scroll-behavior: auto !important;
-  }
-  
-  /* Override Quill's default scrolling behavior for pickers */
-  .ql-picker.ql-expanded .ql-picker-options {
-    position: absolute !important;
-    top: 100% !important;
-    z-index: 50 !important;
-  }
-`;
+  const [showHeadingMenu, setShowHeadingMenu] = useState(false);
+  const [showInsertMenu, setShowInsertMenu] = useState(false);
+  const [showColorMenu, setShowColorMenu] = useState(false);
+  const headingMenuRef = useRef(null);
+  const insertMenuRef = useRef(null);
+  const colorMenuRef = useRef(null);
 
-// Quill modules configuration (standard, no custom handlers here)
-const quillModules = {
-  toolbar: [
-    [{ font: [] }],
-    [{ size: ['small', false, 'large', 'huge'] }],
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-    ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-    [{ color: [] }, { background: [] }],
-    [{ script: 'sub' }, { script: 'super' }],
-    [{ list: 'ordered' }, { list: 'bullet' }, { list: 'check' }],
-    [{ indent: '-1' }, { indent: '+1' }],
-    [{ align: [] }],
-    ['link', 'image', 'video', 'formula'],
-    ['clean']
-  ]
+  const addImage = useCallback(() => {
+    const url = window.prompt('URL');
+    if (url) {
+      editor.chain().focus().setImage({ src: url }).run();
+    }
+  }, [editor]);
+
+  const addYoutubeVideo = useCallback(() => {
+    const url = window.prompt('YouTube URL');
+    if (url) {
+      editor.chain().focus().setYoutubeVideo({ src: url }).run();
+    }
+  }, [editor]);
+
+  const setLink = useCallback(() => {
+    const previousUrl = editor.getAttributes('link').href;
+    const url = window.prompt('URL', previousUrl);
+
+    // cancelled
+    if (url === null) {
+      return;
+    }
+
+    // empty
+    if (url === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      return;
+    }
+
+    // update link
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+  }, [editor]);
+
+  const addTable = useCallback(() => {
+    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+  }, [editor])
+  
+  // Text colors
+  const textColors = [
+    { color: '#000000', name: 'Black' },
+    { color: '#FFFFFF', name: 'White' },
+    { color: '#FF0000', name: 'Red' },
+    { color: '#00FF00', name: 'Green' },
+    { color: '#0000FF', name: 'Blue' },
+    { color: '#FFFF00', name: 'Yellow' },
+    { color: '#FF00FF', name: 'Magenta' },
+    { color: '#00FFFF', name: 'Cyan' },
+    { color: '#FFA500', name: 'Orange' },
+    { color: '#800080', name: 'Purple' },
+    { color: '#A52A2A', name: 'Brown' },
+    { color: '#808080', name: 'Gray' },
+  ];
+  
+  // Background colors
+  const bgColors = [
+    { color: '#FFFFFF', name: 'White' },
+    { color: '#F8F9FA', name: 'Light Gray' },
+    { color: '#F0F0F0', name: 'Silver' },
+    { color: '#FFEEEE', name: 'Light Red' },
+    { color: '#EEFFEE', name: 'Light Green' },
+    { color: '#EEEEFF', name: 'Light Blue' },
+    { color: '#FFFFEE', name: 'Light Yellow' },
+    { color: '#FFDDFF', name: 'Light Pink' },
+    { color: '#DDFFFF', name: 'Light Cyan' },
+  ];
+  
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (headingMenuRef.current && !headingMenuRef.current.contains(event.target)) {
+        setShowHeadingMenu(false);
+      }
+      if (insertMenuRef.current && !insertMenuRef.current.contains(event.target)) {
+        setShowInsertMenu(false);
+      }
+      if (colorMenuRef.current && !colorMenuRef.current.contains(event.target)) {
+        setShowColorMenu(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <div className="border-b border-gray-200 bg-white sticky top-0 z-10 p-2 rounded-t-lg flex flex-wrap gap-2 items-center">
+      {/* Title/Headings Dropdown */}
+      <div className="relative" ref={headingMenuRef}>
+        <button
+          type="button"
+          onClick={() => setShowHeadingMenu(!showHeadingMenu)}
+          className="p-2 rounded hover:bg-gray-100 flex items-center gap-1 min-w-[80px] justify-between"
+        >
+          <span className="font-medium text-gray-700">
+            {editor.isActive('heading', { level: 1 }) ? 'Heading 1' : 
+             editor.isActive('heading', { level: 2 }) ? 'Heading 2' : 
+             editor.isActive('heading', { level: 3 }) ? 'Heading 3' : 'Title'}
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </button>
+        
+        {showHeadingMenu && (
+          <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded-md border border-gray-200 min-w-[200px] z-20">
+            <button
+              type="button"
+              onClick={() => {
+                editor.chain().focus().setParagraph().run();
+                setShowHeadingMenu(false);
+              }}
+              className={`p-3 hover:bg-gray-100 w-full text-left ${editor.isActive('paragraph') ? 'bg-gray-50' : ''}`}
+            >
+              Normal
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                editor.chain().focus().toggleHeading({ level: 1 }).run();
+                setShowHeadingMenu(false);
+              }}
+              className={`p-3 hover:bg-gray-100 w-full text-left font-semibold ${editor.isActive('heading', { level: 1 }) ? 'bg-gray-50' : ''}`}
+            >
+              Heading 1
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                editor.chain().focus().toggleHeading({ level: 2 }).run();
+                setShowHeadingMenu(false);
+              }}
+              className={`p-3 hover:bg-gray-100 w-full text-left font-semibold ${editor.isActive('heading', { level: 2 }) ? 'bg-gray-50' : ''}`}
+            >
+              Heading 2
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                editor.chain().focus().toggleHeading({ level: 3 }).run();
+                setShowHeadingMenu(false);
+              }}
+              className={`p-3 hover:bg-gray-100 w-full text-left font-semibold ${editor.isActive('heading', { level: 3 }) ? 'bg-gray-50' : ''}`}
+            >
+              Heading 3
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="h-6 w-px bg-gray-300 mx-1"></div>
+
+      {/* Text Formatting */}
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('bold') ? 'bg-gray-200' : ''}`}
+          title="Bold"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+            <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('italic') ? 'bg-gray-200' : ''}`}
+          title="Italic"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="19" y1="4" x2="10" y2="4"></line>
+            <line x1="14" y1="20" x2="5" y2="20"></line>
+            <line x1="15" y1="4" x2="9" y2="20"></line>
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('underline') ? 'bg-gray-200' : ''}`}
+          title="Underline"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"></path>
+            <line x1="4" y1="21" x2="20" y2="21"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div className="h-6 w-px bg-gray-300 mx-1"></div>
+
+      {/* Color Menu */}
+      <div className="relative" ref={colorMenuRef}>
+        <button
+          type="button"
+          onClick={() => setShowColorMenu(!showColorMenu)}
+          className="p-2 rounded hover:bg-gray-100 flex items-center gap-1"
+          title="Text & Background Colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m9 11 3 3L22 4"></path>
+            <path d="M21 12v7a2 2 0 0 1-2.2 2c-.68 0-1.3-.38-1.64-1L12 11"></path>
+            <path d="M9 8c.4 0 .78.11 1.11.32"></path>
+            <path d="M3 8c0-1.1.9-2 2-2"></path>
+            <path d="M11.1 3.08A3.93 3.93 0 0 0 8 2c-2.2 0-4 1.8-4 4"></path>
+            <path d="M2 22h20"></path>
+          </svg>
+          <span className="font-medium text-gray-700">Colors</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </button>
+        
+        {showColorMenu && (
+          <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded-md border border-gray-200 p-3 z-20 min-w-[240px]">
+            <div className="mb-3">
+              <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase">Text Colors</h3>
+              <div className="grid grid-cols-6 gap-1">
+                {textColors.map((color) => (
+                  <button
+                    key={color.color}
+                    type="button"
+                    onClick={() => {
+                      editor.chain().focus().setColor(color.color).run();
+                    }}
+                    className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center"
+                    style={{ backgroundColor: color.color }}
+                    title={color.name}
+                  >
+                    {color.color === '#FFFFFF' && (
+                      <div className="w-7 h-7 rounded-full border border-gray-300"></div>
+                    )}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    editor.chain().focus().unsetColor().run();
+                  }}
+                  className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center bg-white"
+                  title="Remove color"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase">Background Colors</h3>
+              <div className="grid grid-cols-6 gap-1">
+                {bgColors.map((color) => (
+                  <button
+                    key={color.color}
+                    type="button"
+                    onClick={() => {
+                      editor.chain().focus().toggleHighlight({ color: color.color }).run();
+                    }}
+                    className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center"
+                    style={{ backgroundColor: color.color }}
+                    title={color.name}
+                  >
+                    {color.color === '#FFFFFF' && (
+                      <div className="w-7 h-7 rounded border border-gray-300"></div>
+                    )}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    editor.chain().focus().toggleHighlight().run();
+                  }}
+                  className="w-8 h-8 rounded border border-gray-300 flex items-center justify-center bg-white"
+                  title="Remove background"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="h-6 w-px bg-gray-300 mx-1"></div>
+
+      {/* Lists */}
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('bulletList') ? 'bg-gray-200' : ''}`}
+          title="Bullet List"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="9" y1="6" x2="20" y2="6"></line>
+            <line x1="9" y1="12" x2="20" y2="12"></line>
+            <line x1="9" y1="18" x2="20" y2="18"></line>
+            <circle cx="4" cy="6" r="2"></circle>
+            <circle cx="4" cy="12" r="2"></circle>
+            <circle cx="4" cy="18" r="2"></circle>
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('orderedList') ? 'bg-gray-200' : ''}`}
+          title="Ordered List"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="10" y1="6" x2="20" y2="6"></line>
+            <line x1="10" y1="12" x2="20" y2="12"></line>
+            <line x1="10" y1="18" x2="20" y2="18"></line>
+            <path d="M4 6h1v4"></path>
+            <path d="M4 10h2"></path>
+            <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('blockquote') ? 'bg-gray-200' : ''}`}
+          title="Blockquote"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M17 22h-1a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h1"></path>
+            <path d="M7 22h-1a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h1"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div className="h-6 w-px bg-gray-300 mx-1"></div>
+
+      {/* Alignment */}
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().setTextAlign('left').run()}
+          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}`}
+          title="Align Left"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <line x1="4" y1="12" x2="14" y2="12"></line>
+            <line x1="4" y1="18" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().setTextAlign('center').run()}
+          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}`}
+          title="Align Center"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+            <line x1="6" y1="18" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().setTextAlign('right').run()}
+          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}`}
+          title="Align Right"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <line x1="10" y1="12" x2="20" y2="12"></line>
+            <line x1="6" y1="18" x2="20" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div className="h-6 w-px bg-gray-300 mx-1"></div>
+
+      {/* Insert Menu */}
+      <div className="relative" ref={insertMenuRef}>
+        <button
+          type="button"
+          onClick={() => setShowInsertMenu(!showInsertMenu)}
+          className="p-2 rounded hover:bg-gray-100 flex items-center gap-1"
+          title="Insert"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          <span className="font-medium text-gray-700">Insert</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </button>
+        
+        {showInsertMenu && (
+          <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded-md border border-gray-200 min-w-[180px] z-20">
+            <button
+              type="button"
+              onClick={() => {
+                setLink();
+                setShowInsertMenu(false);
+              }}
+              className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+              Link
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                addImage();
+                setShowInsertMenu(false);
+              }}
+              className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              Image
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                addYoutubeVideo();
+                setShowInsertMenu(false);
+              }}
+              className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                <polygon points="10 8 16 12 10 16 10 8"></polygon>
+              </svg>
+              YouTube
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                addTable();
+                setShowInsertMenu(false);
+              }}
+              className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="3" y1="15" x2="21" y2="15"></line>
+                <line x1="9" y1="3" x2="9" y2="21"></line>
+                <line x1="15" y1="3" x2="15" y2="21"></line>
+              </svg>
+              Table
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                editor.chain().focus().setHorizontalRule().run();
+                setShowInsertMenu(false);
+              }}
+              className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Divider
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                editor.chain().focus().toggleCodeBlock().run();
+                setShowInsertMenu(false);
+              }}
+              className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+              Code Block
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="flex-grow"></div>
+
+      {/* Undo/Redo */}
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().undo().run()}
+          disabled={!editor.can().undo()}
+          className="p-2 rounded hover:bg-gray-100 disabled:opacity-30"
+          title="Undo"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M3 10h10a8 8 0 0 1 8 8v2M3 10l6 6M3 10l6-6"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().redo().run()}
+          disabled={!editor.can().redo()}
+          className="p-2 rounded hover:bg-gray-100 disabled:opacity-30"
+          title="Redo"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 10H11a8 8 0 0 0-8 8v2M21 10l-6 6M21 10l-6-6"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
 };
 
 function FileUpload({ file, onDrop, onRemove, loading, error, maxSize }) {
+  // FileUpload component remains unchanged
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -175,7 +675,6 @@ function FileUpload({ file, onDrop, onRemove, loading, error, maxSize }) {
 
 const BlogForm = ({ initialData = null }) => {
   const router = useRouter();
-  const [content, setContent] = useState(initialData?.content || '');
   const [featuredImage, setFeaturedImage] = useState(initialData?.featuredImage || null);
   const [ogImage, setOgImage] = useState(initialData?.ogImage || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -191,10 +690,189 @@ const BlogForm = ({ initialData = null }) => {
   const [generationPrompt, setGenerationPrompt] = useState('');
   const [generationTone, setGenerationTone] = useState('professional');
   
-  const quillRef = useRef(null);
-  const quillEditorRef = useRef(null);
-  
-  console.log('initialDataXXX', initialData)
+  // Custom editor styles
+  const editorStyles = `
+    .ProseMirror {
+      min-height: 400px;
+      padding: 1rem;
+      border-bottom-left-radius: 0.375rem;
+      border-bottom-right-radius: 0.375rem;
+      border: 1px solid #e5e7eb;
+      border-top: none;
+      outline: none;
+      overflow-y: auto;
+    }
+    
+    .ProseMirror p {
+      margin-bottom: 0.75rem;
+    }
+    
+    .ProseMirror h1 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .ProseMirror h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .ProseMirror h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-top: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .ProseMirror blockquote {
+      border-left: 4px solid #e5e7eb;
+      padding-left: 1rem;
+      font-style: italic;
+      color: #6b7280;
+      margin: 1rem 0;
+    }
+    
+    .ProseMirror ul, .ProseMirror ol {
+      padding-left: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .ProseMirror ul {
+      list-style-type: disc;
+    }
+    
+    .ProseMirror ol {
+      list-style-type: decimal;
+    }
+    
+    .ProseMirror a {
+      color: #3b82f6;
+      text-decoration: underline;
+    }
+    
+    .ProseMirror img {
+      max-width: 100%;
+      height: auto;
+      margin: 1rem 0;
+    }
+    
+    .ProseMirror .youtube-video {
+      width: 100%;
+      aspect-ratio: 16/9;
+      margin: 1rem 0;
+    }
+    
+    .ProseMirror .ProseMirror-placeholder {
+      color: #9ca3af;
+      pointer-events: none;
+    }
+    
+    .ProseMirror table {
+      border-collapse: collapse;
+      table-layout: fixed;
+      width: 100%;
+      margin: 1rem 0;
+      overflow: hidden;
+    }
+    
+    .ProseMirror th {
+      background-color: #f3f4f6;
+      font-weight: bold;
+    }
+    
+    .ProseMirror td, .ProseMirror th {
+      border: 1px solid #e5e7eb;
+      padding: 0.5rem;
+      position: relative;
+    }
+    
+    .ProseMirror code {
+      background-color: #f3f4f6;
+      padding: 0.2rem 0.4rem;
+      border-radius: 0.25rem;
+      font-family: monospace;
+    }
+    
+    .ProseMirror pre {
+      background-color: #1e293b;
+      color: #e2e8f0;
+      padding: 1rem;
+      border-radius: 0.375rem;
+      font-family: monospace;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    
+    .ProseMirror hr {
+      border: none;
+      border-top: 2px solid #e5e7eb;
+      margin: 1rem 0;
+    }
+  `;
+
+  // Set up TipTap editor
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Placeholder.configure({
+        placeholder: 'Start writing your blog post...',
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-blue-500 underline',
+        },
+      }),
+      Image.configure({
+        inline: false,
+        allowBase64: true,
+        HTMLAttributes: {
+          class: 'rounded-lg max-w-full mx-auto',
+        },
+      }),
+      Underline,
+      TextStyle,
+      Color,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Youtube.configure({
+        width: 640,
+        height: 360,
+        HTMLAttributes: {
+          class: 'youtube-video rounded-lg overflow-hidden',
+        },
+      }),
+      Highlight.configure({
+        multicolor: true,
+      }),
+      Typography,
+      CodeBlock,
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
+      FontFamily.configure({
+        types: ['textStyle'],
+      }),
+      Subscript,
+      Superscript,
+      HorizontalRule,
+    ],
+    content: initialData?.content || '',
+    onUpdate: ({ editor }) => {
+      // Get HTML content when editor updates
+      const html = editor.getHTML();
+      // We don't need to save editor state or cursor position
+      // since TipTap handles this internally
+    },
+  });
 
   const {
     register,
@@ -222,8 +900,6 @@ const BlogForm = ({ initialData = null }) => {
   // Format blog data for SEO analysis
   const getBlogDataForSeo = () => {
     const values = getValues();
- 
-
     return {
       title: values.title || '',
       metaTitle: values.metaTitle || values.title || '',
@@ -233,8 +909,8 @@ const BlogForm = ({ initialData = null }) => {
       robots: values.robots || 'index, follow',
       ogImage: ogImage,
       contentType: 'blog',
-      category: values.categoryId, // Keep categoryId if needed elsewhere
-      categoryName: values.category?.name, // Add category name here
+      category: values.categoryId,
+      categoryName: values.category?.name,
     };
   };
 
@@ -326,222 +1002,13 @@ const BlogForm = ({ initialData = null }) => {
     // Reset form when initialData changes
     if (initialData) {
       reset(initialData);
-      setContent(initialData.content || '');
+      if (editor) {
+        editor.commands.setContent(initialData.content || '');
+      }
       setFeaturedImage(initialData.featuredImage || null);
       setOgImage(initialData.ogImage || null);
     }
-  }, [initialData, reset]);
-
-  useEffect(() => {
-    // Handle clicking on toolbar buttons to prevent unwanted scrolling
-    const handleToolbarClick = (e) => {
-      if (e.target.closest('.ql-toolbar')) {
-        // Prevent default behavior for toolbar items
-        setTimeout(() => {
-          // Remove any empty hash from URL to prevent scrolling
-          if (window.location.hash === '#') {
-            history.pushState('', document.title, window.location.pathname + window.location.search);
-          }
-        }, 10);
-      }
-    };
-    
-    document.addEventListener('click', handleToolbarClick);
-    
-    return () => {
-      document.removeEventListener('click', handleToolbarClick);
-    };
-  }, []);
-
-  // This useCallback will contain the logic to fix the scroll issue
-  const setupQuillEventHandlers = useCallback((quill) => {
-    if (!quill) {
-      console.warn("Quill instance not provided to setupQuillEventHandlers");
-      return;
-    }
-
-    const toolbar = quill.getModule('toolbar');
-    if (!toolbar || !toolbar.container) {
-      console.warn("Quill toolbar or its container not found.");
-      return;
-    }
-    
-    // Monkey patch Quill's functionality to prevent scroll jumps
-    // This is a direct intervention to stop the scrolling behavior
-    const originalSetSelection = quill.setSelection;
-    quill.setSelection = function() {
-      // Save scroll position
-      const scrollTop = quill.scrollingContainer?.scrollTop || 0;
-      
-      // Call original method
-      const result = originalSetSelection.apply(this, arguments);
-      
-      // Restore scroll position
-      if (quill.scrollingContainer) {
-        quill.scrollingContainer.scrollTop = scrollTop;
-      }
-      
-      return result;
-    };
-    
-    // Store scroll position and selection for all toolbar interactions
-    const toolbarContainer = toolbar.container;
-    let lastScrollPosition = 0;
-    let lastSelection = null;
-    let isPickerAction = false;
-    
-    // Special handler for pickers (font size, headers, etc.)
-    const handlePickerOpen = () => {
-      if (quill.scrollingContainer) {
-        lastScrollPosition = quill.scrollingContainer.scrollTop;
-        lastSelection = quill.getSelection();
-        isPickerAction = true;
-      }
-    };
-    
-    const handlePickerSelect = () => {
-      if (!isPickerAction) return;
-      
-      // Use RAF to ensure this happens after Quill processes the change
-      requestAnimationFrame(() => {
-        if (quill.scrollingContainer) {
-          quill.scrollingContainer.scrollTop = lastScrollPosition;
-          
-          // Re-focus and restore selection
-          quill.focus();
-          if (lastSelection) {
-            quill.setSelection(lastSelection.index, lastSelection.length, 'silent');
-          }
-        }
-        isPickerAction = false;
-      });
-    };
-    
-    // Capture all picker interactions
-    toolbarContainer.querySelectorAll('.ql-picker').forEach(picker => {
-      // Capture when a picker is opened
-      picker.addEventListener('mousedown', handlePickerOpen, true);
-      
-      // Capture when an option is selected
-      picker.querySelectorAll('.ql-picker-item').forEach(item => {
-        item.addEventListener('click', handlePickerSelect, true);
-      });
-      
-      // Also handle direct label clicks (like headings that apply on click)
-      picker.querySelector('.ql-picker-label')?.addEventListener('click', handlePickerSelect, true);
-    });
-    
-    // Handle direct selections for toolbar buttons (bold, italic, etc.)
-    toolbarContainer.querySelectorAll('button:not(.ql-picker-label)').forEach(button => {
-      button.addEventListener('mousedown', () => {
-        if (quill.scrollingContainer) {
-          lastScrollPosition = quill.scrollingContainer.scrollTop;
-        }
-      }, true);
-      
-      button.addEventListener('click', () => {
-        // Restore scroll position after click
-        requestAnimationFrame(() => {
-          if (quill.scrollingContainer) {
-            quill.scrollingContainer.scrollTop = lastScrollPosition;
-            quill.focus();
-          }
-        });
-      }, true);
-    });
-    
-    // Prevent scroll position loss when formatting is applied
-    quill.on('editor-change', function() {
-      // Remove empty hash from URL to prevent scrolling
-      if (window.location.hash === '#') {
-        history.pushState('', document.title, window.location.pathname + window.location.search);
-      }
-    });
-    
-    // Override Quill's built-in scrolling for header anchors
-    const originalHistory = window.history.pushState;
-    window.history.pushState = function() {
-      // Check if it's a link to an anchor
-      if (arguments[2] && arguments[2].includes('#')) {
-        // Prevent automatic scrolling to the anchor
-        arguments[2] = window.location.pathname + window.location.search;
-      }
-      return originalHistory.apply(this, arguments);
-    };
-    
-    // Observe for any href/anchor changes in the document
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'id') {
-          // If an ID was added to a header, prevent automatic scrolling
-          if (mutation.target.tagName && /^H[1-6]$/.test(mutation.target.tagName)) {
-            const scrollPos = quill.scrollingContainer?.scrollTop || 0;
-            setTimeout(() => {
-              if (quill.scrollingContainer) {
-                quill.scrollingContainer.scrollTop = scrollPos;
-              }
-            }, 0);
-          }
-        }
-      });
-    });
-    
-    // Start observing the editor for ID attribute changes
-    observer.observe(quill.root, {
-      attributes: true,
-      subtree: true,
-      attributeFilter: ['id']
-    });
-    
-    // Store the observer in the ref for cleanup
-    quill.mutationObserver = observer;
-
-  }, []); // No dependencies needed
-
-  // Effect to set up handlers once the Quill instance is available
-  useEffect(() => {
-    if (quillRef.current) {
-      const editor = quillRef.current.getEditor();
-      if (editor && editor !== quillEditorRef.current) {
-        quillEditorRef.current = editor;
-        setupQuillEventHandlers(editor);
-      }
-    }
-    
-    return () => {
-      if (quillEditorRef.current) {
-        const quill = quillEditorRef.current;
-        // Clean up the mutation observer
-        if (quill.mutationObserver) {
-          quill.mutationObserver.disconnect();
-        }
-        
-        // Restore original history.pushState if we modified it
-        if (window.history._originalPushState) {
-          window.history.pushState = window.history._originalPushState;
-        }
-      }
-    };
-  }, [setupQuillEventHandlers]);
-
-  // Update the handleContentChange to ensure it doesn't cause scroll jumps
-  const handleContentChange = (value) => {
-    const editor = quillEditorRef.current;
-    const scrollTop = editor?.scrollingContainer?.scrollTop || 0;
-    const selection = editor?.getSelection() || null;
-    
-    setContent(value);
-    
-    // Restore position after state update
-    if (editor && editor.scrollingContainer) {
-      requestAnimationFrame(() => {
-        editor.scrollingContainer.scrollTop = scrollTop;
-        if (selection) {
-          editor.setSelection(selection.index, selection.length, 'silent');
-        }
-      });
-    }
-  };
+  }, [initialData, reset, editor]);
 
   // AI Content Generation functions
   const generateBlogContent = async () => {
@@ -558,7 +1025,7 @@ const BlogForm = ({ initialData = null }) => {
         contentType: contentType,
         tone: generationTone,
         customPrompt: generationPrompt || undefined,
-        existingContent: content || undefined,
+        existingContent: editor ? editor.getHTML() : '',
       };
       
       // Make API call to generate content
@@ -579,18 +1046,20 @@ const BlogForm = ({ initialData = null }) => {
   };
   
   const applyGeneratedContent = () => {
-    if (!generatedContent) return;
+    if (!generatedContent || !editor) return;
     
     // Apply based on content type
     if (contentType === 'full') {
-      setContent(generatedContent);
+      editor.commands.setContent(generatedContent);
     } else if (contentType === 'intro') {
-      setContent(generatedContent + content);
+      editor.commands.insertContentAt(0, generatedContent);
     } else if (contentType === 'conclusion') {
-      setContent(content + generatedContent);
+      // Append at end
+      editor.commands.focus('end');
+      editor.commands.insertContent(generatedContent);
     } else if (contentType === 'section') {
-      // Insert at cursor position or append if not possible
-      setContent(content + "\n\n" + generatedContent);
+      // Insert at cursor position
+      editor.commands.insertContent(generatedContent);
     }
     
     setShowContentModal(false);
@@ -756,7 +1225,14 @@ const BlogForm = ({ initialData = null }) => {
   };
 
   const onSubmit = (data) => {
-    if (!content) {
+    if (!editor) {
+      setSavingStatus('Editor not initialized');
+      return;
+    }
+    
+    const content = editor.getHTML();
+    
+    if (!content || content === '<p></p>') {
       setSavingStatus('Content cannot be empty');
       return;
     }
@@ -787,33 +1263,12 @@ const BlogForm = ({ initialData = null }) => {
 
   // Strip HTML tags from content for plain text analysis
   const getPlainTextContent = () => {
-    if (!content) return '';
+    if (!editor) return '';
+    const html = editor.getHTML();
     const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = content;
+    tempDiv.innerHTML = html;
     return tempDiv.textContent || '';
   };
-
-  useEffect(() => {
-    // Prevent hash-based scrolling
-    const handleHashChange = () => {
-      if (window.location.hash === '#') {
-        setTimeout(() => {
-          history.pushState('', document.title, window.location.pathname + window.location.search);
-        }, 0);
-      }
-    };
-    
-    window.addEventListener('hashchange', handleHashChange);
-    
-    // Initial cleanup of any empty hash
-    if (window.location.hash === '#') {
-      history.pushState('', document.title, window.location.pathname + window.location.search);
-    }
-    
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
-  }, []);
 
   return (
     <div className="flex flex-col space-y-6">
@@ -984,36 +1439,23 @@ const BlogForm = ({ initialData = null }) => {
                   </div>
                 </div>
 
-                {/* Rich Text Editor */}
+                {/* TipTap Editor */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Content *
                   </label>
-                  <style jsx>{stickyToolbarStyles}</style>
+                  <style jsx>{editorStyles}</style>
                   <div
-                    className={`custom-quill quill-container${
-                      !content && savingStatus.includes('Content cannot be empty')
-                        ? ' border-2 border-red-300'
+                    className={`tiptap-editor-container${
+                      !editor?.getHTML() && savingStatus.includes('Content cannot be empty')
+                        ? ' border-2 border-red-300 rounded-lg'
                         : ''
                     }`}
                   >
-                    <ReactQuill
-                      ref={quillRef}
-                      theme="snow"
-                      value={content}
-                      onChange={handleContentChange}
-                      modules={quillModules}
-                      className="min-h-[400px]"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Tab') {
-                          e.preventDefault(); 
-                        }
-                      }}
-                      scrollingContainer="self"
-                      preserveWhitespace={true}
-                    />
+                    {editor && <TipTapToolbar editor={editor} />}
+                    <EditorContent editor={editor} />
                   </div>
-                  {!content && savingStatus.includes('Content cannot be empty') && (
+                  {!editor?.getHTML() && savingStatus.includes('Content cannot be empty') && (
                     <p className="mt-1 text-sm text-red-600">Content is required</p>
                   )}
                 </div>
@@ -1155,7 +1597,7 @@ const BlogForm = ({ initialData = null }) => {
                     </div>
                     
                     <div className="prose max-w-none border-t pt-4 mt-4">
-                      <div dangerouslySetInnerHTML={{ __html: content }} />
+                      <div dangerouslySetInnerHTML={{ __html: editor ? editor.getHTML() : '' }} />
                     </div>
                   </div>
                 </div>

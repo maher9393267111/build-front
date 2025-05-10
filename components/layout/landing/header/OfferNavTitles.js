@@ -16,12 +16,15 @@ const OfferNavTitles = ({ settings }) => {
   
   // Start animation after component mounts with a delay
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setStartAnimation(true);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+    // Only start animation if animationEnabled is true
+    if (settings?.navTitles?.animationEnabled !== false) {
+      const timer = setTimeout(() => {
+        setStartAnimation(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [settings?.navTitles?.animationEnabled]);
   
   // Return early if no settings or navTitles data
   if (!settings?.navTitles?.items || settings.navTitles.items.length === 0) {
@@ -29,10 +32,10 @@ const OfferNavTitles = ({ settings }) => {
   }
 
   // Get the nav titles data from settings
-  const { items, fontSize, textColor, iconColor } = settings.navTitles;
+  const { items, fontSize, textColor, iconColor, animationEnabled = true } = settings.navTitles;
   
-  // Create duplicate items for the display
-  const displayItems = [...items, ...items];
+  // Create duplicate items for the display if animation is enabled
+  const displayItems = animationEnabled ? [...items, ...items] : items;
   
   // Function to get the icon component from the string name
   const getIconComponent = (iconName) => {
@@ -63,17 +66,23 @@ const OfferNavTitles = ({ settings }) => {
           <div className="container mx-auto px-4 py-3 relative">
             <div className="flex items-center justify-between">
               <div className="flex-1 overflow-hidden">
-                <div className="flex">
+                <div className={cn(
+                  "flex",
+                  !animationEnabled && "justify-center"
+                )}>
                   <motion.div
-                    className="flex whitespace-nowrap"
-                    animate={startAnimation ? {
+                    className={cn(
+                      "flex whitespace-nowrap",
+                      !animationEnabled && "justify-center"
+                    )}
+                    animate={animationEnabled && startAnimation ? {
                       x: ["0%", "-50%"]
                     } : {
                       x: "0%"
                     }}
                     transition={{
                       x: {
-                        repeat: Infinity,
+                        repeat: animationEnabled ? Infinity : 0,
                         repeatType: "loop",
                         duration: 20,
                         ease: "linear",

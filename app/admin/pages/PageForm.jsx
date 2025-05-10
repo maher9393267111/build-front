@@ -398,6 +398,7 @@ const PageForm = ({ id }) => {
     { value: "partners", label: "Partners" },
     { value: "customers", label: "Customers" },
     { value: "form", label: "Form Block" },
+    { value: "gallery", label: "Gallery Block" },
   ];
 
   const getTemplateOptions = () => {
@@ -1014,6 +1015,82 @@ const PageForm = ({ id }) => {
     }
 
     handleItemChange(blockIndex, "partners", partnerIndex, "imageUrl", null);
+    setUploadStates((prev) => ({
+      ...prev,
+      [uploadKey]: { loading: false, error: null },
+    }));
+  };
+
+  const handleGalleryImageUpload = async (e, identifier) => {
+    if (!identifier) return;
+    const { blockIndex, imageIndex } = identifier;
+    const uploadKey = `gallery-${blockIndex}-${imageIndex}`;
+
+    // Handle media library selection
+    if (e.mediaLibraryFile) {
+      const mediaFile = e.mediaLibraryFile;
+      handleItemChange(blockIndex, "galleryImages", imageIndex, "imageUrl", {
+        _id: mediaFile._id,
+        url: mediaFile.url,
+        fromMediaLibrary: true,
+        mediaId: mediaFile.mediaId,
+      });
+      return;
+    }
+
+    // Handle file upload
+    const file = e.target?.files?.[0];
+    if (!file) return;
+
+    setUploadStates((prev) => ({
+      ...prev,
+      [uploadKey]: { loading: true, error: null },
+    }));
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("addToMediaLibrary", "true");
+    formData.append("setAsInUse", "true");
+
+    try {
+      const { data } = await http.post("/uploadfile", formData);
+      const imageObj = {
+        _id: data._id,
+        url: data.url,
+        fromMediaLibrary: data.fromMediaLibrary || false,
+        mediaId: data.mediaId,
+      };
+      handleItemChange(blockIndex, "galleryImages", imageIndex, "imageUrl", imageObj);
+      setUploadStates((prev) => ({
+        ...prev,
+        [uploadKey]: { loading: false, error: null },
+      }));
+    } catch (error) {
+      console.error("Upload failed:", error);
+      const errorMessage = error.response?.data?.error || "Failed to upload image.";
+      setUploadStates((prev) => ({
+        ...prev,
+        [uploadKey]: { loading: false, error: errorMessage },
+      }));
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleRemoveGalleryImage = async (identifier) => {
+    const { blockIndex, imageIndex } = identifier;
+    const uploadKey = `gallery-${blockIndex}-${imageIndex}`;
+    const currentImageUrl = formData.blocks[blockIndex]?.content?.galleryImages?.[imageIndex]?.imageUrl;
+
+    if (currentImageUrl && currentImageUrl._id && !currentImageUrl.fromMediaLibrary) {
+      try {
+        await http.delete(`/deletefile?fileName=${currentImageUrl._id}`);
+      } catch (error) {
+        console.error("Delete failed:", error);
+        toast.warn("Could not delete image from server, but removed from gallery.");
+      }
+    }
+
+    handleItemChange(blockIndex, "galleryImages", imageIndex, "imageUrl", null);
     setUploadStates((prev) => ({
       ...prev,
       [uploadKey]: { loading: false, error: null },
@@ -4389,6 +4466,178 @@ const PageForm = ({ id }) => {
                                                       </div>
                                                     </div>
                                                   )}
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            {block.type === "gallery" && (
+                                              <div className="space-y-3">
+                                                <Textinput
+                                                  label="Section Title"
+                                                  value={
+                                                    block.content
+                                                      ?.sectionTitle || ""
+                                                  }
+                                                  onChange={(e) =>
+                                                    handleBlockContentChange(
+                                                      index,
+                                                      "sectionTitle",
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  placeholder="Gallery Title"
+                                                />
+                                                
+                                                <Textinput
+                                                  label="Total Count Text"
+                                                  value={
+                                                    block.content
+                                                      ?.totalCountText || ""
+                                                  }
+                                                  onChange={(e) =>
+                                                    handleBlockContentChange(
+                                                      index,
+                                                      "totalCountText",
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  placeholder="(132 total)"
+                                                />
+                                                
+                                                <Textinput
+                                                  label="View All Text"
+                                                  value={
+                                                    block.content
+                                                      ?.viewAllText || ""
+                                                  }
+                                                  onChange={(e) =>
+                                                    handleBlockContentChange(
+                                                      index,
+                                                      "viewAllText",
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  placeholder="View all photos"
+                                                />
+                                                
+                                                <div className="space-y-4 mt-2 border-t pt-4">
+                                                  <h4 className="font-medium text-sm">
+                                                    Gallery Images:
+                                                  </h4>
+                                                  {(block.content?.galleryImages || []).map((image, imageIndex) => {
+                                                    const identifier = {
+                                                      blockIndex: index,
+                                                      imageIndex: imageIndex,
+                                                    };
+                                                    const uploadKey = `gallery-${index}-${imageIndex}`;
+                                                    const uState = uploadStates[uploadKey] || {
+                                                      loading: false,
+                                                      error: null,
+                                                    };
+                                                    return (
+                                                      <div
+                                                        key={imageIndex}
+                                                        className="border p-3 rounded bg-slate-50 space-y-3 relative"
+                                                      >
+                                                        <button
+                                                          type="button"
+                                                          onClick={() =>
+                                                            handleRemoveItem(
+                                                              index,
+                                                              "galleryImages",
+                                                              imageIndex
+                                                            )
+                                                          }
+                                                          className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full z-10"
+                                                          aria-label="Remove Image"
+                                                        >
+                                                          <Icon
+                                                            icon="XMark"
+                                                            className="h-4 w-4"
+                                                          />
+                                                        </button>
+
+                                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                          <div className="sm:col-span-1">
+                                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                              Image {imageIndex + 1}
+                                                            </label>
+                                                            <MediaUpload
+                                                              file={image.imageUrl}
+                                                              onDrop={(e) =>
+                                                                handleGalleryImageUpload(
+                                                                  e,
+                                                                  identifier
+                                                                )
+                                                              }
+                                                              onRemove={() =>
+                                                                handleRemoveGalleryImage(
+                                                                  identifier
+                                                                )
+                                                              }
+                                                              loading={uState.loading}
+                                                              error={uState.error}
+                                                              maxSize={5 * 1024 * 1024}
+                                                              identifier={identifier}
+                                                            />
+                                                          </div>
+                                                          <div className="sm:col-span-2 space-y-3">
+                                                            <Textinput
+                                                              label={`Image ${imageIndex + 1} Caption`}
+                                                              value={
+                                                                image.caption ||
+                                                                ""
+                                                              }
+                                                              onChange={(e) =>
+                                                                handleItemChange(
+                                                                  index,
+                                                                  "galleryImages",
+                                                                  imageIndex,
+                                                                  "caption",
+                                                                  e.target.value
+                                                                )
+                                                              }
+                                                              placeholder="Image caption"
+                                                            />
+                                                            <Textinput
+                                                              label={`Image ${imageIndex + 1} Alt Text`}
+                                                              value={
+                                                                image.altText ||
+                                                                ""
+                                                              }
+                                                              onChange={(e) =>
+                                                                handleItemChange(
+                                                                  index,
+                                                                  "galleryImages",
+                                                                  imageIndex,
+                                                                  "altText",
+                                                                  e.target.value
+                                                                )
+                                                              }
+                                                              placeholder="Image alt text"
+                                                            />
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                    );
+                                                  })}
+                                                  <Button
+                                                    text="Add Image"
+                                                    className="btn-outline-primary btn-sm"
+                                                    onClick={() =>
+                                                      handleAddItem(
+                                                        index,
+                                                        "galleryImages",
+                                                        {
+                                                          imageUrl: null,
+                                                          caption: "",
+                                                          altText: "",
+                                                        }
+                                                      )
+                                                    }
+                                                    icon="Plus"
+                                                    type="button"
+                                                  />
                                                 </div>
                                               </div>
                                             )}

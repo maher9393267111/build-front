@@ -2,11 +2,13 @@ import { Inter } from 'next/font/google';
 import Script from 'next/script';
 import { getSiteSettings } from '@services/api';
 import '@public/tailwind/style.css';
+
 import 'animate.css';
 import 'swiper/css';
 import "swiper/css/autoplay";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+
 import ClientProviders from './ClientProviders';
 
 const inter = Inter({
