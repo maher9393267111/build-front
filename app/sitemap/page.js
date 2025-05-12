@@ -1,4 +1,6 @@
 // 'use server';
+//no cache
+export const revalidate = 0;
 
 import * as api from '@/services/api';
 import AdminSitemapMain from './AdminSitemapMain';
