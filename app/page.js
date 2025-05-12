@@ -55,9 +55,9 @@ export async function generateMetadata() {
       };
   
       // Add canonical URL if available
-      if (page.canonicalUrl) {
-        metadata.alternates = { canonical: page.canonicalUrl || 'https://letsbuildsw.co.uk' };
-      }
+      // if (page.canonicalUrl) {
+        metadata.alternates = { canonical: page?.canonicalUrl || 'https://letsbuildsw.co.uk' };
+      
   
       // Add robots meta tag if available
       if (page.robots) {
