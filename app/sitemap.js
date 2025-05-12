@@ -1,5 +1,5 @@
 //no cache
-export const revalidate = 0;
+
 
 import * as api from '../services/api'; // Adjust path as necessary
 
