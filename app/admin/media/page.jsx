@@ -15,15 +15,17 @@ import {
   PhotoIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  EyeIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 import ConfirmationModal from '@components/modal/ConfirmationModal';
 import PaginationDynamic from '@components/elements/PaginationDynamic';
 import { Dialog, Transition, Switch } from '@headlessui/react';
 import Select from '@components/ui/Select';
-
 import Textinput from '@components/ui/Textinput';
+import Lightbox from 'react-18-image-lightbox';
+import 'react-18-image-lightbox/style.css';
 
 // Custom Headless UI Checkbox component
 const HeadlessCheckbox = ({ checked, onChange, className = "" }) => {
@@ -33,7 +35,7 @@ const HeadlessCheckbox = ({ checked, onChange, className = "" }) => {
       onChange={onChange}
       className={`${
         checked ? 'bg-primary-600 border-primary-600' : 'bg-white border-gray-300'
-      } relative inline-flex h-5 w-5 items-center justify-center rounded border shadow-sm ocus:outline-none ocus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors ${className}`}
+      } relative inline-flex h-5 w-5 items-center justify-center rounded border shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors ${className}`}
     >
       <span className="sr-only">Use setting</span>
       {checked && (
@@ -58,6 +60,10 @@ const MediaGallery = () => {
   const [uploadFiles, setUploadFiles] = useState([]);
   const pageSize = 10;
 
+  // Lightbox state
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
+
   // Query for fetching media
   const { data, isLoading, error } = useQuery(
     ['media', page, selectedType, searchTerm],
@@ -71,6 +77,18 @@ const MediaGallery = () => {
       keepPreviousData: true,
     }
   );
+
+  // Get only image items for lightbox - check different possible types
+  const imageItems = data?.media?.filter(item => {
+    // Check for different variations of image type
+    const type = item.type?.toLowerCase();
+    return type === 'image' || type === 'photo' || type === 'img' || item.url?.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
+  }) || [];
+  
+  const imageUrls = imageItems.map(item => item.url);
+
+  console.log('ImageItems:', imageItems); // Debug log
+  console.log('ImageUrls:', imageUrls); // Debug log
 
   // Mutations
   const deleteMutation = useMutation(
@@ -239,6 +257,51 @@ const MediaGallery = () => {
     }
   };
 
+  // Lightbox functions
+  const openLightbox = useCallback((item) => {
+    console.log('Opening lightbox for item:', item); // Debug log
+    
+    // Check for different variations of image type
+    const type = item.type?.toLowerCase();
+    const isImage = type === 'image' || type === 'photo' || type === 'img' || item.url?.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
+    
+    if (!isImage) {
+      console.log('Item is not an image:', item); // Debug log
+      return;
+    }
+    
+    const imageIndex = imageItems.findIndex(imgItem => imgItem.id === item.id);
+    console.log('Image index found:', imageIndex); // Debug log
+    
+    if (imageIndex >= 0) {
+      setPhotoIndex(imageIndex);
+      setIsLightboxOpen(true);
+      console.log('Lightbox opened with index:', imageIndex); // Debug log
+    }
+  }, [imageItems]);
+
+  const closeLightbox = useCallback(() => {
+    setIsLightboxOpen(false);
+    console.log('Lightbox closed'); // Debug log
+  }, []);
+
+  // Handle image click with proper event handling
+  const handleImageClick = useCallback((item, e) => {
+    // Prevent event bubbling to parent elements
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    console.log('Image clicked:', item); // Debug log
+    openLightbox(item);
+  }, [openLightbox]);
+
+  // Prevent checkbox click from triggering image click
+  const handleCheckboxClick = (e) => {
+    e.stopPropagation();
+  };
+
   // Pagination component
   const renderPagination = () => {
     if (!data || data.pagination.totalPages <= 1) return null;
@@ -298,7 +361,7 @@ const MediaGallery = () => {
       </div>
     );
   }
-
+ 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <Card className="shadow-md border border-gray-100 rounded-xl overflow-hidden">
@@ -315,19 +378,6 @@ const MediaGallery = () => {
             >
               <Icon icon={isGridView ? 'Bars3' : 'Squares2X2'} className="h-5 w-5 text-gray-700" />
             </button>
-            {/* <label className="btn-primary flex items-center cursor-pointer px-5 py-2.5 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition shadow-md">
-              <CloudArrowUpIcon className="h-5 w-5 mr-2" />
-              Upload Media
-              <input
-                id="fileInput"
-                type="file"
-                className="hidden"
-                accept="image/*,video/*,audio/*,.pdf,.docx,.xlsx"
-                multiple
-                onChange={handleFileChange}
-                disabled={isUploading}
-              />
-            </label> */}
           </div>
         </div>
 
@@ -468,7 +518,7 @@ const MediaGallery = () => {
                     }`}
                   >
                     {/* Checkbox */}
-                    <div className="absolute top-2 left-2 z-10">
+                    <div className="absolute top-2 left-2 z-20" onClick={handleCheckboxClick}>
                       <HeadlessCheckbox
                         checked={selectedItems.some(selected => selected.id === item.id)}
                         onChange={() => toggleItemSelection(item)}
@@ -476,13 +526,24 @@ const MediaGallery = () => {
                     </div>
                     
                     {/* Media preview */}
-                    <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+                    <div 
+                      className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden cursor-pointer"
+                      onClick={(e) => handleImageClick(item, e)}
+                    >
                       {item.type === 'image' ? (
-                        <img
-                          src={item.url}
-                          alt={item.name}
-                          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ease-in-out"
-                        />
+                        <div className="relative w-full h-full">
+                          <img
+                            src={item.url}
+                            alt={item.name}
+                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ease-in-out"
+                          />
+                          {/* View overlay for images */}
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
+                            <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                              <EyeIcon className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                        </div>
                       ) : (
                         <div className="text-gray-400 p-4 flex flex-col items-center justify-center h-full w-full">
                           <Icon icon="Document" className="h-12 w-12 mb-2" />
@@ -508,10 +569,13 @@ const MediaGallery = () => {
                     </div>
                     
                     {/* Hover actions */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/30 transition-opacity flex items-center justify-center">
-                      <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/30 transition-opacity flex items-center justify-center pointer-events-none">
+                      <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 pointer-events-auto">
                         <button
-                          onClick={() => handleDeleteClick(item)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(item);
+                          }}
                           className="p-2 rounded-full bg-red-600 text-white hover:bg-red-700 shadow-lg"
                           title="Delete item"
                         >
@@ -548,16 +612,24 @@ const MediaGallery = () => {
                         key={item.id} 
                         className={`hover:bg-gray-50 transition-colors ${selectedItems.some(selected => selected.id === item.id) ? 'bg-primary-50' : ''}`}
                       >
-                        <td className="py-4 px-6">
+                        <td className="py-4 px-6" onClick={handleCheckboxClick}>
                           <HeadlessCheckbox
                             checked={selectedItems.some(selected => selected.id === item.id)}
                             onChange={() => toggleItemSelection(item)}
                           />
                         </td>
                         <td className="py-4 px-6">
-                          <div className="h-12 w-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                          <div 
+                            className="h-12 w-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center cursor-pointer"
+                            onClick={(e) => handleImageClick(item, e)}
+                          >
                             {item.type === 'image' ? (
-                              <img src={item.url} alt={item.name} className="h-full w-full object-cover" />
+                              <div className="relative w-full h-full group">
+                                <img src={item.url} alt={item.name} className="h-full w-full object-cover" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                                  <EyeIcon className="h-5 w-5 text-white" />
+                                </div>
+                              </div>
                             ) : (
                               <Icon icon="Document" className="h-6 w-6 text-gray-400" />
                             )}
@@ -601,6 +673,20 @@ const MediaGallery = () => {
         {/* Pagination */}
         {!isLoading && renderPagination()}
       </Card>
+
+      {/* Lightbox for images */}
+      {isLightboxOpen && imageUrls.length > 0 && (
+        <Lightbox
+          mainSrc={imageUrls[photoIndex]}
+          nextSrc={imageUrls[(photoIndex + 1) % imageUrls.length]}
+          prevSrc={imageUrls[(photoIndex + imageUrls.length - 1) % imageUrls.length]}
+          onCloseRequest={closeLightbox}
+          onMovePrevRequest={() => setPhotoIndex((photoIndex + imageUrls.length - 1) % imageUrls.length)}
+          onMoveNextRequest={() => setPhotoIndex((photoIndex + 1) % imageUrls.length)}
+          imageCaption={imageItems[photoIndex]?.name || imageItems[photoIndex]?.originalName || ''}
+          imageTitle={`${photoIndex + 1} of ${imageUrls.length}`}
+        />
+      )}
 
       {/* Delete confirmation modal - replaced with headlessUI Dialog */}
       <Transition appear show={isDeleteModalOpen} as={Fragment}>
@@ -678,4 +764,4 @@ const MediaGallery = () => {
   );
 };
 
-export default MediaGallery; 
+export default MediaGallery;

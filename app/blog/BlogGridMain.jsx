@@ -6,7 +6,7 @@ import { getBlogs } from '@services/api';
 import BlogGrid1 from '@components/elements/blog/BlogGrid1';
 import Pagination from '@components/elements/PaginationDynamic';
 import Filter1 from '@components/filter/FilterDynamic';
-import NewsletterSection1 from '@components/sections/newsletter/Newsletter1';
+// import NewsletterSection1 from '@components/sections/newsletter/Newsletter1';
 
 const BlogGridMain = ({ initialData, categories }) => {
     const searchParams = useSearchParams();
@@ -125,7 +125,7 @@ const BlogGridMain = ({ initialData, categories }) => {
                     )}
                 </div>
             </div>
-            <NewsletterSection1 />
+            {/* <NewsletterSection1 /> */}
         </>
     );
 };

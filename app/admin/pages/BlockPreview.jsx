@@ -25,7 +25,9 @@ switch (block.type) {
   case "hero":
       return (
         <div
-          className="relative mb-10 bg-gray-100 h-96 md:!min-h-96 md:h-[90vh] overflow-hidden flex items-center"
+        className="relative mb-10 bg-gray-100  min-h-[75vh] overflow-hidden flex items-center"
+
+          // className="relative mb-10 bg-gray-100 h-96 md:!min-h-96 md:h-[90vh] overflow-hidden flex items-center"
           style={{
             backgroundColor: block.content?.backgroundColor || "#f3f4f6",
             backgroundImage: block.content?.imageUrl?.url ? `url(${block.content.imageUrl.url})` : 'none',
@@ -460,7 +462,7 @@ switch (block.type) {
                           loading="lazy"
                             src={slide.imageUrl.url}
                             alt={slide.altText || `Slide ${i + 1}`}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
                           />
                         ) : (
                           <div className="w-full h-full bg-gray-100 flex items-center justify-center">

@@ -1,4 +1,3 @@
-
 //no cache
 export const revalidate = 0;
 
@@ -37,17 +36,24 @@ export async function generateMetadata() {
 
 export default async function BlogPage() {
     // Fetch initial data server-side
-    const [blogsData, categories] = await Promise.all([
+    const [blogsData, categories, settings] = await Promise.all([
         getBlogs({ page: 1, limit: 6, sort: 'newest' }),
-        getBlogCategories()
+        getBlogCategories(),
+        getSiteSettings()
     ]);
+    
+    // Get hero title and image from settings
+    const heroTitle = "Our Blog";
+    const heroSubTitle = settings?.blogSection?.heroTitle || "Explore our latest articles and updates";
+    const heroImage = settings?.blogSection?.heroImage?.url || null;
 
     return (
         <Layout
             headerStyle={1}
-            breadcrumbTitle={"Our Blog"}
-            breadcrumbSubTitle={"Explore our latest articles and updates"}
+            breadcrumbTitle={heroTitle}
+            breadcrumbSubTitle={heroSubTitle}
             breadcrumbAlign={"center"}
+            breadcrumbImage={heroImage}
             headerBg={"transparent"}
         >
             <BlogGridMain 

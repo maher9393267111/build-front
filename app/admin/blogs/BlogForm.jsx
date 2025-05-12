@@ -15,6 +15,7 @@ import Textinput from '@components/ui/TextinputBlog';
 import Textarea from '@components/ui/TextareaBlog';
 import Select from '@components/ui/SelectBlog';
 import BlogSeoDashboard from '@components/SEO/Blog/BlogSeoDashboard';
+import MediaModal from '@components/modal/MediaModal';
 
 // TipTap imports
 import { useEditor, EditorContent, BubbleMenu, FloatingMenu } from '@tiptap/react';
@@ -48,16 +49,15 @@ const TipTapToolbar = ({ editor }) => {
   const [showHeadingMenu, setShowHeadingMenu] = useState(false);
   const [showInsertMenu, setShowInsertMenu] = useState(false);
   const [showColorMenu, setShowColorMenu] = useState(false);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  
   const headingMenuRef = useRef(null);
   const insertMenuRef = useRef(null);
   const colorMenuRef = useRef(null);
 
   const addImage = useCallback(() => {
-    const url = window.prompt('URL');
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
-    }
-  }, [editor]);
+    setImageModalOpen(true);
+  }, []);
 
   const addYoutubeVideo = useCallback(() => {
     const url = window.prompt('YouTube URL');
@@ -138,439 +138,461 @@ const TipTapToolbar = ({ editor }) => {
     };
   }, []);
 
+  const handleImageFileSelect = useCallback((file) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        editor.chain().focus().setImage({ src: e.target.result }).run();
+      };
+      reader.readAsDataURL(file);
+    }
+  }, [editor]);
+
   return (
-    <div className="border-b border-gray-200 bg-white sticky top-0 z-10 p-2 rounded-t-lg flex flex-wrap gap-2 items-center">
-      {/* Title/Headings Dropdown */}
-      <div className="relative" ref={headingMenuRef}>
-        <button
-          type="button"
-          onClick={() => setShowHeadingMenu(!showHeadingMenu)}
-          className="p-2 rounded hover:bg-gray-100 flex items-center gap-1 min-w-[80px] justify-between"
-        >
-          <span className="font-medium text-gray-700">
-            {editor.isActive('heading', { level: 1 }) ? 'Heading 1' : 
-             editor.isActive('heading', { level: 2 }) ? 'Heading 2' : 
-             editor.isActive('heading', { level: 3 }) ? 'Heading 3' : 'Title'}
-          </span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m6 9 6 6 6-6"/>
-          </svg>
-        </button>
-        
-        {showHeadingMenu && (
-          <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded-md border border-gray-200 min-w-[200px] z-20">
-            <button
-              type="button"
-              onClick={() => {
-                editor.chain().focus().setParagraph().run();
-                setShowHeadingMenu(false);
-              }}
-              className={`p-3 hover:bg-gray-100 w-full text-left ${editor.isActive('paragraph') ? 'bg-gray-50' : ''}`}
-            >
-              Normal
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                editor.chain().focus().toggleHeading({ level: 1 }).run();
-                setShowHeadingMenu(false);
-              }}
-              className={`p-3 hover:bg-gray-100 w-full text-left font-semibold ${editor.isActive('heading', { level: 1 }) ? 'bg-gray-50' : ''}`}
-            >
-              Heading 1
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                editor.chain().focus().toggleHeading({ level: 2 }).run();
-                setShowHeadingMenu(false);
-              }}
-              className={`p-3 hover:bg-gray-100 w-full text-left font-semibold ${editor.isActive('heading', { level: 2 }) ? 'bg-gray-50' : ''}`}
-            >
-              Heading 2
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                editor.chain().focus().toggleHeading({ level: 3 }).run();
-                setShowHeadingMenu(false);
-              }}
-              className={`p-3 hover:bg-gray-100 w-full text-left font-semibold ${editor.isActive('heading', { level: 3 }) ? 'bg-gray-50' : ''}`}
-            >
-              Heading 3
-            </button>
-          </div>
-        )}
-      </div>
+    <>
+      <div className="border-b border-gray-200 bg-white sticky top-0 z-10 p-2 rounded-t-lg flex flex-wrap gap-2 items-center">
+        {/* Title/Headings Dropdown */}
+        <div className="relative" ref={headingMenuRef}>
+          <button
+            type="button"
+            onClick={() => setShowHeadingMenu(!showHeadingMenu)}
+            className="p-2 rounded hover:bg-gray-100 flex items-center gap-1 min-w-[80px] justify-between"
+          >
+            <span className="font-medium text-gray-700">
+              {editor.isActive('heading', { level: 1 }) ? 'Heading 1' : 
+               editor.isActive('heading', { level: 2 }) ? 'Heading 2' : 
+               editor.isActive('heading', { level: 3 }) ? 'Heading 3' : 'Title'}
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+          
+          {showHeadingMenu && (
+            <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded-md border border-gray-200 min-w-[200px] z-20">
+              <button
+                type="button"
+                onClick={() => {
+                  editor.chain().focus().setParagraph().run();
+                  setShowHeadingMenu(false);
+                }}
+                className={`p-3 hover:bg-gray-100 w-full text-left ${editor.isActive('paragraph') ? 'bg-gray-50' : ''}`}
+              >
+                Normal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  editor.chain().focus().toggleHeading({ level: 1 }).run();
+                  setShowHeadingMenu(false);
+                }}
+                className={`p-3 hover:bg-gray-100 w-full text-left font-semibold ${editor.isActive('heading', { level: 1 }) ? 'bg-gray-50' : ''}`}
+              >
+                Heading 1
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  editor.chain().focus().toggleHeading({ level: 2 }).run();
+                  setShowHeadingMenu(false);
+                }}
+                className={`p-3 hover:bg-gray-100 w-full text-left font-semibold ${editor.isActive('heading', { level: 2 }) ? 'bg-gray-50' : ''}`}
+              >
+                Heading 2
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  editor.chain().focus().toggleHeading({ level: 3 }).run();
+                  setShowHeadingMenu(false);
+                }}
+                className={`p-3 hover:bg-gray-100 w-full text-left font-semibold ${editor.isActive('heading', { level: 3 }) ? 'bg-gray-50' : ''}`}
+              >
+                Heading 3
+              </button>
+            </div>
+          )}
+        </div>
 
-      <div className="h-6 w-px bg-gray-300 mx-1"></div>
+        <div className="h-6 w-px bg-gray-300 mx-1"></div>
 
-      {/* Text Formatting */}
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('bold') ? 'bg-gray-200' : ''}`}
-          title="Bold"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
-            <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('italic') ? 'bg-gray-200' : ''}`}
-          title="Italic"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="19" y1="4" x2="10" y2="4"></line>
-            <line x1="14" y1="20" x2="5" y2="20"></line>
-            <line x1="15" y1="4" x2="9" y2="20"></line>
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('underline') ? 'bg-gray-200' : ''}`}
-          title="Underline"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"></path>
-            <line x1="4" y1="21" x2="20" y2="21"></line>
-          </svg>
-        </button>
-      </div>
+        {/* Text Formatting */}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('bold') ? 'bg-gray-200' : ''}`}
+            title="Bold"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+              <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('italic') ? 'bg-gray-200' : ''}`}
+            title="Italic"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="19" y1="4" x2="10" y2="4"></line>
+              <line x1="14" y1="20" x2="5" y2="20"></line>
+              <line x1="15" y1="4" x2="9" y2="20"></line>
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('underline') ? 'bg-gray-200' : ''}`}
+            title="Underline"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"></path>
+              <line x1="4" y1="21" x2="20" y2="21"></line>
+            </svg>
+          </button>
+        </div>
 
-      <div className="h-6 w-px bg-gray-300 mx-1"></div>
+        <div className="h-6 w-px bg-gray-300 mx-1"></div>
 
-      {/* Color Menu */}
-      <div className="relative" ref={colorMenuRef}>
-        <button
-          type="button"
-          onClick={() => setShowColorMenu(!showColorMenu)}
-          className="p-2 rounded hover:bg-gray-100 flex items-center gap-1"
-          title="Text & Background Colors"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m9 11 3 3L22 4"></path>
-            <path d="M21 12v7a2 2 0 0 1-2.2 2c-.68 0-1.3-.38-1.64-1L12 11"></path>
-            <path d="M9 8c.4 0 .78.11 1.11.32"></path>
-            <path d="M3 8c0-1.1.9-2 2-2"></path>
-            <path d="M11.1 3.08A3.93 3.93 0 0 0 8 2c-2.2 0-4 1.8-4 4"></path>
-            <path d="M2 22h20"></path>
-          </svg>
-          <span className="font-medium text-gray-700">Colors</span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m6 9 6 6 6-6"/>
-          </svg>
-        </button>
-        
-        {showColorMenu && (
-          <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded-md border border-gray-200 p-3 z-20 min-w-[240px]">
-            <div className="mb-3">
-              <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase">Text Colors</h3>
-              <div className="grid grid-cols-6 gap-1">
-                {textColors.map((color) => (
+        {/* Color Menu */}
+        <div className="relative" ref={colorMenuRef}>
+          <button
+            type="button"
+            onClick={() => setShowColorMenu(!showColorMenu)}
+            className="p-2 rounded hover:bg-gray-100 flex items-center gap-1"
+            title="Text & Background Colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m9 11 3 3L22 4"></path>
+              <path d="M21 12v7a2 2 0 0 1-2.2 2c-.68 0-1.3-.38-1.64-1L12 11"></path>
+              <path d="M9 8c.4 0 .78.11 1.11.32"></path>
+              <path d="M3 8c0-1.1.9-2 2-2"></path>
+              <path d="M11.1 3.08A3.93 3.93 0 0 0 8 2c-2.2 0-4 1.8-4 4"></path>
+              <path d="M2 22h20"></path>
+            </svg>
+            <span className="font-medium text-gray-700">Colors</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+          
+          {showColorMenu && (
+            <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded-md border border-gray-200 p-3 z-20 min-w-[240px]">
+              <div className="mb-3">
+                <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase">Text Colors</h3>
+                <div className="grid grid-cols-6 gap-1">
+                  {textColors.map((color) => (
+                    <button
+                      key={color.color}
+                      type="button"
+                      onClick={() => {
+                        editor.chain().focus().setColor(color.color).run();
+                      }}
+                      className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center"
+                      style={{ backgroundColor: color.color }}
+                      title={color.name}
+                    >
+                      {color.color === '#FFFFFF' && (
+                        <div className="w-7 h-7 rounded-full border border-gray-300"></div>
+                      )}
+                    </button>
+                  ))}
                   <button
-                    key={color.color}
                     type="button"
                     onClick={() => {
-                      editor.chain().focus().setColor(color.color).run();
+                      editor.chain().focus().unsetColor().run();
                     }}
-                    className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center"
-                    style={{ backgroundColor: color.color }}
-                    title={color.name}
+                    className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center bg-white"
+                    title="Remove color"
                   >
-                    {color.color === '#FFFFFF' && (
-                      <div className="w-7 h-7 rounded-full border border-gray-300"></div>
-                    )}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
                   </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => {
-                    editor.chain().focus().unsetColor().run();
-                  }}
-                  className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center bg-white"
-                  title="Remove color"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
+                </div>
               </div>
-            </div>
-            
-            <div>
-              <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase">Background Colors</h3>
-              <div className="grid grid-cols-6 gap-1">
-                {bgColors.map((color) => (
+              
+              <div>
+                <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase">Background Colors</h3>
+                <div className="grid grid-cols-6 gap-1">
+                  {bgColors.map((color) => (
+                    <button
+                      key={color.color}
+                      type="button"
+                      onClick={() => {
+                        editor.chain().focus().toggleHighlight({ color: color.color }).run();
+                      }}
+                      className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center"
+                      style={{ backgroundColor: color.color }}
+                      title={color.name}
+                    >
+                      {color.color === '#FFFFFF' && (
+                        <div className="w-7 h-7 rounded border border-gray-300"></div>
+                      )}
+                    </button>
+                  ))}
                   <button
-                    key={color.color}
                     type="button"
                     onClick={() => {
-                      editor.chain().focus().toggleHighlight({ color: color.color }).run();
+                      editor.chain().focus().toggleHighlight().run();
                     }}
-                    className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center"
-                    style={{ backgroundColor: color.color }}
-                    title={color.name}
+                    className="w-8 h-8 rounded border border-gray-300 flex items-center justify-center bg-white"
+                    title="Remove background"
                   >
-                    {color.color === '#FFFFFF' && (
-                      <div className="w-7 h-7 rounded border border-gray-300"></div>
-                    )}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
                   </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => {
-                    editor.chain().focus().toggleHighlight().run();
-                  }}
-                  className="w-8 h-8 rounded border border-gray-300 flex items-center justify-center bg-white"
-                  title="Remove background"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        <div className="h-6 w-px bg-gray-300 mx-1"></div>
+
+        {/* Lists */}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('bulletList') ? 'bg-gray-200' : ''}`}
+            title="Bullet List"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="9" y1="6" x2="20" y2="6"></line>
+              <line x1="9" y1="12" x2="20" y2="12"></line>
+              <line x1="9" y1="18" x2="20" y2="18"></line>
+              <circle cx="4" cy="6" r="2"></circle>
+              <circle cx="4" cy="12" r="2"></circle>
+              <circle cx="4" cy="18" r="2"></circle>
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('orderedList') ? 'bg-gray-200' : ''}`}
+            title="Ordered List"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="10" y1="6" x2="20" y2="6"></line>
+              <line x1="10" y1="12" x2="20" y2="12"></line>
+              <line x1="10" y1="18" x2="20" y2="18"></line>
+              <path d="M4 6h1v4"></path>
+              <path d="M4 10h2"></path>
+              <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('blockquote') ? 'bg-gray-200' : ''}`}
+            title="Blockquote"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M17 22h-1a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h1"></path>
+              <path d="M7 22h-1a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h1"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div className="h-6 w-px bg-gray-300 mx-1"></div>
+
+        {/* Alignment */}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().setTextAlign('left').run()}
+            className={`p-2 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}`}
+            title="Align Left"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="4" y1="6" x2="20" y2="6"></line>
+              <line x1="4" y1="12" x2="14" y2="12"></line>
+              <line x1="4" y1="18" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().setTextAlign('center').run()}
+            className={`p-2 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}`}
+            title="Align Center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="4" y1="6" x2="20" y2="6"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+              <line x1="6" y1="18" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().setTextAlign('right').run()}
+            className={`p-2 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}`}
+            title="Align Right"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="4" y1="6" x2="20" y2="6"></line>
+              <line x1="10" y1="12" x2="20" y2="12"></line>
+              <line x1="6" y1="18" x2="20" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div className="h-6 w-px bg-gray-300 mx-1"></div>
+
+        {/* Insert Menu */}
+        <div className="relative" ref={insertMenuRef}>
+          <button
+            type="button"
+            onClick={() => setShowInsertMenu(!showInsertMenu)}
+            className="p-2 rounded hover:bg-gray-100 flex items-center gap-1"
+            title="Insert"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            <span className="font-medium text-gray-700">Insert</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+          
+          {showInsertMenu && (
+            <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded-md border border-gray-200 min-w-[180px] z-20">
+              <button
+                type="button"
+                onClick={() => {
+                  setLink();
+                  setShowInsertMenu(false);
+                }}
+                className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+                Link
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  addImage();
+                  setShowInsertMenu(false);
+                }}
+                className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                Image
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  addYoutubeVideo();
+                  setShowInsertMenu(false);
+                }}
+                className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                  <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                </svg>
+                YouTube
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  addTable();
+                  setShowInsertMenu(false);
+                }}
+                className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="3" y1="9" x2="21" y2="9"></line>
+                  <line x1="3" y1="15" x2="21" y2="15"></line>
+                  <line x1="9" y1="3" x2="9" y2="21"></line>
+                  <line x1="15" y1="3" x2="15" y2="21"></line>
+                </svg>
+                Table
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  editor.chain().focus().setHorizontalRule().run();
+                  setShowInsertMenu(false);
+                }}
+                className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Divider
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  editor.chain().focus().toggleCodeBlock().run();
+                  setShowInsertMenu(false);
+                }}
+                className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+                Code Block
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="flex-grow"></div>
+
+        {/* Undo/Redo */}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+            className="p-2 rounded hover:bg-gray-100 disabled:opacity-30"
+            title="Undo"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 10h10a8 8 0 0 1 8 8v2M3 10l6 6M3 10l6-6"></path>
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+            className="p-2 rounded hover:bg-gray-100 disabled:opacity-30"
+            title="Redo"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 10H11a8 8 0 0 0-8 8v2M21 10l-6 6M21 10l-6-6"></path>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <div className="h-6 w-px bg-gray-300 mx-1"></div>
-
-      {/* Lists */}
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('bulletList') ? 'bg-gray-200' : ''}`}
-          title="Bullet List"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="9" y1="6" x2="20" y2="6"></line>
-            <line x1="9" y1="12" x2="20" y2="12"></line>
-            <line x1="9" y1="18" x2="20" y2="18"></line>
-            <circle cx="4" cy="6" r="2"></circle>
-            <circle cx="4" cy="12" r="2"></circle>
-            <circle cx="4" cy="18" r="2"></circle>
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('orderedList') ? 'bg-gray-200' : ''}`}
-          title="Ordered List"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="10" y1="6" x2="20" y2="6"></line>
-            <line x1="10" y1="12" x2="20" y2="12"></line>
-            <line x1="10" y1="18" x2="20" y2="18"></line>
-            <path d="M4 6h1v4"></path>
-            <path d="M4 10h2"></path>
-            <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('blockquote') ? 'bg-gray-200' : ''}`}
-          title="Blockquote"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M17 22h-1a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h1"></path>
-            <path d="M7 22h-1a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h1"></path>
-          </svg>
-        </button>
-      </div>
-
-      <div className="h-6 w-px bg-gray-300 mx-1"></div>
-
-      {/* Alignment */}
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setTextAlign('left').run()}
-          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}`}
-          title="Align Left"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="4" y1="6" x2="20" y2="6"></line>
-            <line x1="4" y1="12" x2="14" y2="12"></line>
-            <line x1="4" y1="18" x2="18" y2="18"></line>
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setTextAlign('center').run()}
-          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}`}
-          title="Align Center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="4" y1="6" x2="20" y2="6"></line>
-            <line x1="8" y1="12" x2="16" y2="12"></line>
-            <line x1="6" y1="18" x2="18" y2="18"></line>
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setTextAlign('right').run()}
-          className={`p-2 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}`}
-          title="Align Right"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="4" y1="6" x2="20" y2="6"></line>
-            <line x1="10" y1="12" x2="20" y2="12"></line>
-            <line x1="6" y1="18" x2="20" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-
-      <div className="h-6 w-px bg-gray-300 mx-1"></div>
-
-      {/* Insert Menu */}
-      <div className="relative" ref={insertMenuRef}>
-        <button
-          type="button"
-          onClick={() => setShowInsertMenu(!showInsertMenu)}
-          className="p-2 rounded hover:bg-gray-100 flex items-center gap-1"
-          title="Insert"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-          <span className="font-medium text-gray-700">Insert</span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m6 9 6 6 6-6"/>
-          </svg>
-        </button>
-        
-        {showInsertMenu && (
-          <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded-md border border-gray-200 min-w-[180px] z-20">
-            <button
-              type="button"
-              onClick={() => {
-                setLink();
-                setShowInsertMenu(false);
-              }}
-              className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-              </svg>
-              Link
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                addImage();
-                setShowInsertMenu(false);
-              }}
-              className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                <polyline points="21 15 16 10 5 21"></polyline>
-              </svg>
-              Image
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                addYoutubeVideo();
-                setShowInsertMenu(false);
-              }}
-              className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
-                <polygon points="10 8 16 12 10 16 10 8"></polygon>
-              </svg>
-              YouTube
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                addTable();
-                setShowInsertMenu(false);
-              }}
-              className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="3" y1="9" x2="21" y2="9"></line>
-                <line x1="3" y1="15" x2="21" y2="15"></line>
-                <line x1="9" y1="3" x2="9" y2="21"></line>
-                <line x1="15" y1="3" x2="15" y2="21"></line>
-              </svg>
-              Table
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                editor.chain().focus().setHorizontalRule().run();
-                setShowInsertMenu(false);
-              }}
-              className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              Divider
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                editor.chain().focus().toggleCodeBlock().run();
-                setShowInsertMenu(false);
-              }}
-              className="p-2 hover:bg-gray-100 w-full text-left flex items-center gap-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="16 18 22 12 16 6"></polyline>
-                <polyline points="8 6 2 12 8 18"></polyline>
-              </svg>
-              Code Block
-            </button>
-          </div>
-        )}
-      </div>
-
-      <div className="flex-grow"></div>
-
-      {/* Undo/Redo */}
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().undo().run()}
-          disabled={!editor.can().undo()}
-          className="p-2 rounded hover:bg-gray-100 disabled:opacity-30"
-          title="Undo"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M3 10h10a8 8 0 0 1 8 8v2M3 10l6 6M3 10l6-6"></path>
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().redo().run()}
-          disabled={!editor.can().redo()}
-          className="p-2 rounded hover:bg-gray-100 disabled:opacity-30"
-          title="Redo"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 10H11a8 8 0 0 0-8 8v2M21 10l-6 6M21 10l-6-6"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
+      {/* Image Upload Modal */}
+      <ImageUploadModal
+        isOpen={imageModalOpen}
+        onClose={() => setImageModalOpen(false)}
+        onInsertUrl={(url) => {
+          editor.chain().focus().setImage({ src: url }).run();
+        }}
+        onFileSelect={handleImageFileSelect}
+      />
+    </>
   );
 };
 
@@ -672,6 +694,154 @@ function FileUpload({ file, onDrop, onRemove, loading, error, maxSize }) {
     </div>
   );
 }
+
+const ImageUploadModal = ({ isOpen, onClose, onInsertUrl, onFileSelect }) => {
+  const [imageUrl, setImageUrl] = useState('');
+  const [activeTab, setActiveTab] = useState('url'); // 'url', 'upload', or 'library'
+  const fileInputRef = useRef(null);
+  const [showMediaModal, setShowMediaModal] = useState(false);
+  
+  if (!isOpen) return null;
+  
+  const handleMediaSelect = (mediaItem) => {
+    if (mediaItem && mediaItem.url) {
+      onInsertUrl(mediaItem.url);
+      onClose();
+    }
+  };
+  
+  return (
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+          <div className="p-4 border-b flex justify-between items-center">
+            <h3 className="text-lg font-medium">Insert Image</h3>
+            <button 
+              type="button"
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </div>
+          
+          <div className="p-5">
+            {/* Tabs */}
+            <div className="flex border-b mb-4">
+              <button 
+                type='button'
+                className={`py-2 px-4 ${activeTab === 'url' ? 'border-b-2 border-primary-500 text-primary-600' : 'text-gray-500'}`}
+                onClick={() => setActiveTab('url')}
+              >
+                URL
+              </button>
+              <button 
+                type="button"
+                className={`py-2 px-4 ${activeTab === 'upload' ? 'border-b-2 border-primary-500 text-primary-600' : 'text-gray-500'}`}
+                onClick={() => setActiveTab('upload')}
+              >
+                Upload
+              </button>
+              <button 
+                type="button"
+                className={`py-2 px-4 ${activeTab === 'library' ? 'border-b-2 border-primary-500 text-primary-600' : 'text-gray-500'}`}
+                onClick={() => setActiveTab('library')}
+              >
+                Media Library
+              </button>
+            </div>
+            
+            {/* URL Tab Content */}
+            {activeTab === 'url' && (
+              <div>
+                <input 
+                  type="text" 
+                  placeholder="Enter image URL"
+                  className="w-full border border-gray-300 rounded-md p-2 mb-4"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                />
+                
+                <div className="flex justify-end">
+                  <button
+                    type='button'
+                    className="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600"
+                    onClick={() => {
+                      if (imageUrl.trim()) {
+                        onInsertUrl(imageUrl);
+                        onClose();
+                      }
+                    }}
+                  >
+                    Insert
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {/* Upload Tab Content */}
+            {activeTab === 'upload' && (
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      onFileSelect(e.target.files[0]);
+                      onClose();
+                    }
+                  }}
+                />
+                
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 rounded-md p-8 mb-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50"
+                >
+                  <PhotoIcon className="h-10 w-10 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500">Click to select an image from your computer</p>
+                </div>
+                
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Browse Files
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {/* Media Library Tab Content */}
+            {activeTab === 'library' && (
+              <div>
+                <div className="text-center py-6">
+                  <Button
+                    text="Browse Media Library"
+                    className="btn-primary"
+                    onClick={() => setShowMediaModal(true)}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Media Modal */}
+      <MediaModal
+        open={showMediaModal}
+        onClose={() => setShowMediaModal(false)}
+        onSelect={handleMediaSelect}
+        title="Select Image"
+        accept="image/*"
+      />
+    </>
+  );
+};
 
 const BlogForm = ({ initialData = null }) => {
   const router = useRouter();

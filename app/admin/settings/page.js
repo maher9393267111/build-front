@@ -35,10 +35,100 @@ import {
   ArrowPathIcon,
   PlayCircleIcon
 } from '@heroicons/react/24/outline';
-import { getSiteSettings, updateSiteSettings } from '@services/api';
+import { getSiteSettings, updateSiteSettings, getPublishedForms } from '@services/api';
 import http from '@services/api/http';
 import { Disclosure } from '@headlessui/react';
 import Card from '@components/ui/Card';
+import SiteSeoDashboard from '@components/SEO/Site/SiteSeoDashboard';
+import WorkingHoursSection from './WorkingHoursSection';
+//mediaModal
+import MediaModal from '@components/modal/MediaModal';
+import MediaUpload from '@components/ui/MediaUpload';
+
+function parseWorkingHoursString(workingHoursStr) {
+  const defaultWorkingHours = [
+    { day: 'Monday', title: 'Monday', startTime: '09:00', endTime: '17:00', isOpen: true },
+    { day: 'Tuesday', title: 'Tuesday', startTime: '09:00', endTime: '17:00', isOpen: true },
+    { day: 'Wednesday', title: 'Wednesday', startTime: '09:00', endTime: '17:00', isOpen: true },
+    { day: 'Thursday', title: 'Thursday', startTime: '09:00', endTime: '17:00', isOpen: true },
+    { day: 'Friday', title: 'Friday', startTime: '09:00', endTime: '17:00', isOpen: true },
+    { day: 'Saturday', title: 'Saturday', startTime: '10:00', endTime: '14:00', isOpen: true },
+    { day: 'Sunday', title: 'Sunday', startTime: '00:00', endTime: '00:00', isOpen: false }
+  ];
+  
+  if (!workingHoursStr || typeof workingHoursStr !== 'string') {
+    return defaultWorkingHours;
+  }
+  
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const result = days.map(day => {
+    const defaultDay = defaultWorkingHours.find(d => d.day === day);
+    
+    // Look for lines containing this day in the string
+    const regex = new RegExp(`${day}[^\\n]*`, 'i');
+    const match = workingHoursStr.match(regex);
+    
+    if (match) {
+      const line = match[0];
+      const isClosed = /closed/i.test(line);
+      
+      if (isClosed) {
+        return {
+          day,
+          title: day,
+          startTime: '00:00',
+          endTime: '00:00',
+          isOpen: false
+        };
+      }
+      
+      // Try to extract times using regex for formats like "9:00 AM - 5:00 PM" or "09:00 - 17:00"
+      const timeRegex = /(\d{1,2}):(\d{2})(?:\s*(?:AM|PM)?)?\s*-\s*(\d{1,2}):(\d{2})(?:\s*(?:AM|PM)?)?/i;
+      const timeMatch = line.match(timeRegex);
+      
+      if (timeMatch) {
+        let [_, startHour, startMin, endHour, endMin] = timeMatch;
+        
+        // Convert to 24-hour format if needed
+        startHour = parseInt(startHour);
+        endHour = parseInt(endHour);
+        
+        // Simple AM/PM detection
+        if (/PM/i.test(line)) {
+          if (startHour < 12 && line.indexOf('AM') > line.indexOf(startHour)) {
+            startHour += 12;
+          }
+          if (endHour < 12 && line.indexOf('PM') > line.indexOf(endHour)) {
+            endHour += 12;
+          }
+        }
+        
+        // Format as HH:MM
+        const startTime = `${startHour.toString().padStart(2, '0')}:${startMin}`;
+        const endTime = `${endHour.toString().padStart(2, '0')}:${endMin}`;
+        
+        return {
+          day,
+          title: day,
+          startTime,
+          endTime,
+          isOpen: true
+        };
+      }
+    }
+    
+    // Return default for this day if no match or parsing failed
+    return defaultDay || {
+      day,
+      title: day,
+      startTime: '09:00',
+      endTime: '17:00',
+      isOpen: day !== 'Sunday'
+    };
+  });
+  
+  return result;
+}
 
 // Create a map of icon components for easier selection and preview
 const iconMap = {
@@ -74,101 +164,26 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
-function FileUpload({ file, onDrop, onRemove, loading, error, maxSize = 5 * 1024 * 1024 }) {
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef(null);
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      onDrop({ target: { files: e.dataTransfer.files } });
-    }
-  };
-
-  const handleInputChange = (e) => {
-    onDrop(e);
-  };
-
-  const handleBoxClick = () => {
-    if (!loading) fileInputRef.current.click();
-  };
-
-  const getFileSize = (size) => {
-    if (!size) return '';
-    if (size < 1024) return `${size} B`;
-    if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
-    return `${(size / (1024 * 1024)).toFixed(2)} MB`;
-  };
-
+function EnhancedFileUpload({ file, onDrop, onRemove, loading, error, maxSize = 5 * 1024 * 1024, identifier }) {
   return (
-    <div className="w-full">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleInputChange}
-        className="hidden"
-        disabled={loading}
-      />
-      {!file ? (
-        <div
-          className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 transition-colors min-h-[120px] cursor-pointer
-            ${isDragging ? 'border-primary-500 bg-primary-50' : 'border-gray-300 bg-white'}
-            ${error ? 'border-red-400 bg-red-50' : ''}
-            ${loading ? 'opacity-50 pointer-events-none' : ''}
-          `}
-          onClick={handleBoxClick}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <PhotoIcon className="w-10 h-10 text-gray-400 mb-2" />
-          <p className="text-gray-500 text-sm">
-            Drag & drop image or <span className="text-primary-500 font-semibold">click to upload</span>
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Max {getFileSize(maxSize)}. Only images allowed.
-          </p>
-        </div>
-      ) : (
-        <div className="flex items-center border rounded-lg p-3 bg-gray-50 relative">
-          <div className="w-20 h-20 rounded overflow-hidden flex items-center justify-center bg-gray-100 mr-4">
-            <img
-              src={file.url}
-              alt="Preview"
-              className="object-cover w-full h-full"
-            />
-          </div>
-          <div className="flex-1">
-            <div className="font-medium text-gray-700 truncate">
-              {file.name || 'Image uploaded'}
-            </div>
-            <div className="text-xs text-gray-400">
-              {getFileSize(file.size)}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onRemove}
-            className="ml-2 p-2 rounded-full hover:bg-red-100 text-red-600 transition"
-            aria-label="Remove"
-          >
-            <XMarkIcon className="w-5 h-5" />
-          </button>
-        </div>
-      )}
-    </div>
+    <MediaUpload
+      file={file}
+      onDrop={(e, id) => {
+        // Handle media library selection
+        if (e.mediaLibraryFile) {
+          onDrop({ mediaLibraryFile: e.mediaLibraryFile });
+          return;
+        }
+        // Handle regular file upload
+        onDrop(e);
+      }}
+      onRemove={(id, isFromLibrary) => onRemove(isFromLibrary)}
+      loading={loading}
+      error={error}
+      maxSize={maxSize}
+      identifier={identifier}
+      helperText="Upload or select an image from the media library"
+    />
   );
 }
 
@@ -180,6 +195,7 @@ export default function SettigsPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [expandedNavItem, setExpandedNavItem] = useState(null);
   const [expandedFooterColumn, setExpandedFooterColumn] = useState(null);
+  const [publishedForms, setPublishedForms] = useState([]);
   
   // Get all icon names from our iconMap
   const iconList = Object.keys(iconMap);
@@ -220,7 +236,9 @@ export default function SettigsPage() {
         items: [{ title: 'Home', icon: 'HomeIcon' }],
         fontSize: 'text-md',
         textColor: '#374151',
-        iconColor: '#4f46e5'
+        iconColor: '#4f46e5',
+        bgColor: '#ffffff',
+        animationEnabled: true,
       },
       linksInfo: [],
       contactSection: {
@@ -253,10 +271,19 @@ export default function SettigsPage() {
     name: "navTitles.items"
   });
 
+  // 4. Add field array for working hours
+// In your existing useForm initialization, add a new useFieldArray for working hours
+// Find the existing array initializations and add:
+const workingHoursArray = useFieldArray({
+  control,
+  name: "contactSection.workingHours"
+});
+
   // Add primaryColor to watched values
   const watchedPrimaryColor = watch('primaryColor');
   const watchedNavTextColor = watch('navTitles.textColor');
   const watchedNavIconColor = watch('navTitles.iconColor');
+  const watchedNavBgColor = watch('navTitles.bgColor');
 
   // Add field arrays for phones and emails
   const phonesArray = useFieldArray({
@@ -302,6 +329,7 @@ export default function SettigsPage() {
             fontSize: data.navTitles?.fontSize || 'text-md',
             textColor: data.navTitles?.textColor?.startsWith('#') ? data.navTitles.textColor : '#374151',
             iconColor: data.navTitles?.iconColor?.startsWith('#') ? data.navTitles.iconColor : '#4f46e5',
+            bgColor: data.navTitles?.bgColor?.startsWith('#') ? data.navTitles.bgColor : '#ffffff',
             animationEnabled: data.navTitles?.animationEnabled !== false,
           },
           linksInfo: data.linksInfo || [],
@@ -313,6 +341,10 @@ export default function SettigsPage() {
             address: '',
             workingHours: '',
             googleMapsEmbed: ''
+          },
+          blogSection: data.blogSection || {
+            heroImage: '',
+            heroTitle: ''
           },
           // Initialize new SEO fields
           blogMetaTitle: data.blogMetaTitle || '',
@@ -335,6 +367,9 @@ export default function SettigsPage() {
         if (resetData.navTitles?.iconColor) {
           document.documentElement.style.setProperty('--nav-icon-color', resetData.navTitles.iconColor);
         }
+        if (resetData.navTitles?.bgColor) {
+          document.documentElement.style.setProperty('--nav-bg-color', resetData.navTitles.bgColor);
+        }
         
         console.log('Form state after reset:', watch());
       } catch (error) {
@@ -348,18 +383,49 @@ export default function SettigsPage() {
     fetchSettings();
   }, [reset, setValue, watch]);
 
+  useEffect(() => {
+    const fetchForms = async () => {
+      try {
+        const forms = await getPublishedForms();
+        setPublishedForms(forms);
+      } catch (error) {
+        console.error('Error fetching forms:', error);
+        toast.error('Failed to load published forms');
+      }
+    };
+
+    fetchForms();
+  }, []);
+
   const handleFileUpload = async (e, fieldName) => {
+    // Handle media library selection
+    if (e.mediaLibraryFile) {
+      const mediaFile = e.mediaLibraryFile;
+      setValue(fieldName, {
+        _id: mediaFile._id,
+        url: mediaFile.url,
+        fromMediaLibrary: true,
+        mediaId: mediaFile.mediaId
+      });
+      toast.success('Image selected successfully');
+      return;
+    }
+
     const file = e.target.files[0];
     if (file) {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('addToMediaLibrary', 'true');
+      formData.append('setAsInUse', 'true');
       
       try {
         const response = await http.post('/uploadfile', formData);
         if (response.data) {
           setValue(fieldName, {
             _id: response.data._id,
-            url: response.data.url
+            url: response.data.url,
+            fromMediaLibrary: response.data.fromMediaLibrary || false,
+            mediaId: response.data.mediaId
           });
           toast.success('Image uploaded successfully');
         }
@@ -370,18 +436,17 @@ export default function SettigsPage() {
     }
   };
 
-  const handleFileRemove = async (fieldName) => {
+  const handleFileRemove = async (fieldName, isFromLibrary = false) => {
     const fileValue = watch(fieldName);
-    if (fileValue && fileValue._id) {
+    if (fileValue && fileValue._id && !isFromLibrary && !fileValue.fromMediaLibrary) {
       try {
         await http.delete(`/deletefile?fileName=${fileValue._id}`);
-        setValue(fieldName, null);
-        toast.success('Image removed successfully');
       } catch (error) {
         console.error('Delete failed:', error);
-        toast.error('Error removing image');
       }
     }
+    setValue(fieldName, null);
+    toast.success('Image removed successfully');
   };
 
   const onSubmit = async (formData) => {
@@ -391,6 +456,7 @@ export default function SettigsPage() {
       document.documentElement.style.setProperty('--primary-color', formData.primaryColor);
       document.documentElement.style.setProperty('--nav-text-color', formData.navTitles.textColor);
       document.documentElement.style.setProperty('--nav-icon-color', formData.navTitles.iconColor);
+      document.documentElement.style.setProperty('--nav-bg-color', formData.navTitles.bgColor);
       
       // Processed data should now contain the correct hex codes
       const processedData = { ...formData };
@@ -454,6 +520,7 @@ export default function SettigsPage() {
     { name: 'Nav Titles', icon: <ArrowsUpDownIcon className="w-5 h-5" /> },
     { name: 'Links Info', icon: <LinkIcon className="w-5 h-5" /> },
     { name: 'Contact', icon: <PhoneIcon className="w-5 h-5" /> },
+    { name: 'Blog', icon: <BookOpenIcon className="w-5 h-5" /> }, // Add this line
     { name: 'Scripts', icon: <CodeBracketIcon className="w-5 h-5" /> },
   ];
 
@@ -550,12 +617,13 @@ export default function SettigsPage() {
                     <label className="block mb-2 text-sm font-semibold text-gray-700">
                       Site Logo 
                     </label>
-                    <FileUpload
+                    <EnhancedFileUpload
                       file={watch('logo')}
                       onDrop={(e) => handleFileUpload(e, 'logo')}
-                      onRemove={() => handleFileRemove('logo')}
+                      onRemove={(isFromLibrary) => handleFileRemove('logo', isFromLibrary)}
                       loading={false}
                       error={!!errors.logo}
+                      identifier="logo"
                     />
                     {errors.logo && (
                       <p className="mt-1 text-sm text-red-600">{errors.logo.message}</p>
@@ -566,12 +634,13 @@ export default function SettigsPage() {
                     <label className="block mb-2 text-sm font-semibold text-gray-700">
                       Footer Logo
                     </label>
-                    <FileUpload
+                    <EnhancedFileUpload
                       file={watch('footerLogo')}
                       onDrop={(e) => handleFileUpload(e, 'footerLogo')}
-                      onRemove={() => handleFileRemove('footerLogo')}
+                      onRemove={(isFromLibrary) => handleFileRemove('footerLogo', isFromLibrary)}
                       loading={false}
                       error={!!errors.footerLogo}
+                      identifier="footerLogo"
                     />
                     {errors.footerLogo && (
                       <p className="mt-1 text-sm text-red-600">{errors.footerLogo.message}</p>
@@ -583,8 +652,8 @@ export default function SettigsPage() {
             
             {/* SEO Settings */}
             <Tab.Panel className="bg-white rounded-lg p-2 md:p-4">
-              <div className="space-y-4 md:space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              <div className="mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
                   <div>
                     <label className="block mb-2 text-sm font-semibold text-gray-700">
                       Meta Title (Default)
@@ -613,7 +682,7 @@ export default function SettigsPage() {
                   </div>
                 </div>
                 
-                <div>
+                <div className="mb-4">
                   <label className="block mb-2 text-sm font-semibold text-gray-700">
                     Meta Description (Default)
                   </label>
@@ -627,21 +696,48 @@ export default function SettigsPage() {
                   </p>
                 </div>
                 
-                <div>
+                <div className="mb-6">
                   <label className="block mb-2 text-sm font-semibold text-gray-700">
                     OG Image (Default)
                   </label>
-                  <FileUpload
+                  <EnhancedFileUpload
                     file={watch('ogImage')}
                     onDrop={(e) => handleFileUpload(e, 'ogImage')}
-                    onRemove={() => handleFileRemove('ogImage')}
+                    onRemove={(isFromLibrary) => handleFileRemove('ogImage', isFromLibrary)}
                     loading={false}
                     error={!!errors.ogImage}
+                    identifier="ogImage"
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     This image will be used when sharing on social media (default).
                   </p>
                 </div>
+              </div>
+
+              {/* Site SEO Analyzer */}
+              <div className="mt-8 border-t border-gray-200 pt-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  AI SEO Analysis & Optimization
+                </h3>
+                <SiteSeoDashboard 
+                  siteData={watch()} 
+                  pageData={null} 
+                  onUpdateSuggestions={(data) => {
+                    if (data?.applySuggestion) {
+                      // Handle suggestion application
+                      if (data.type === 'title') {
+                        setValue('title', data.value);
+                      } else if (data.type === 'metaTitle') {
+                        setValue('metaTitle', data.value);
+                      } else if (data.type === 'metaDescription') {
+                        setValue('metaDescription', data.value);
+                      } else if (data.type === 'keywords') {
+                        setValue('metaKeywords', data.value);
+                      }
+                      // Could add more field updates as needed
+                    }
+                  }} 
+                />
               </div>
 
               {/* Static Pages SEO Section */}
@@ -939,7 +1035,30 @@ export default function SettigsPage() {
                   </div>
                 </div>
                 
-                {/* Animation Toggle - NEW */}
+                {/* Background Color - NEW */}
+                <div>
+                  <label className="block mb-2 text-sm font-semibold text-gray-700">
+                    Background Color
+                  </label>
+                  <div className="flex items-center">
+                    <input
+                      type="color"
+                      className="h-10 w-10 rounded border-2 border-gray-200 cursor-pointer"
+                      {...register('navTitles.bgColor')}
+                    />
+                    <input
+                      type="text"
+                      readOnly
+                      className="ml-2 flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 outline-none"
+                      value={watchedNavBgColor || ''}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Set the background color for the navigation title area.
+                  </p>
+                </div>
+                
+                {/* Animation Toggle */}
                 <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                   <label className="flex items-center cursor-pointer">
                     <input 
@@ -1204,16 +1323,16 @@ export default function SettigsPage() {
                 </div>
                 
                 {/* Working Hours */}
-                <div>
-                  <label className="block mb-2 text-sm font-semibold text-gray-700">
-                    Working Hours
-                  </label>
-                  <textarea
-                    className="w-full h-24 rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
-                    placeholder="Monday-Friday: 9:00 AM - 5:00 PM&#10;Saturday: 10:00 AM - 2:00 PM&#10;Sunday: Closed"
-                    {...register('contactSection.workingHours')}
-                  ></textarea>
-                </div>
+             {/* Working Hours */}
+<div className="pt-4 border-t">
+  <WorkingHoursSection 
+    register={register}
+    control={control}
+    watch={watch}
+    setValue={setValue}
+    errors={errors}
+  />
+</div>
                 
                 {/* Google Maps Embed */}
                 <div>
@@ -1229,8 +1348,180 @@ export default function SettigsPage() {
                     Paste the embed code from Google Maps to show your location on the contact page.
                   </p>
                 </div>
+
+                <div>
+                  <label className="block mb-2 text-sm font-semibold text-gray-700">
+                    Contact Form
+                  </label>
+                  <div className="flex flex-col space-y-2">
+                    <select
+                      className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+                      value={watch('contactSection.contactFormId') || ''}
+                      onChange={(e) => {
+                        const value = e.target.value ? parseInt(e.target.value) : null;
+                        setValue('contactSection.contactFormId', value);
+                      }}
+                    >
+                      <option value="">None (Use default contact form)</option>
+                      {publishedForms.map(form => (
+                        <option key={form.id} value={form.id}>{form.title}</option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500">
+                      Select a form to display on the contact page. If none is selected, the default contact form will be used.
+                    </p>
+                  </div>
+                </div>
+
+
+{/* --contact hero image and title  */}
+<div className="space-y-4 border-b pb-6 mb-6">
+  <h3 className="text-md font-semibold text-gray-800">Contact Page Hero Section</h3>
+  
+  <div>
+    <label className="block mb-2 text-sm font-semibold text-gray-700">
+      Hero Title
+    </label>
+    <input
+      type="text"
+      className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+      placeholder="Enter hero title for contact page"
+      {...register('contactSection.heroTitle')}
+    />
+    <p className="mt-1 text-xs text-gray-500">
+      This will be displayed as the main heading on the contact page.
+    </p>
+  </div>
+  
+  <div>
+    <label className="block mb-2 text-sm font-semibold text-gray-700">
+      Hero Image
+    </label>
+    <EnhancedFileUpload
+      file={watch('contactSection.heroImage')}
+      onDrop={(e) => handleFileUpload(e, 'contactSection.heroImage')}
+      onRemove={(isFromLibrary) => handleFileRemove('contactSection.heroImage', isFromLibrary)}
+      loading={false}
+      error={!!errors.contactSection?.heroImage}
+      identifier="contactSection.heroImage"
+    />
+    <p className="mt-1 text-xs text-gray-500">
+      Recommended image size: 640x329 pixels. This image will be displayed at the top of the contact page.
+    </p>
+  </div>
+</div>
+
+
+
               </div>
             </Tab.Panel>
+
+            <Tab.Panel className="bg-white rounded-lg p-2 md:p-4">
+  <div className="space-y-4 md:space-y-6">
+    <div className="space-y-4 border-b pb-6 mb-6">
+      <h3 className="text-md font-semibold text-gray-800">Blog Page Hero Section</h3>
+      
+      <div>
+        <label className="block mb-2 text-sm font-semibold text-gray-700">
+          Hero Title
+        </label>
+        <input
+          type="text"
+          className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+          placeholder="Enter hero title for blog page"
+          {...register('blogSection.heroTitle')}
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          This will be displayed as the main heading on the blog listing page.
+        </p>
+      </div>
+      
+      <div>
+        <label className="block mb-2 text-sm font-semibold text-gray-700">
+          Hero Image
+        </label>
+        <EnhancedFileUpload
+          file={watch('blogSection.heroImage')}
+          onDrop={(e) => handleFileUpload(e, 'blogSection.heroImage')}
+          onRemove={(isFromLibrary) => handleFileRemove('blogSection.heroImage', isFromLibrary)}
+          loading={false}
+          error={!!errors.blogSection?.heroImage}
+          identifier="blogSection.heroImage"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Recommended image size: 640x329 pixels. This image will be displayed at the top of the blog page.
+        </p>
+      </div>
+    </div>
+    
+    {/* Additional blog-related settings could go here */}
+    <div className="space-y-4">
+      <h3 className="text-md font-semibold text-gray-800">Blog Page Settings</h3>
+      
+      <div>
+        <label className="block mb-2 text-sm font-semibold text-gray-700">
+          Posts Per Page
+        </label>
+        <input
+          type="number"
+          min="1"
+          max="24"
+          className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+          placeholder="Number of posts to display per page"
+          {...register('blogSection.postsPerPage', { 
+            valueAsNumber: true,
+            min: 1,
+            max: 24
+          })}
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Number of blog posts to display on each page (1-24).
+        </p>
+      </div>
+      
+      <div>
+        <label className="block mb-2 text-sm font-semibold text-gray-700">
+          Featured Category ID
+        </label>
+        <input
+          type="number"
+          className="w-full rounded-lg border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all px-3 py-2 outline-none"
+          placeholder="ID of the category to feature"
+          {...register('blogSection.featuredCategoryId', { 
+            valueAsNumber: true 
+          })}
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Optional: Add a category ID to highlight posts from this category at the top of the blog page.
+        </p>
+      </div>
+      
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          id="showSidebar"
+          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+          {...register('blogSection.showSidebar')}
+        />
+        <label htmlFor="showSidebar" className="ml-2 block text-sm text-gray-700">
+          Show sidebar with categories and recent posts
+        </label>
+      </div>
+      
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          id="showAuthor"
+          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+          {...register('blogSection.showAuthor')}
+        />
+        <label htmlFor="showAuthor" className="ml-2 block text-sm text-gray-700">
+          Show author information on posts
+        </label>
+      </div>
+    </div>
+  </div>
+</Tab.Panel>
             
             {/* Custom Scripts */}
             <Tab.Panel className="bg-white rounded-lg p-2 md:p-4">

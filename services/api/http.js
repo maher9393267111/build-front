@@ -25,10 +25,10 @@ const baseURL = "https://build-back.vercel.app"
 const localURL = "http://localhost:3001"
 
 const http = axios.create({
-  baseURL: baseURL + `/api`,
+  baseURL: baselURL + `/api`,
   
-  retryDelay: 1000,
-  maxRetries: 3,
+  // retryDelay: 1000,
+  // maxRetries: 3,
 });
 
 http.interceptors.request.use(

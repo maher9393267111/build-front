@@ -53,7 +53,9 @@ function renderBlock(block, blockIndex) {
     case "hero":
         return (
           <div
-            className="relative mb-10 bg-gray-100 h-96 md:!min-h-96 md:h-[90vh] overflow-hidden flex items-center"
+          className="relative mb-10 bg-gray-100  min-h-[75vh] overflow-hidden flex items-center"
+
+            // className="relative mb-10 bg-gray-100 h-96 md:!min-h-96 md:h-[90vh] overflow-hidden flex items-center"
             style={{
               backgroundColor: block.content?.backgroundColor || "#f3f4f6",
               backgroundImage: block.content?.imageUrl?.url ? `url(${block.content.imageUrl.url})` : 'none',
@@ -590,7 +592,7 @@ function renderBlock(block, blockIndex) {
                             loading="lazy"
                               src={slide.imageUrl.url}
                               alt={slide.altText || `Slide ${i + 1}`}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                              className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
                             />
                           ) : (
                             <div className="w-full h-full bg-gray-100 flex items-center justify-center">
@@ -1167,8 +1169,6 @@ function renderBlock(block, blockIndex) {
               )}
             </div>
 
-            {/* FORM CARD */}
-            
             <div className="max-w-2xl mx-auto">
               {submitted ? (
                 <div className="bg-green-50 border-l-4 border-green-400 rounded-lg p-6 text-left shadow-md">
@@ -1222,6 +1222,7 @@ function renderBlock(block, blockIndex) {
                     onSubmitSuccess={handleSubmitSuccess}
                     customButtonText={block.content?.buttonText || form.submitButtonText || "Submit"}
                     customButtonColor={block.content?.buttonColor || form.submitButtonColor || "#2563eb"}
+                    useSteps={true}
                   />
                 </div>
               ) : (

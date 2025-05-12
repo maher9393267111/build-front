@@ -108,7 +108,7 @@ const BlogDetails = ({ blog, relatedBlogs, recentPosts = [], categories = [], na
   return (
     <section className="pb-20">
       <div className="pt-20 pb-8 mb-4 bg-cover bg-no-repeat">
-        <div className="container mx-auto px-4 md:px-6 max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl">
+        <div className="containe mx-auto px-4  w-[97%]">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-6">
               <span className="text-base md:text-lg">
@@ -134,7 +134,7 @@ const BlogDetails = ({ blog, relatedBlogs, recentPosts = [], categories = [], na
             </div>
           </div>
           {blog.featuredImage && (
-            <div className="pt-48 pb-48 mb-12 bg-cover bg-no-repeat bg-center rounded-xl wow animate__animate animate__fadeInU" 
+            <div className="pt-48 pb-48 mb-12 bg-cover bg-no-repeat bg-center rounded-xl " 
                  style={{ backgroundImage: `url("${blog.featuredImage?.url}")` }}>
               <div className="max-w-2xl mx-auto">
                 <div className="text-center mb-6" />
@@ -144,17 +144,17 @@ const BlogDetails = ({ blog, relatedBlogs, recentPosts = [], categories = [], na
         </div>
       </div>
       
-      <div className="container mx-auto px-4 md:px-6 max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl">
+      <div className="containe mx-auto px-4 w-[97%]">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Sidebar for Table of Contents (Desktop only) */}
           {tocItems.length > 0 && (
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-4">
               <TableOfContents items={tocItems} />
             </div>
           )}
           
           {/* Main Content Column */}
-          <div className={tocItems.length > 0 ? "lg:col-span-6" : "lg:col-span-8"}>
+          <div className={tocItems.length > 0 ? "lg:col-span-7" : "lg:col-span-12"}>
             <div className="ql-container" ref={contentRef}>
               <div 
                 className="ql-editor blog-content mb-6 leading-loose text-pgay-40"
@@ -268,100 +268,7 @@ const BlogDetails = ({ blog, relatedBlogs, recentPosts = [], categories = [], na
           </div>
           
           {/* Sidebar Column (Search, Recent Posts, Categories, Tags) */}
-          <div className={tocItems.length > 0 ? "lg:col-span-3" : "lg:col-span-4"}>
-            <div className="sticky top-24 space-y-8">
-              {/* Recent Posts */}
-              <div className="bg-white shadow-md border border-gray-100 rounded-xl overflow-hidden">
-                <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-primary-50 to-white">
-                  <h3 className="text-lg font-bold text-gray-800 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                    Recent Posts
-                  </h3>
-                </div>
-                <div className="px-6 py-4">
-                  <div className="divide-y divide-gray-100">
-                    {recentPosts.map(post => (
-                      <div key={post.id} className="flex gap-4 py-4 group">
-                        {post.featuredImage && (
-                          <div className="flex-shrink-0 w-20 h-20 overflow-hidden rounded-lg shadow-sm group-hover:shadow transition duration-300">
-                            <img
-                              src={post.featuredImage.url}
-                              alt={post.title}
-                              className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
-                            />
-                          </div>
-                        )}
-                        <div className="flex-grow">
-                          <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary-600 transition duration-300">
-                            <Link href={`/blog/${post.slug}`}>{post.title}</Link>
-                          </h4>
-                          <span className="text-xs text-gray-500 flex items-center mt-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            {formatDate(post.publishedAt || post.createdAt)}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              
-              {/* Categories */}
-              <div className="bg-white shadow-md border border-gray-100 rounded-xl overflow-hidden">
-                <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-primary-50 to-white">
-                  <h3 className="text-lg font-bold text-gray-800 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
-                    Categories
-                  </h3>
-                </div>
-                <div className="px-6 py-4">
-                  <div className="space-y-1">
-                    {categories.map(category => (
-                      <Link
-                        key={category.id}
-                        href={`/blog?category=${category.slug}`}
-                        className="flex justify-between items-center py-2.5 px-3 rounded-lg hover:bg-gray-50 text-gray-700 hover:text-primary-600 transition-all duration-300"
-                      >
-                        <span className="font-medium">{category.name}</span>
-                        <span className="text-xs bg-primary-50 text-primary-600 px-2.5 py-1 rounded-full font-medium">{category.count}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              
-              {/* Tags */}
-              {/* <div className="bg-white shadow-md border border-gray-100 rounded-xl overflow-hidden">
-                <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-primary-50 to-white">
-                  <h3 className="text-lg font-bold text-gray-800 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                    </svg>
-                    Popular Tags
-                  </h3>
-                </div>
-                <div className="px-6 py-4">
-                  <div className="flex flex-wrap gap-2">
-                    {categories.map(category => (
-                      <Link
-                        key={category.id}
-                        href={`/blog?category=${category.slug}`}
-                        className="px-3 py-1.5 bg-gray-50 border border-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-primary-50 hover:text-primary-700 hover:border-primary-100 transition-all duration-300"
-                      >
-                        {category.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div> */}
-            </div>
-          </div>
+        
         </div>
         
         <div className="transition duration-300 ease-in-out transform hover:-translate-y-1 flex items-center justify-center mt-12">

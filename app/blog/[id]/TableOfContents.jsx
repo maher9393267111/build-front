@@ -1,8 +1,23 @@
+
+
 import React, { useState, useEffect } from 'react';
 
 const TableOfContents = ({ items }) => {
   const [activeId, setActiveId] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showAllItems, setShowAllItems] = useState(false);
+
+  // Function to truncate text to first 6-7 words
+  const truncateText = (text, wordCount = 6) => {
+    const words = text.split(' ');
+    if (words.length <= wordCount) return text;
+    return words.slice(0, wordCount).join(' ') + '...';
+  };
+
+  // Get visible items (either all or just first 5)
+  const visibleItems = showAllItems 
+    ? items 
+    : items.slice(0, 5);
 
   // Check which section is currently in view
   useEffect(() => {
@@ -17,7 +32,6 @@ const TableOfContents = ({ items }) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           setActiveId(entry.target.id);
-          console.log(`Section in view: ${entry.target.id}`);
         }
       });
     };
@@ -84,7 +98,7 @@ const TableOfContents = ({ items }) => {
         
         <div className={`overflow-hidden transition-all duration-300 bg-white ${isExpanded ? 'max-h-64' : 'max-h-0'}`}>
           <ul className="p-4 overflow-y-auto max-h-64 divide-y divide-gray-100">
-            {items.map(item => (
+            {visibleItems.map(item => (
               <li key={item.id} className="py-2">
                 <a
                   href={`#${item.id}`}
@@ -94,11 +108,31 @@ const TableOfContents = ({ items }) => {
                     ${activeId === item.id ? 'text-primary-600 font-medium' : 'text-gray-600'}
                   `}
                 >
-                  {item.text}
+                  {truncateText(item.text)}
                 </a>
               </li>
             ))}
           </ul>
+          
+          {items.length > 5 && (
+            <div className="px-4 pb-3">
+              <button 
+                onClick={() => setShowAllItems(!showAllItems)}
+                className="w-full py-2 px-3 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 transition-colors flex items-center justify-center shadow-sm"
+              >
+                <span>{showAllItems ? 'Show Less' : 'Show More'}</span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  className={`h-4 w-4 ml-1.5 transition-transform ${showAllItems ? 'transform rotate-180' : ''}`}
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -114,7 +148,7 @@ const TableOfContents = ({ items }) => {
         </div>
         <div className="p-4">
           <ul className="space-y-2 text-sm max-h-[calc(100vh-12rem)] overflow-y-auto">
-            {items.map(item => (
+            {visibleItems.map(item => (
               <li 
                 key={item.id} 
                 className={`
@@ -137,12 +171,37 @@ const TableOfContents = ({ items }) => {
                     </svg>
                   )}
                   <span className={activeId === item.id ? 'border-b border-primary-300' : ''}>
-                    {item.text}
+                    {truncateText(item.text)}
                   </span>
                 </a>
               </li>
             ))}
           </ul>
+          
+          {items.length > 5 && (
+            <div className="mt-4 pt-3 border-t border-gray-100">
+              <button 
+                onClick={() => setShowAllItems(!showAllItems)}
+                className="w-full py-2 px-3 text-sm font-medium bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-md hover:from-primary-600 hover:to-primary-700 transition-all duration-300 flex items-center justify-center shadow-sm group"
+              >
+                {showAllItems ? (
+                  <>
+                    <span>Show Less</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1.5 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </>
+                ) : (
+                  <>
+                    <span>Show All {items.length} Topics</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1.5 group-hover:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>

@@ -32,7 +32,7 @@ const OfferNavTitles = ({ settings }) => {
   }
 
   // Get the nav titles data from settings
-  const { items, fontSize, textColor, iconColor, animationEnabled = true } = settings.navTitles;
+  const { items, fontSize, textColor, iconColor, bgColor, animationEnabled = true } = settings.navTitles;
   
   // Create duplicate items for the display if animation is enabled
   const displayItems = animationEnabled ? [...items, ...items] : items;
@@ -56,14 +56,15 @@ const OfferNavTitles = ({ settings }) => {
           transition={{ duration: 0.4, ease: "easeInOut" }}
           className={cn(
             "relative overflow-hidden",
-            "bg-gradient-to-r from-primary-800 via-primary-600 to-primary-800",
+            !bgColor && "bg-gradient-to-r from-primary-800 via-primary-600 to-primary-800",
             "after:absolute after:inset-0",
             "after:bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))]",
             "after:from-primary-400/10 after:via-transparent after:to-transparent",
             "after:pointer-events-none"
           )}
+          style={bgColor ? { backgroundColor: bgColor } : {}}
         >
-          <div className="container mx-auto px-4 py-3 relative">
+          <div className="container mx-auto px-4 py-2 relative">
             <div className="flex items-center justify-between">
               <div className="flex-1 overflow-hidden">
                 <div className={cn(

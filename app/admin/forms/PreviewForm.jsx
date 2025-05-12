@@ -1,9 +1,9 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 
 import Icon from '@components/ui/Icon';
 
-const PreviewForm = ({ formData }) => {
+const PreviewForm = ({ formData, useSteps = true, customButtonColor }) => {
   const [currentData, setCurrentData] = useState({});
   const [currentQuestionId, setCurrentQuestionId] = useState(null);
   const [questionFlowComplete, setQuestionFlowComplete] = useState(false);
@@ -11,6 +11,10 @@ const PreviewForm = ({ formData }) => {
   const [normalFields, setNormalFields] = useState([]);
   const [backButtonHovered, setBackButtonHovered] = useState(false);
   const [hoveredOptionIndex, setHoveredOptionIndex] = useState(null);
+  
+  // New states for steps functionality
+  const [currentStep, setCurrentStep] = useState(0);
+  const [fieldsPerStep] = useState(2);
   
   // Add style for transitions
   useEffect(() => {
@@ -99,7 +103,64 @@ const PreviewForm = ({ formData }) => {
     }
   };
   
-  const handleBack = () => {
+  // Calculate visible fields based on current step
+  const visibleFields = useMemo(() => {
+    if (!useSteps) {
+      return normalFields; // Show all fields if not using steps
+    }
+    
+    const startIndex = currentStep * fieldsPerStep;
+    return normalFields.slice(startIndex, startIndex + fieldsPerStep);
+  }, [normalFields, currentStep, fieldsPerStep, useSteps]);
+  
+  // Calculate total number of steps
+  const totalSteps = useMemo(() => {
+    return Math.ceil(normalFields.length / fieldsPerStep);
+  }, [normalFields, fieldsPerStep]);
+  
+  // Check if we're on the last step - FIXED calculation
+  const isLastStep = useMemo(() => {
+    if (!useSteps) return true;
+    return currentStep === totalSteps - 1;
+  }, [currentStep, totalSteps, useSteps]);
+  
+  // Move to next step
+  const handleNextStep = (e) => {
+    // Prevent default to ensure no form submission occurs
+    if (e) e.preventDefault();
+    
+    // Only increment if we're not at the last step
+    if (currentStep < totalSteps - 1) {
+      setCurrentStep(currentStep + 1);
+      
+      // Scroll to top of form
+      const formElement = document.getElementById('preview-form-container');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+  
+  // Move to previous step
+  const handlePrevStep = (e) => {
+    // Prevent default to ensure no form submission occurs
+    if (e) e.preventDefault();
+    
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+      
+      // Scroll to top of form
+      const formElement = document.getElementById('preview-form-container');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+  
+  const handleBack = (e) => {
+    // Prevent default to ensure no form submission occurs
+    if (e) e.preventDefault();
+    
     if (questionFlowComplete) {
       // Go back to last question
       if (questionsFlow.length > 0) {
@@ -122,6 +183,14 @@ const PreviewForm = ({ formData }) => {
     if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
     return `${(size / (1024 * 1024)).toFixed(2)} MB`;
   };
+
+  // Calculate progress percentage for stepped forms
+  const progressPercentage = useMemo(() => {
+    if (!useSteps || normalFields.length === 0) return 100;
+    
+    // Only calculate based on current step, NOT visible fields
+    return Math.min(100, ((currentStep + 1) / totalSteps) * 100);
+  }, [useSteps, normalFields.length, currentStep, totalSteps]);
 
   const renderField = (field) => {
     const commonInputClass = `w-full p-2 text-sm font-medium border rounded-md outline-none focus:ring-2 focus:ring-primary-500 border-gray-200 hover:border-gray-300`;
@@ -399,6 +468,9 @@ const PreviewForm = ({ formData }) => {
     const currentIndex = questionsFlow.findIndex(q => q.id === currentQuestionId);
     const progress = totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0;
     
+    const questionColor = customButtonColor || 'var(--primary-color)';
+    const lightQuestionBg = `color-mix(in srgb, ${questionColor} 15%, white)`;
+    
     const backButtonStyle = (hovered) => ({
         display: 'flex',
         alignItems: 'center',
@@ -408,7 +480,7 @@ const PreviewForm = ({ formData }) => {
         transition: 'all 0.3s ease',
         borderRadius: '8px',
         backgroundColor: hovered ? '#F3F4F6' : 'transparent',
-        color: hovered ? 'var(--primary-color)' : '#6B7280',
+        color: hovered ? questionColor : '#6B7280',
         cursor: 'pointer',
         border: 'none',
         outline: 'none'
@@ -419,12 +491,14 @@ const PreviewForm = ({ formData }) => {
         height: '18px',
         marginRight: '6px',
         transition: 'all 0.3s ease',
-        stroke: backButtonHovered ? 'var(--primary-color)' : 'currentColor'
+        stroke: backButtonHovered ? questionColor : 'currentColor'
     };
 
     const iconHolderStyle = {
-      color: 'var(--primary-color)',
-      backgroundColor: 'color-mix(in srgb, var(--primary-color) 10%, white)'
+      color: questionColor,
+      backgroundColor: customButtonColor
+        ? `${customButtonColor}1A` // Assumes customButtonColor is a hex like #RRGGBB
+        : 'color-mix(in srgb, var(--primary-color) 10%, white)'
     };
 
     return (
@@ -453,7 +527,7 @@ const PreviewForm = ({ formData }) => {
         <div className="w-full h-2 bg-gray-200 rounded-full mb-6">
           <div 
             className="h-full rounded-full bg-primary-500 transition-all duration-500 ease-in-out"
-            style={{ width: `${progress}%` }}
+            style={{ width: `${progress}%`, backgroundColor: questionColor }}
           ></div>
         </div>
         
@@ -468,7 +542,7 @@ const PreviewForm = ({ formData }) => {
             {currentQuestion.placeholder && (
               <p className="text-gray-600 mt-1">{currentQuestion.placeholder}</p>
             )}
-            <div className="w-12 h-1 bg-primary-500 mx-auto mt-3 mb-3 rounded-full"></div>
+            <div className="w-12 h-1 bg-primary-500 mx-auto mt-3 mb-3 rounded-full" style={{ backgroundColor: questionColor }}></div>
         </div>
         
         {/* Options */}
@@ -480,9 +554,6 @@ const PreviewForm = ({ formData }) => {
               const isHovered = hoveredOptionIndex === i;
               
               const cardBaseClasses = `group relative flex flex-col items-center justify-center p-4 min-h-[170px] text-center rounded-xl shadow-md hover:shadow-lg cursor-pointer option-card`;
-              
-              // Apply dynamic styling with CSS variables to match primary color
-              const lightBg = 'color-mix(in srgb, var(--primary-color) 15%, white)';
               
               return (
                 <button
@@ -497,8 +568,8 @@ const PreviewForm = ({ formData }) => {
                   onMouseLeave={() => setHoveredOptionIndex(null)}
                   className={`${cardBaseClasses} ${isSelected ? 'option-card-selected' : ''} ${isHovered ? 'option-card-hover' : ''} text-slate-700 ${isSelected ? 'font-semibold' : ''}`}
                   style={{
-                    borderColor: (isSelected || isHovered) ? 'var(--primary-color)' : '#e5e7eb',
-                    backgroundColor: (isSelected || isHovered) ? lightBg : '#f8fafc',
+                    borderColor: (isSelected || isHovered) ? questionColor : '#e5e7eb',
+                    backgroundColor: (isSelected || isHovered) ? lightQuestionBg : '#f8fafc',
                     borderWidth: (isSelected || isHovered) ? '2px' : '1px'
                   }}
                 >
@@ -517,7 +588,8 @@ const PreviewForm = ({ formData }) => {
                   {isSelected && (
                     <Icon
                       icon="CheckCircleSolid"
-                      className="absolute bottom-2 right-2 w-5 h-5 text-primary-500"
+                      className="absolute bottom-2 right-2 w-5 h-5"
+                      style={{ color: questionColor }}
                     />
                   )}
                 </button>
@@ -534,40 +606,83 @@ const PreviewForm = ({ formData }) => {
   }
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="preview-form-container">
       {/* Show either question flow or regular fields based on state */}
       {!questionFlowComplete && questionsFlow.length > 0 ? (
         renderQuestionFlow()
       ) : (
         <>
-          {/* Regular form fields */}
-          {normalFields.map(field => renderField(field))}
+          {/* Show progress bar for stepped forms */}
+          {useSteps && (
+            <div className="mb-6">
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <span>Progress</span>
+                <span>{Math.round(progressPercentage)}%</span>
+              </div>
+              <div className="w-full h-2 bg-gray-200 rounded-full">
+                <div 
+                  className="h-full rounded-full bg-primary-500 transition-all duration-500 ease-in-out"
+                  style={{ 
+                    width: `${progressPercentage}%`, 
+                    backgroundColor: customButtonColor || 'var(--primary-color)' 
+                  }}
+                ></div>
+              </div>
+            </div>
+          )}
+          
+          {/* Regular form fields - filtered by current step if useSteps is true */}
+          {(useSteps ? visibleFields : normalFields).map(field => renderField(field))}
           
           <div className="flex justify-between items-center pt-4">
-            {questionsFlow.length > 0 && (
+            {/* Back button (to questions or previous step) */}
+            {(questionsFlow.length > 0 || (useSteps && currentStep > 0)) && (
               <button
                 type="button"
-                onClick={handleBack}
+                onClick={currentStep > 0 ? handlePrevStep : handleBack}
                 className="flex items-center px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
               >
                 <Icon icon="ChevronLeft" className="h-5 w-5 mr-2" />
-                Back to Questions
+                {currentStep > 0 ? 'Previous' : 'Back to Questions'}
               </button>
             )}
             
-            <button
-              type="button"
-              className="px-6 py-2.5 text-white font-medium rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ml-auto bg-primary-500"
-              disabled={true}
-            >
-              Submit (Preview)
-            </button>
+            {/* Next step or Submit button */}
+            {useSteps && !isLastStep ? (
+              <button
+                type="button"
+                onClick={handleNextStep}
+                className="ml-auto px-6 py-2.5 text-white font-medium rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
+                style={{ 
+                  backgroundColor: customButtonColor || 'var(--primary-color)', 
+                  borderColor: customButtonColor || 'var(--primary-color)' 
+                }}
+              >
+                <div className="flex items-center">
+                  Next
+                  <Icon icon="ChevronRight" className="h-5 w-5 ml-2" />
+                </div>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="ml-auto px-6 py-2.5 text-white font-medium rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors opacity-80"
+                style={{ 
+                  backgroundColor: customButtonColor || 'var(--primary-color)', 
+                  borderColor: customButtonColor || 'var(--primary-color)'
+                }}
+                disabled={true}
+              >
+                Submit (Preview)
+              </button>
+            )}
+          </div>
+          
+          <div className="text-sm text-gray-500 italic mt-4 p-2 bg-gray-50 rounded border border-gray-100">
+            This is a preview. Form submissions are disabled in preview mode.
           </div>
         </>
       )}
-      {/* <div className="text-sm text-gray-500 italic mt-4 p-2 bg-gray-50 rounded border border-gray-100">
-        This is a preview. Form submissions are disabled in preview mode.
-      </div> */}
     </div>
   );
 };

@@ -52,6 +52,7 @@ const quillModules = {
 };
 
 const PageForm = ({ id }) => {
+  const [formTab, setFormTab] = useState("main"); 
   const ICON_OPTIONS = [
     { label: "CheckCircle", value: "CheckCircle" },
     { label: "Bolt", value: "Bolt" },
@@ -1117,6 +1118,45 @@ const PageForm = ({ id }) => {
         }`}
       >
         <form onSubmit={handleSubmit}>
+
+        <div className="flex border-b border-gray-200 mb-6">
+            <button
+              type="button"
+              className={`py-3 px-6 font-medium text-sm focus:outline-none ${
+                formTab === "main"
+                  ? "text-primary-600 border-b-2 border-primary-600"
+                  : "text-gray-500 hover:text-gray-900"
+              }`}
+              onClick={() => setFormTab("main")}
+            >
+              Page Information
+            </button>
+            <button
+              type="button"
+              className={`py-3 px-6 font-medium text-sm focus:outline-none ${
+                formTab === "blocks"
+                  ? "text-primary-600 border-b-2 border-primary-600"
+                  : "text-gray-500 hover:text-gray-900"
+              }`}
+              onClick={() => setFormTab("blocks")}
+            >
+              Page Blocks
+            </button>
+            <button
+              type="button"
+              className={`py-3 px-6 font-medium text-sm focus:outline-none ${
+                formTab === "seo"
+                  ? "text-primary-600 border-b-2 border-primary-600"
+                  : "text-gray-500 hover:text-gray-900"
+              }`}
+              onClick={() => setFormTab("seo")}
+            >
+              SEO & Optimization
+            </button>
+          </div>
+
+
+          {formTab === "main" && (
           <div className="space-y-6">
             {" "}
             {/* Added space-y-6 for spacing between accordions */}
@@ -1199,3465 +1239,11 @@ const PageForm = ({ id }) => {
               )}
             </Disclosure>
             {/* SEO Information Accordion */}
-            <Disclosure>
-              {({ open }) => (
-                <Card>
-                  <Disclosure.Button className="w-full flex justify-between items-center text-left px-4 py-3 bg-gray-50 rounded-t-lg border-b border-gray-200 hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-primary-500 focus-visible:ring-opacity-75">
-                    <span className="text-lg font-medium text-gray-900">
-                      SEO Information
-                    </span>
-                    <Icon
-                      icon="ChevronDown"
-                      className={`${
-                        open ? "rotate-180 transform" : ""
-                      } h-5 w-5 text-primary-500 transition-transform duration-200`}
-                    />
-                  </Disclosure.Button>
-                  <Transition
-                    enter="transition duration-100 ease-out"
-                    enterFrom="transform scale-95 opacity-0"
-                    enterTo="transform scale-100 opacity-100"
-                    leave="transition duration-75 ease-out"
-                    leaveFrom="transform scale-100 opacity-100"
-                    leaveTo="transform scale-95 opacity-0"
-                  >
-                    <Disclosure.Panel className="px-4 py-5 text-sm text-gray-500">
-                      <div className="space-y-4">
-                        <Textinput
-                          label="Meta Title"
-                          name="metaTitle"
-                          placeholder="Custom title for SEO (leave blank to use page title)"
-                          value={formData.metaTitle}
-                          onChange={handleChange}
-                        />
-                        <Textarea
-                          label="Meta Description"
-                          name="description"
-                          placeholder="Brief description for search engines"
-                          value={formData.description}
-                          onChange={handleChange}
-                          rows={3}
-                        />
-                        <Textinput
-                          label="Meta Keywords"
-                          name="metaKeywords"
-                          placeholder="Comma-separated keywords"
-                          value={formData.metaKeywords}
-                          onChange={handleChange}
-                        />
-                        <Textinput
-                          label="Canonical URL"
-                          name="canonicalUrl"
-                          placeholder="https://example.com/canonical-page"
-                          value={formData.canonicalUrl}
-                          onChange={handleChange}
-                          helper="Set this if this page is a duplicate of another page"
-                        />
-                        <Select
-                          label="Robots Meta Tag"
-                          name="robots"
-                          value={formData.robots}
-                          onChange={handleChange}
-                          helper="Controls how search engines should handle this page"
-                          options={[
-                            {
-                              value: "index, follow",
-                              label: "Index, Follow (default)",
-                            },
-                            {
-                              value: "noindex, follow",
-                              label: "NoIndex, Follow",
-                            },
-                            {
-                              value: "index, nofollow",
-                              label: "Index, NoFollow",
-                            },
-                            {
-                              value: "noindex, nofollow",
-                              label: "NoIndex, NoFollow",
-                            },
-                          ]}
-                        />
-                        <Textarea
-                          label="Structured Data (JSON-LD)"
-                          name="structuredData"
-                          placeholder='{"@context": "https://schema.org", "@type": "WebPage", "name": "Page Title"}'
-                          value={formData.structuredData}
-                          onChange={handleChange}
-                          rows={6}
-                          className="font-mono text-sm"
-                          helper="Add structured data in JSON-LD format for enhanced search results"
-                        />
-
-                        <SeoDashboard
-                          pageData={formData}
-                          onUpdateSuggestions={handleSeoSuggestions}
-                        />
-
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Open Graph Image
-                          </label>
-                          <MediaUpload
-                            file={formData.ogImage}
-                            onDrop={(e) => handleOgImageUpload(e, "ogImage")}
-                            onRemove={() =>
-                              handleRemoveOgImage(
-                                "ogImage",
-                                formData.ogImage?.fromMediaLibrary
-                              )
-                            }
-                            loading={uploadStates["ogImage"]?.loading}
-                            error={uploadStates["ogImage"]?.error}
-                            identifier="ogImage"
-                            helperText="Image that appears when shared on social media (1200x630px recommended)"
-                          />
-                        </div>
-                      </div>
-                    </Disclosure.Panel>
-                  </Transition>
-                </Card>
-              )}
-            </Disclosure>
+      
             {/* Page Blocks Accordion */}
-            <Disclosure defaultOpen>
-              {({ open }) => (
-                <Card>
-                  <Disclosure.Button className="w-full flex justify-between items-center text-left px-4 py-3 bg-gray-50 rounded-t-lg border-b border-gray-200 hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-primary-500 focus-visible:ring-opacity-75">
-                    <span className="text-lg font-medium text-gray-900">
-                      Page Blocks
-                    </span>
-                    <Icon
-                      icon="ChevronDown"
-                      className={`${
-                        open ? "rotate-180 transform" : ""
-                      } h-5 w-5 text-primary-500 transition-transform duration-200`}
-                    />
-                  </Disclosure.Button>
-                  <Transition
-                    enter="transition duration-100 ease-out"
-                    enterFrom="transform scale-95 opacity-0"
-                    enterTo="transform scale-100 opacity-100"
-                    leave="transition duration-75 ease-out"
-                    leaveFrom="transform scale-100 opacity-100"
-                    leaveTo="transform scale-95 opacity-0"
-                  >
-                    <Disclosure.Panel className="px-4 py-5 text-sm text-gray-500">
-                      <div className="mb-6">
-                        {/* ... existing block selection code ... */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Add Block
-                            </label>
-                            <Select
-                              placeholder="Select block type..."
-                              options={blockTypeOptions}
-                              onChange={(e) => handleAddBlock(e.target.value)}
-                              value=""
-                            />
-                          </div>
+        
 
-                          {/* <div>
-                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                           Add from Template
-                         </label>
-                         <Select
-                           placeholder="Select a template..."
-                           options={getTemplateOptions()}
-                           onChange={(e) => handleAddTemplateBlock(e.target.value)}
-                           value=""
-                         />
-                       </div> */}
-                        </div>
 
-                        <DragDropContext onDragEnd={onDragEnd}>
-                          <Droppable droppableId="blocks">
-                            {(provided) => (
-                              <div
-                                {...provided.droppableProps}
-                                ref={provided.innerRef}
-                                className="space-y-4"
-                              >
-                                {formData.blocks.map((block, index) => (
-                                  <Draggable
-                                    key={block.id || `block-${index}`}
-                                    draggableId={
-                                      block.id
-                                        ? `block-${block.id}`
-                                        : `block-new-${index}`
-                                    }
-                                    index={index}
-                                  >
-                                    {(provided) => (
-                                      <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        className="border border-gray-200 p-4 rounded-lg bg-white shadow-md hover:shadow-lg transition-shadow duration-200"
-                                        id={
-                                          block.id
-                                            ? `block-${block.id}`
-                                            : `block-new-${index}`
-                                        }
-                                      >
-                                        <div className="flex justify-between items-center mb-3">
-                                          <div className="flex items-center flex-grow">
-                                            <div
-                                              {...provided.dragHandleProps}
-                                              className="flex items-center cursor-move mr-3 text-gray-400 hover:text-gray-600"
-                                            >
-                                              <Icon icon="Bars3" />
-                                            </div>
-                                            <span className="font-semibold px-3 py-1 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-sm">
-                                              {block.title ||
-                                                `${
-                                                  block.type
-                                                    .charAt(0)
-                                                    .toUpperCase() +
-                                                  block.type.slice(1)
-                                                } Block`}
-                                            </span>
-                                            {block.templateId && (
-                                              <span className="ml-2 px-2 py-0.5 bg-primary-100 text-primary-800 text-xs rounded-full border border-primary-200">
-                                                Template:{" "}
-                                                {templates.find(
-                                                  (t) =>
-                                                    t.id === block.templateId
-                                                )?.name || "Unknown"}
-                                              </span>
-                                            )}
-                                          </div>
-                                          <div className="flex items-center space-x-2">
-                                            <button
-                                              type="button"
-                                              className="p-1.5 text-primary-500 hover:text-primary-700 hover:bg-primary-50 rounded-full transition-colors"
-                                              onClick={() =>
-                                                handleBlockPreviewToggle(index)
-                                              }
-                                              aria-label="Preview block"
-                                            >
-                                              <Icon
-                                                icon="Eye"
-                                                className="h-5 w-5"
-                                              />
-                                            </button>
-                                            <button
-                                              type="button"
-                                              className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                                              onClick={() =>
-                                                handleToggleBlock(index)
-                                              }
-                                              aria-expanded={block.isExpanded}
-                                              aria-label={
-                                                block.isExpanded
-                                                  ? "Collapse block"
-                                                  : "Expand block"
-                                              }
-                                            >
-                                              <Icon
-                                                icon={
-                                                  block.isExpanded
-                                                    ? "ChevronUp"
-                                                    : "ChevronDown"
-                                                }
-                                                className="h-5 w-5"
-                                              />
-                                            </button>
-                                            <button
-                                              type="button"
-                                              className="p-1.5 !text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                                              onClick={() =>
-                                                handleRemoveBlock(index)
-                                              }
-                                              aria-label="Remove block"
-                                            >
-                                              <Icon
-                                                icon="XMark"
-                                                className="h-5 w-5"
-                                              />
-                                            </button>
-                                          </div>
-                                        </div>
-
-                                        {blockPreview.show &&
-                                          blockPreview.blockIndex === index && (
-                                            <div className="my-4 border rounded-lg overflow-hidden">
-                                              <div className="bg-gray-100 px-3 py-2 border-b flex justify-between items-center">
-                                                <span className="text-sm font-medium">
-                                                  Block Preview
-                                                </span>
-                                                <button
-                                                  type="button"
-                                                  className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded"
-                                                  onClick={() =>
-                                                    setBlockPreview({
-                                                      show: false,
-                                                      blockIndex: null,
-                                                    })
-                                                  }
-                                                >
-                                                  <Icon
-                                                    icon="XMark"
-                                                    className="h-4 w-4"
-                                                  />
-                                                </button>
-                                              </div>
-                                              <div className="overflow-hidden">
-                                                {BlockPreview(block)}
-                                              </div>
-                                            </div>
-                                          )}
-
-                                        {block.isExpanded && (
-                                          <div className="space-y-3 pt-3 border-t">
-                                            <Textinput
-                                              label="Block Title (Optional)"
-                                              value={block.title || ""}
-                                              onChange={(e) =>
-                                                handleBlockChange(
-                                                  index,
-                                                  "title",
-                                                  e.target.value
-                                                )
-                                              }
-                                              placeholder="e.g., Our Services Slider"
-                                            />
-
-                                            {block.type === "hero" && (
-                                              <div className="space-y-3">
-                                                <Textinput
-                                                  label="Heading"
-                                                  value={
-                                                    block.content?.heading || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "heading",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                />
-                                                <Textarea
-                                                  label="Subheading"
-                                                  value={
-                                                    block.content?.subheading ||
-                                                    ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "subheading",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  rows={2}
-                                                />
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Text Color
-                                                  </label>
-                                                  <div className="flex items-center">
-                                                    <input
-                                                      type="color"
-                                                      value={
-                                                        block.content
-                                                          ?.textColor ||
-                                                        "#000000"
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "textColor",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      className="h-9 w-16 p-1 border rounded mr-2"
-                                                    />
-                                                    <Textinput
-                                                      value={
-                                                        block.content
-                                                          ?.textColor || ""
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "textColor",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      placeholder="#000000"
-                                                      className="flex-grow"
-                                                    />
-                                                  </div>
-                                                </div>
-                                                <Textinput
-                                                  label="Button Text"
-                                                  value={
-                                                    block.content?.buttonText ||
-                                                    ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "buttonText",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                />
-                                                <Textinput
-                                                  label="Button Link"
-                                                  value={
-                                                    block.content?.buttonLink ||
-                                                    ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "buttonLink",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                />
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Button Background Color
-                                                  </label>
-                                                  <div className="flex items-center">
-                                                    <input
-                                                      type="color"
-                                                      value={
-                                                        block.content
-                                                          ?.buttonBgColor ||
-                                                        "#3b82f6"
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "buttonBgColor",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      className="h-9 w-16 p-1 border rounded mr-2"
-                                                    />
-                                                    <Textinput
-                                                      value={
-                                                        block.content
-                                                          ?.buttonBgColor || ""
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "buttonBgColor",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      placeholder="#3b82f6"
-                                                      className="flex-grow"
-                                                    />
-                                                  </div>
-                                                </div>
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Button Text Color
-                                                  </label>
-                                                  <div className="flex items-center">
-                                                    <input
-                                                      type="color"
-                                                      value={
-                                                        block.content
-                                                          ?.buttonTextColor ||
-                                                        "#ffffff"
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "buttonTextColor",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      className="h-9 w-16 p-1 border rounded mr-2"
-                                                    />
-                                                    <Textinput
-                                                      value={
-                                                        block.content
-                                                          ?.buttonTextColor ||
-                                                        ""
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "buttonTextColor",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      placeholder="#ffffff"
-                                                      className="flex-grow"
-                                                    />
-                                                  </div>
-                                                </div>
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Background Color
-                                                  </label>
-                                                  <div className="flex items-center">
-                                                    <input
-                                                      type="color"
-                                                      value={
-                                                        block.content
-                                                          ?.backgroundColor ||
-                                                        "#f3f4f6"
-                                                      } // Default to a light gray if empty
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "backgroundColor",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      className="h-9 w-16 p-1 border rounded mr-2"
-                                                    />
-                                                    <Textinput
-                                                      value={
-                                                        block.content
-                                                          ?.backgroundColor ||
-                                                        ""
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "backgroundColor",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      placeholder="#f3f4f6"
-                                                      className="flex-grow" // Add flex-grow if needed
-                                                    />
-                                                  </div>
-                                                </div>
-                                                <Select
-                                                  label="Text Direction"
-                                                  value={
-                                                    block.content
-                                                      ?.textDirection || "left"
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "textDirection",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  options={[
-                                                    {
-                                                      value: "left",
-                                                      label: "Left",
-                                                    },
-                                                    {
-                                                      value: "right",
-                                                      label: "Right",
-                                                    },
-                                                    {
-                                                      value: "center",
-                                                      label: "Center",
-                                                    },
-                                                  ]}
-                                                />
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Hero Image
-                                                  </label>
-                                                  <MediaUpload
-                                                    file={
-                                                      block.content?.imageUrl
-                                                    }
-                                                    onDrop={
-                                                      handleHeroImageUpload
-                                                    }
-                                                    onRemove={
-                                                      handleRemoveHeroImage
-                                                    }
-                                                    loading={
-                                                      uploadStates[
-                                                        `hero-${index}`
-                                                      ]?.loading || false
-                                                    }
-                                                    error={
-                                                      uploadStates[
-                                                        `hero-${index}`
-                                                      ]?.error || null
-                                                    }
-                                                    maxSize={5 * 1024 * 1024}
-                                                    identifier={{
-                                                      blockIndex: index,
-                                                    }}
-                                                  />
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {block.type === "features" && (
-                                              <div className="space-y-3">
-                                                <Textinput
-                                                  label="Section Title"
-                                                  value={
-                                                    block.content
-                                                      ?.sectionTitle || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "sectionTitle",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                />
-                                                <div className="space-y-4 mt-2 border-t pt-4">
-                                                  <h4 className="font-medium text-sm">
-                                                    Features:
-                                                  </h4>
-                                                  {(
-                                                    block.content?.features ||
-                                                    []
-                                                  ).map(
-                                                    (feature, featureIndex) => (
-                                                      <div
-                                                        key={featureIndex}
-                                                        className="border p-3 rounded bg-slate-50 space-y-2 relative"
-                                                      >
-                                                        <button
-                                                          type="button"
-                                                          onClick={() =>
-                                                            handleRemoveItem(
-                                                              index,
-                                                              "features",
-                                                              featureIndex
-                                                            )
-                                                          }
-                                                          className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full"
-                                                          aria-label="Remove Feature"
-                                                        >
-                                                          <Icon
-                                                            icon="XMark"
-                                                            className="h-4 w-4"
-                                                          />
-                                                        </button>
-                                                        <div>
-                                                          <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                            {`Feature ${
-                                                              featureIndex + 1
-                                                            } Icon`}
-                                                          </label>
-                                                          <div className="grid grid-cols-4 gap-2 mb-2">
-                                                            {ICON_OPTIONS.map(
-                                                              (opt) => (
-                                                                <button
-                                                                  key={
-                                                                    opt.value
-                                                                  }
-                                                                  type="button"
-                                                                  onClick={() =>
-                                                                    handleItemChange(
-                                                                      index,
-                                                                      "features",
-                                                                      featureIndex,
-                                                                      "icon",
-                                                                      opt.value
-                                                                    )
-                                                                  }
-                                                                  className={`p-2 rounded-lg border ${
-                                                                    feature.icon ===
-                                                                    opt.value
-                                                                      ? "border-primary-500 bg-primary-50"
-                                                                      : "border-gray-200"
-                                                                  } hover:bg-gray-100 flex items-center justify-center`}
-                                                                >
-                                                                  <Icon
-                                                                    icon={
-                                                                      opt.value
-                                                                    }
-                                                                    className="h-5 w-5"
-                                                                  />
-                                                                </button>
-                                                              )
-                                                            )}
-                                                          </div>
-                                                          <Textinput
-                                                            placeholder="Or enter icon name (e.g. CheckCircle)"
-                                                            value={
-                                                              feature.icon || ""
-                                                            }
-                                                            onChange={(e) =>
-                                                              handleItemChange(
-                                                                index,
-                                                                "features",
-                                                                featureIndex,
-                                                                "icon",
-                                                                e.target.value
-                                                              )
-                                                            }
-                                                            className="mt-1"
-                                                          />
-                                                        </div>
-                                                        <Textinput
-                                                          label={`Feature ${
-                                                            featureIndex + 1
-                                                          } Title`}
-                                                          value={
-                                                            feature.title || ""
-                                                          }
-                                                          onChange={(e) =>
-                                                            handleItemChange(
-                                                              index,
-                                                              "features",
-                                                              featureIndex,
-                                                              "title",
-                                                              e.target.value
-                                                            )
-                                                          }
-                                                        />
-                                                        <Textarea
-                                                          label={`Feature ${
-                                                            featureIndex + 1
-                                                          } Description`}
-                                                          value={
-                                                            feature.description ||
-                                                            ""
-                                                          }
-                                                          onChange={(e) =>
-                                                            handleItemChange(
-                                                              index,
-                                                              "features",
-                                                              featureIndex,
-                                                              "description",
-                                                              e.target.value
-                                                            )
-                                                          }
-                                                          rows={2}
-                                                        />
-                                                      </div>
-                                                    )
-                                                  )}
-                                                  <Button
-                                                    text="Add Feature"
-                                                    className="btn-outline-primary btn-sm"
-                                                    onClick={() =>
-                                                      handleAddItem(
-                                                        index,
-                                                        "features",
-                                                        {
-                                                          icon: "",
-                                                          title: "",
-                                                          description: "",
-                                                        }
-                                                      )
-                                                    }
-                                                    icon="Plus"
-                                                    type="button"
-                                                  />
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {block.type === "faq" && (
-                                              <div className="space-y-3">
-                                                <Textinput
-                                                  label="Section Title"
-                                                  value={
-                                                    block.content
-                                                      ?.sectionTitle || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "sectionTitle",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                />
-                                                <div className="space-y-4 mt-2 border-t pt-4">
-                                                  <h4 className="font-medium text-sm">
-                                                    FAQs:
-                                                  </h4>
-                                                  {(
-                                                    block.content?.faqs || []
-                                                  ).map((faq, faqIndex) => (
-                                                    <div
-                                                      key={faqIndex}
-                                                      className="border p-3 rounded bg-slate-50 space-y-2 relative"
-                                                    >
-                                                      <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                          handleRemoveItem(
-                                                            index,
-                                                            "faqs",
-                                                            faqIndex
-                                                          )
-                                                        }
-                                                        className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full"
-                                                        aria-label="Remove FAQ"
-                                                      >
-                                                        <Icon
-                                                          icon="XMark"
-                                                          className="h-4 w-4"
-                                                        />
-                                                      </button>
-                                                      <Textinput
-                                                        label={`FAQ ${
-                                                          faqIndex + 1
-                                                        } Question`}
-                                                        value={
-                                                          faq.question || ""
-                                                        }
-                                                        onChange={(e) =>
-                                                          handleItemChange(
-                                                            index,
-                                                            "faqs",
-                                                            faqIndex,
-                                                            "question",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                      />
-                                                      <Textinput
-                                                        label={`FAQ ${
-                                                          faqIndex + 1
-                                                        } Category`}
-                                                        value={
-                                                          faq.category || ""
-                                                        }
-                                                        onChange={(e) =>
-                                                          handleItemChange(
-                                                            index,
-                                                            "faqs",
-                                                            faqIndex,
-                                                            "category",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        placeholder="e.g., General, Billing"
-                                                      />
-                                                      <Textarea
-                                                        label={`FAQ ${
-                                                          faqIndex + 1
-                                                        } Answer`}
-                                                        value={faq.answer || ""}
-                                                        onChange={(e) =>
-                                                          handleItemChange(
-                                                            index,
-                                                            "faqs",
-                                                            faqIndex,
-                                                            "answer",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        rows={3}
-                                                      />
-                                                    </div>
-                                                  ))}
-                                                  <Button
-                                                    text="Add FAQ"
-                                                    className="btn-outline-primary btn-sm"
-                                                    onClick={() =>
-                                                      handleAddItem(
-                                                        index,
-                                                        "faqs",
-                                                        {
-                                                          question: "",
-                                                          answer: "",
-                                                          category: "",
-                                                        }
-                                                      )
-                                                    }
-                                                    icon="Plus"
-                                                    type="button"
-                                                  />
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {block.type === "slider" && (
-                                              <div className="space-y-3">
-                                                <Textinput
-                                                  label="Section Title (Optional)"
-                                                  value={
-                                                    block.content
-                                                      ?.sectionTitle || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "sectionTitle",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                />
-                                                <div className="space-y-4 mt-2 border-t pt-4">
-                                                  <h4 className="font-medium text-sm">
-                                                    Slides:
-                                                  </h4>
-                                                  {(
-                                                    block.content?.slides || []
-                                                  ).map((slide, slideIndex) => {
-                                                    const identifier = {
-                                                      blockIndex: index,
-                                                      slideIndex: slideIndex,
-                                                    };
-                                                    const uploadKey = `${index}-${slideIndex}`;
-                                                    const uState = uploadStates[
-                                                      uploadKey
-                                                    ] || {
-                                                      loading: false,
-                                                      error: null,
-                                                    };
-                                                    return (
-                                                      <div
-                                                        key={slideIndex}
-                                                        className="border p-3 rounded bg-slate-50 space-y-3 relative"
-                                                      >
-                                                        <button
-                                                          type="button"
-                                                          onClick={() =>
-                                                            handleRemoveItem(
-                                                              index,
-                                                              "slides",
-                                                              slideIndex
-                                                            )
-                                                          }
-                                                          className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full z-10"
-                                                          aria-label="Remove Slide"
-                                                        >
-                                                          <Icon
-                                                            icon="XMark"
-                                                            className="h-4 w-4"
-                                                          />
-                                                        </button>
-
-                                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                                          <div className="sm:col-span-1">
-                                                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                              Slide{" "}
-                                                              {slideIndex + 1}{" "}
-                                                              Image*
-                                                            </label>
-                                                            <MediaUpload
-                                                              file={
-                                                                slide.imageUrl
-                                                              }
-                                                              onDrop={(e) =>
-                                                                handleSlideImageUpload(
-                                                                  e,
-                                                                  identifier
-                                                                )
-                                                              }
-                                                              onRemove={() =>
-                                                                handleRemoveSlideImage(
-                                                                  identifier,
-                                                                  slide.imageUrl
-                                                                    ?.fromMediaLibrary
-                                                                )
-                                                              }
-                                                              loading={
-                                                                uState.loading
-                                                              }
-                                                              error={
-                                                                uState.error
-                                                              }
-                                                              maxSize={
-                                                                5 * 1024 * 1024
-                                                              }
-                                                              identifier={
-                                                                identifier
-                                                              }
-                                                            />
-                                                          </div>
-                                                          <div className="sm:col-span-2 space-y-3">
-                                                            <Textinput
-                                                              label={`Slide ${
-                                                                slideIndex + 1
-                                                              } Alt Text`}
-                                                              value={
-                                                                slide.altText ||
-                                                                ""
-                                                              }
-                                                              onChange={(e) =>
-                                                                handleItemChange(
-                                                                  index,
-                                                                  "slides",
-                                                                  slideIndex,
-                                                                  "altText",
-                                                                  e.target.value
-                                                                )
-                                                              }
-                                                              placeholder="Describe the image"
-                                                            />
-                                                            <Textarea
-                                                              label={`Slide ${
-                                                                slideIndex + 1
-                                                              } Caption`}
-                                                              value={
-                                                                slide.caption ||
-                                                                ""
-                                                              }
-                                                              onChange={(e) =>
-                                                                handleItemChange(
-                                                                  index,
-                                                                  "slides",
-                                                                  slideIndex,
-                                                                  "caption",
-                                                                  e.target.value
-                                                                )
-                                                              }
-                                                              rows={2}
-                                                              placeholder="Optional caption text"
-                                                            />
-                                                          </div>
-                                                        </div>
-                                                      </div>
-                                                    );
-                                                  })}
-                                                  <Button
-                                                    text="Add Slide"
-                                                    className="btn-outline-primary btn-sm"
-                                                    onClick={() =>
-                                                      handleAddItem(
-                                                        index,
-                                                        "slides",
-                                                        {
-                                                          imageUrl: null,
-                                                          altText: "",
-                                                          caption: "",
-                                                        }
-                                                      )
-                                                    }
-                                                    icon="Plus"
-                                                    type="button"
-                                                  />
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {block.type === "cta" && (
-                                              <div className="space-y-3">
-                                                <Textinput
-                                                  label="Heading"
-                                                  value={
-                                                    block.content?.heading || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "heading",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                />
-                                                <Textarea
-                                                  label="Description"
-                                                  value={
-                                                    block.content
-                                                      ?.description || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "description",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  rows={2}
-                                                />
-                                                <Textinput
-                                                  label="Button Text"
-                                                  value={
-                                                    block.content?.buttonText ||
-                                                    ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "buttonText",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                />
-                                                <Textinput
-                                                  label="Button Link"
-                                                  value={
-                                                    block.content?.buttonLink ||
-                                                    ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "buttonLink",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                />
-                                                <Select
-                                                  label="Background Style"
-                                                  value={
-                                                    block.content?.bgStyle ||
-                                                    "color"
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "bgStyle",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  options={[
-                                                    {
-                                                      value: "color",
-                                                      label: "Solid Color",
-                                                    },
-                                                    {
-                                                      value: "image",
-                                                      label: "Background Image",
-                                                    },
-                                                    {
-                                                      value: "gradient",
-                                                      label: "Gradient",
-                                                    },
-                                                  ]}
-                                                />
-                                              </div>
-                                            )}
-
-                                            {block.type === "testimonials" && (
-                                              <div className="space-y-3">
-                                                <Textinput
-                                                  label="Section Title"
-                                                  value={
-                                                    block.content
-                                                      ?.sectionTitle || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "sectionTitle",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                />
-                                                <div className="space-y-4 mt-2 border-t pt-4">
-                                                  <h4 className="font-medium text-sm">
-                                                    Testimonials:
-                                                  </h4>
-                                                  {(
-                                                    block.content
-                                                      ?.testimonials || []
-                                                  ).map(
-                                                    (
-                                                      testimonial,
-                                                      testimonialIndex
-                                                    ) => (
-                                                      <div
-                                                        key={testimonialIndex}
-                                                        className="border p-3 rounded bg-slate-50 space-y-2 relative"
-                                                      >
-                                                        <button
-                                                          type="button"
-                                                          onClick={() =>
-                                                            handleRemoveItem(
-                                                              index,
-                                                              "testimonials",
-                                                              testimonialIndex
-                                                            )
-                                                          }
-                                                          className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full"
-                                                          aria-label="Remove Testimonial"
-                                                        >
-                                                          <Icon
-                                                            icon="XMark"
-                                                            className="h-4 w-4"
-                                                          />
-                                                        </button>
-                                                        <Textarea
-                                                          label={`Testimonial ${
-                                                            testimonialIndex + 1
-                                                          } Quote`}
-                                                          value={
-                                                            testimonial.quote ||
-                                                            ""
-                                                          }
-                                                          onChange={(e) =>
-                                                            handleItemChange(
-                                                              index,
-                                                              "testimonials",
-                                                              testimonialIndex,
-                                                              "quote",
-                                                              e.target.value
-                                                            )
-                                                          }
-                                                          rows={3}
-                                                        />
-                                                        <Textinput
-                                                          label={`Testimonial ${
-                                                            testimonialIndex + 1
-                                                          } Author Name`}
-                                                          value={
-                                                            testimonial.authorName ||
-                                                            ""
-                                                          }
-                                                          onChange={(e) =>
-                                                            handleItemChange(
-                                                              index,
-                                                              "testimonials",
-                                                              testimonialIndex,
-                                                              "authorName",
-                                                              e.target.value
-                                                            )
-                                                          }
-                                                        />
-                                                        <Textinput
-                                                          label={`Testimonial ${
-                                                            testimonialIndex + 1
-                                                          } Author Title/Company`}
-                                                          value={
-                                                            testimonial.authorTitle ||
-                                                            ""
-                                                          }
-                                                          onChange={(e) =>
-                                                            handleItemChange(
-                                                              index,
-                                                              "testimonials",
-                                                              testimonialIndex,
-                                                              "authorTitle",
-                                                              e.target.value
-                                                            )
-                                                          }
-                                                        />
-                                                      </div>
-                                                    )
-                                                  )}
-                                                  <Button
-                                                    text="Add Testimonial"
-                                                    className="btn-outline-primary btn-sm"
-                                                    onClick={() =>
-                                                      handleAddItem(
-                                                        index,
-                                                        "testimonials",
-                                                        {
-                                                          quote: "",
-                                                          authorName: "",
-                                                          authorTitle: "",
-                                                        }
-                                                      )
-                                                    }
-                                                    icon="Plus"
-                                                    type="button"
-                                                  />
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {block.type === "content" && (
-                                              <div className="space-y-3">
-                                                <Textinput
-                                                  label="Section Title (Optional)"
-                                                  value={
-                                                    block.content
-                                                      ?.sectionTitle || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "sectionTitle",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                />
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    HTML Content
-                                                  </label>
-                                                  <div className="custom-quill min-h-[250px]">
-                                                    <ReactQuill
-                                                      theme="snow"
-                                                      value={
-                                                        block.content?.html ||
-                                                        ""
-                                                      }
-                                                      onChange={(value) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "html",
-                                                          value
-                                                        )
-                                                      }
-                                                      modules={quillModules}
-                                                      placeholder="Enter your content here..."
-                                                      className="h-full"
-                                                    />
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {block.type === "products" && (
-                                              <div className="space-y-3">
-                                                <Textinput
-                                                  label="Section Title"
-                                                  value={
-                                                    block.content
-                                                      ?.sectionTitle || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "sectionTitle",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                />
-                                                <div className="space-y-4 mt-2 border-t pt-4">
-                                                  <h4 className="font-medium text-sm">
-                                                    Products:
-                                                  </h4>
-                                                  {(
-                                                    block.content?.products ||
-                                                    []
-                                                  ).map(
-                                                    (product, productIndex) => {
-                                                      const identifier = {
-                                                        blockIndex: index,
-                                                        productIndex:
-                                                          productIndex,
-                                                      };
-                                                      const uploadKey = `product-${index}-${productIndex}`;
-                                                      const uState =
-                                                        uploadStates[
-                                                          uploadKey
-                                                        ] || {
-                                                          loading: false,
-                                                          error: null,
-                                                        };
-                                                      return (
-                                                        <div
-                                                          key={productIndex}
-                                                          className="border p-3 rounded bg-slate-50 space-y-3 relative"
-                                                        >
-                                                          <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                              handleRemoveItem(
-                                                                index,
-                                                                "products",
-                                                                productIndex
-                                                              )
-                                                            }
-                                                            className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full z-10"
-                                                            aria-label="Remove Product"
-                                                          >
-                                                            <Icon
-                                                              icon="XMark"
-                                                              className="h-4 w-4"
-                                                            />
-                                                          </button>
-
-                                                          <div className="grid grid-cols-1 sm:grid-cols-1 gap-3">
-                                                            <div className="sm:col-span-1">
-                                                              <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                                Product{" "}
-                                                                {productIndex +
-                                                                  1}{" "}
-                                                                Image*
-                                                              </label>
-                                                              <MediaUpload
-                                                                file={
-                                                                  product.imageUrl
-                                                                }
-                                                                onDrop={
-                                                                  handleProductImageUpload
-                                                                }
-                                                                onRemove={
-                                                                  handleRemoveProductImage
-                                                                }
-                                                                loading={
-                                                                  uState.loading
-                                                                }
-                                                                error={
-                                                                  uState.error
-                                                                }
-                                                                maxSize={
-                                                                  5 *
-                                                                  1024 *
-                                                                  1024
-                                                                }
-                                                                identifier={
-                                                                  identifier
-                                                                }
-                                                              />
-                                                            </div>
-                                                            <div className="sm:col-span-2 space-y-3">
-                                                              <Textinput
-                                                                label={`Product ${
-                                                                  productIndex +
-                                                                  1
-                                                                } Title*`}
-                                                                value={
-                                                                  product.title ||
-                                                                  ""
-                                                                }
-                                                                onChange={(e) =>
-                                                                  handleItemChange(
-                                                                    index,
-                                                                    "products",
-                                                                    productIndex,
-                                                                    "title",
-                                                                    e.target
-                                                                      .value
-                                                                  )
-                                                                }
-                                                                placeholder="Product title"
-                                                                required
-                                                              />
-                                                              <Textarea
-                                                                label={`Product ${
-                                                                  productIndex +
-                                                                  1
-                                                                } Description`}
-                                                                value={
-                                                                  product.description ||
-                                                                  ""
-                                                                }
-                                                                onChange={(e) =>
-                                                                  handleItemChange(
-                                                                    index,
-                                                                    "products",
-                                                                    productIndex,
-                                                                    "description",
-                                                                    e.target
-                                                                      .value
-                                                                  )
-                                                                }
-                                                                rows={2}
-                                                                placeholder="Product description"
-                                                              />
-                                                              <Textinput
-                                                                label={`Product ${
-                                                                  productIndex +
-                                                                  1
-                                                                } Price`}
-                                                                value={
-                                                                  product.price ||
-                                                                  ""
-                                                                }
-                                                                onChange={(e) =>
-                                                                  handleItemChange(
-                                                                    index,
-                                                                    "products",
-                                                                    productIndex,
-                                                                    "price",
-                                                                    e.target
-                                                                      .value
-                                                                  )
-                                                                }
-                                                                placeholder="e.g. $19.99"
-                                                              />
-                                                              <Textinput
-                                                                label={`Product ${
-                                                                  productIndex +
-                                                                  1
-                                                                } Link`}
-                                                                value={
-                                                                  product.link ||
-                                                                  ""
-                                                                }
-                                                                onChange={(e) =>
-                                                                  handleItemChange(
-                                                                    index,
-                                                                    "products",
-                                                                    productIndex,
-                                                                    "link",
-                                                                    e.target
-                                                                      .value
-                                                                  )
-                                                                }
-                                                                placeholder="URL to product page"
-                                                              />
-                                                            </div>
-                                                          </div>
-                                                        </div>
-                                                      );
-                                                    }
-                                                  )}
-                                                  <Button
-                                                    text="Add Product"
-                                                    className="btn-outline-primary btn-sm"
-                                                    onClick={() =>
-                                                      handleAddItem(
-                                                        index,
-                                                        "products",
-                                                        {
-                                                          imageUrl: null,
-                                                          title: "",
-                                                          description: "",
-                                                          price: "",
-                                                          link: "",
-                                                        }
-                                                      )
-                                                    }
-                                                    icon="Plus"
-                                                    type="button"
-                                                  />
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {block.type ===
-                                              "blocktextimage" && (
-                                              <div className="space-y-3">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                  <Textinput
-                                                    label="Main Title"
-                                                    value={
-                                                      block.content
-                                                        ?.mainTitle || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "mainTitle",
-                                                        e.target.value
-                                                      )
-                                                    }
-                                                  />
-                                                  <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                      Background Color
-                                                    </label>
-                                                    <div className="flex items-center">
-                                                      <input
-                                                        type="color"
-                                                        value={
-                                                          block.content
-                                                            ?.backgroundColor ||
-                                                          "#ededed"
-                                                        }
-                                                        onChange={(e) =>
-                                                          handleBlockContentChange(
-                                                            index,
-                                                            "backgroundColor",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        className="h-9 w-16 p-1 border rounded mr-2"
-                                                      />
-                                                      <Textinput
-                                                        value={
-                                                          block.content
-                                                            ?.backgroundColor ||
-                                                          "#ededed"
-                                                        }
-                                                        onChange={(e) =>
-                                                          handleBlockContentChange(
-                                                            index,
-                                                            "backgroundColor",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        placeholder="#ededed"
-                                                      />
-                                                    </div>
-                                                  </div>
-                                                </div>
-
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Main Description
-                                                  </label>
-                                                  <div className="custom-quill min-h-[200px]">
-                                                    <ReactQuill
-                                                      theme="snow"
-                                                      value={
-                                                        block.content
-                                                          ?.mainDescription ||
-                                                        ""
-                                                      }
-                                                      onChange={(value) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "mainDescription",
-                                                          value
-                                                        )
-                                                      }
-                                                      modules={quillModules}
-                                                      placeholder="Enter your description here..."
-                                                      className="h-full"
-                                                    />
-                                                  </div>
-                                                </div>
-
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Image
-                                                  </label>
-                                                  <MediaUpload
-                                                    file={
-                                                      block.content?.imageUrl
-                                                    }
-                                                    onDrop={(e) => {
-                                                      const identifier = {
-                                                        blockIndex: index,
-                                                      };
-                                                      handleHeroImageUpload(
-                                                        e,
-                                                        identifier
-                                                      );
-                                                    }}
-                                                    onRemove={() => {
-                                                      const identifier = {
-                                                        blockIndex: index,
-                                                      };
-                                                      handleRemoveHeroImage(
-                                                        identifier
-                                                      );
-                                                    }}
-                                                    loading={
-                                                      uploadStates[
-                                                        `hero-${index}`
-                                                      ]?.loading || false
-                                                    }
-                                                    error={
-                                                      uploadStates[
-                                                        `hero-${index}`
-                                                      ]?.error || null
-                                                    }
-                                                    maxSize={5 * 1024 * 1024}
-                                                    identifier={{
-                                                      blockIndex: index,
-                                                    }}
-                                                  />
-                                                </div>
-
-                                                <Select
-                                                  label="Image Position"
-                                                  value={
-                                                    block.content
-                                                      ?.imagePosition || "right"
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "imagePosition",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  options={[
-                                                    {
-                                                      value: "left",
-                                                      label: "Left",
-                                                    },
-                                                    {
-                                                      value: "right",
-                                                      label: "Right",
-                                                    },
-                                                  ]}
-                                                />
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                  <Textinput
-                                                    label="Button Text"
-                                                    value={
-                                                      block.content
-                                                        ?.buttonText || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "buttonText",
-                                                        e.target.value
-                                                      )
-                                                    }
-                                                    placeholder="e.g. Book a Service"
-                                                  />
-                                                  <Textinput
-                                                    label="Button Link"
-                                                    value={
-                                                      block.content
-                                                        ?.buttonLink || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "buttonLink",
-                                                        e.target.value
-                                                      )
-                                                    }
-                                                    placeholder="e.g. /contact"
-                                                  />
-                                                </div>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                  <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                      Button Background Color
-                                                    </label>
-                                                    <div className="flex items-center">
-                                                      <input
-                                                        type="color"
-                                                        value={
-                                                          block.content
-                                                            ?.buttonBgColor ||
-                                                          "#dd3333"
-                                                        }
-                                                        onChange={(e) =>
-                                                          handleBlockContentChange(
-                                                            index,
-                                                            "buttonBgColor",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        className="h-9 w-16 p-1 border rounded mr-2"
-                                                      />
-                                                      <Textinput
-                                                        value={
-                                                          block.content
-                                                            ?.buttonBgColor ||
-                                                          "#dd3333"
-                                                        }
-                                                        onChange={(e) =>
-                                                          handleBlockContentChange(
-                                                            index,
-                                                            "buttonBgColor",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        placeholder="#dd3333"
-                                                      />
-                                                    </div>
-                                                  </div>
-                                                  <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                      Button Text Color
-                                                    </label>
-                                                    <div className="flex items-center">
-                                                      <input
-                                                        type="color"
-                                                        value={
-                                                          block.content
-                                                            ?.buttonTextColor ||
-                                                          "#ffffff"
-                                                        }
-                                                        onChange={(e) =>
-                                                          handleBlockContentChange(
-                                                            index,
-                                                            "buttonTextColor",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        className="h-9 w-16 p-1 border rounded mr-2"
-                                                      />
-                                                      <Textinput
-                                                        value={
-                                                          block.content
-                                                            ?.buttonTextColor ||
-                                                          "#ffffff"
-                                                        }
-                                                        onChange={(e) =>
-                                                          handleBlockContentChange(
-                                                            index,
-                                                            "buttonTextColor",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        placeholder="#ffffff"
-                                                      />
-                                                    </div>
-                                                  </div>
-                                                </div>
-
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Custom HTML/Widget Code
-                                                    (Optional)
-                                                  </label>
-                                                  <Textarea
-                                                    value={
-                                                      block.content
-                                                        ?.customHtml || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "customHtml",
-                                                        e.target.value
-                                                      )
-                                                    }
-                                                    rows={4}
-                                                    placeholder="Paste any custom HTML or widget code here"
-                                                  />
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {block.type === "about" && (
-                                              <div className="space-y-3">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                  <Textinput
-                                                    label="Sub Title"
-                                                    value={
-                                                      block.content?.subTitle ||
-                                                      ""
-                                                    }
-                                                    onChange={(e) =>
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "subTitle",
-                                                        e.target.value
-                                                      )
-                                                    }
-                                                    placeholder="e.g. About Our Company"
-                                                  />
-                                                  <Textinput
-                                                    label="Title"
-                                                    value={
-                                                      block.content?.title || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "title",
-                                                        e.target.value
-                                                      )
-                                                    }
-                                                    placeholder="e.g. We Care About After Care."
-                                                  />
-                                                </div>
-
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Description
-                                                  </label>
-                                                  <div className="custom-quill min-h-[200px]">
-                                                    <ReactQuill
-                                                      theme="snow"
-                                                      value={
-                                                        block.content
-                                                          ?.description || ""
-                                                      }
-                                                      onChange={(value) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "description",
-                                                          value
-                                                        )
-                                                      }
-                                                      modules={quillModules}
-                                                      placeholder="Enter your description here..."
-                                                      className="h-full"
-                                                    />
-                                                  </div>
-                                                </div>
-
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Link
-                                                  </label>
-                                                  <div className="flex space-x-2">
-                                                    <Textinput
-                                                      value={
-                                                        block.content
-                                                          ?.linkUrl || ""
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "linkUrl",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      placeholder="e.g. /about-us"
-                                                      className="flex-grow"
-                                                    />
-                                                    <Button
-                                                      text="Add Link"
-                                                      className="btn-outline-primary"
-                                                      type="button"
-                                                      onClick={() => {
-                                                        if (
-                                                          !block.content
-                                                            ?.linkUrl
-                                                        ) {
-                                                          handleBlockContentChange(
-                                                            index,
-                                                            "linkUrl",
-                                                            "/about-us"
-                                                          );
-                                                        }
-                                                      }}
-                                                    />
-                                                  </div>
-                                                </div>
-
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Image
-                                                  </label>
-                                                  <MediaUpload
-                                                    file={
-                                                      block.content?.imageUrl
-                                                    }
-                                                    onDrop={(e) => {
-                                                      const identifier = {
-                                                        blockIndex: index,
-                                                      };
-                                                      handleHeroImageUpload(
-                                                        e,
-                                                        identifier
-                                                      );
-                                                    }}
-                                                    onRemove={() => {
-                                                      const identifier = {
-                                                        blockIndex: index,
-                                                      };
-                                                      handleRemoveHeroImage(
-                                                        identifier
-                                                      );
-                                                    }}
-                                                    loading={
-                                                      uploadStates[
-                                                        `hero-${index}`
-                                                      ]?.loading || false
-                                                    }
-                                                    error={
-                                                      uploadStates[
-                                                        `hero-${index}`
-                                                      ]?.error || null
-                                                    }
-                                                    maxSize={5 * 1024 * 1024}
-                                                    identifier={{
-                                                      blockIndex: index,
-                                                    }}
-                                                  />
-                                                </div>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                  <Textinput
-                                                    label="Years Description"
-                                                    value={
-                                                      block.content
-                                                        ?.yearsDescription || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "yearsDescription",
-                                                        e.target.value
-                                                      )
-                                                    }
-                                                    placeholder="e.g. Gas Safe Registered"
-                                                  />
-
-                                                  <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                      Icon
-                                                    </label>
-                                                    <div className="flex space-x-2">
-                                                      <Select
-                                                        value={
-                                                          block.content?.icon ||
-                                                          ""
-                                                        }
-                                                        onChange={(e) =>
-                                                          handleBlockContentChange(
-                                                            index,
-                                                            "icon",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        options={ICON_OPTIONS}
-                                                        className="flex-grow"
-                                                      />
-                                                    </div>
-                                                  </div>
-                                                </div>
-
-                                                <div className="space-y-4 mt-2 border-t pt-4">
-                                                  <h4 className="font-medium text-sm">
-                                                    Features:
-                                                  </h4>
-                                                  <DragDropContext
-                                                    onDragEnd={(result) => {
-                                                      if (!result.destination)
-                                                        return;
-                                                      const items = Array.from(
-                                                        block.content
-                                                          ?.features || []
-                                                      );
-                                                      const [reorderedItem] =
-                                                        items.splice(
-                                                          result.source.index,
-                                                          1
-                                                        );
-                                                      items.splice(
-                                                        result.destination
-                                                          .index,
-                                                        0,
-                                                        reorderedItem
-                                                      );
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "features",
-                                                        items
-                                                      );
-                                                    }}
-                                                  >
-                                                    <Droppable
-                                                      droppableId={`features-${index}`}
-                                                    >
-                                                      {(provided) => (
-                                                        <div
-                                                          {...provided.droppableProps}
-                                                          ref={
-                                                            provided.innerRef
-                                                          }
-                                                          className="space-y-3"
-                                                        >
-                                                          {(
-                                                            block.content
-                                                              ?.features || []
-                                                          ).map(
-                                                            (
-                                                              feature,
-                                                              featureIndex
-                                                            ) => (
-                                                              <Draggable
-                                                                key={`feature-${index}-${featureIndex}`}
-                                                                draggableId={`feature-${index}-${featureIndex}`}
-                                                                index={
-                                                                  featureIndex
-                                                                }
-                                                              >
-                                                                {(provided) => (
-                                                                  <div
-                                                                    ref={
-                                                                      provided.innerRef
-                                                                    }
-                                                                    {...provided.draggableProps}
-                                                                    {...provided.dragHandleProps}
-                                                                    className="border p-3 rounded bg-slate-50 space-y-2 relative"
-                                                                  >
-                                                                    <button
-                                                                      type="button"
-                                                                      onClick={() =>
-                                                                        handleRemoveItem(
-                                                                          index,
-                                                                          "features",
-                                                                          featureIndex
-                                                                        )
-                                                                      }
-                                                                      className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full"
-                                                                      aria-label="Remove Feature"
-                                                                    >
-                                                                      <Icon
-                                                                        icon="XMark"
-                                                                        className="h-4 w-4"
-                                                                      />
-                                                                    </button>
-                                                                    <div>
-                                                                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                                        {`Feature ${
-                                                                          featureIndex +
-                                                                          1
-                                                                        } Icon`}
-                                                                      </label>
-                                                                      <div className="grid grid-cols-4 gap-2 mb-2">
-                                                                        {ICON_OPTIONS.map(
-                                                                          (
-                                                                            opt
-                                                                          ) => (
-                                                                            <button
-                                                                              key={
-                                                                                opt.value
-                                                                              }
-                                                                              type="button"
-                                                                              onClick={() =>
-                                                                                handleItemChange(
-                                                                                  index,
-                                                                                  "features",
-                                                                                  featureIndex,
-                                                                                  "icon",
-                                                                                  opt.value
-                                                                                )
-                                                                              }
-                                                                              className={`p-2 rounded-lg border ${
-                                                                                feature.icon ===
-                                                                                opt.value
-                                                                                  ? "border-primary-500 bg-primary-50"
-                                                                                  : "border-gray-200"
-                                                                              } hover:bg-gray-100 flex items-center justify-center`}
-                                                                            >
-                                                                              <Icon
-                                                                                icon={
-                                                                                  opt.value
-                                                                                }
-                                                                                className="h-5 w-5"
-                                                                              />
-                                                                            </button>
-                                                                          )
-                                                                        )}
-                                                                      </div>
-                                                                      <Textinput
-                                                                        placeholder="Or enter icon name (e.g. CheckCircle)"
-                                                                        value={
-                                                                          feature.icon ||
-                                                                          ""
-                                                                        }
-                                                                        onChange={(
-                                                                          e
-                                                                        ) =>
-                                                                          handleItemChange(
-                                                                            index,
-                                                                            "features",
-                                                                            featureIndex,
-                                                                            "icon",
-                                                                            e
-                                                                              .target
-                                                                              .value
-                                                                          )
-                                                                        }
-                                                                        className="mt-1"
-                                                                      />
-                                                                    </div>
-                                                                    <Textinput
-                                                                      label={`Feature ${
-                                                                        featureIndex +
-                                                                        1
-                                                                      } Title`}
-                                                                      value={
-                                                                        feature.title ||
-                                                                        ""
-                                                                      }
-                                                                      onChange={(
-                                                                        e
-                                                                      ) =>
-                                                                        handleItemChange(
-                                                                          index,
-                                                                          "features",
-                                                                          featureIndex,
-                                                                          "title",
-                                                                          e
-                                                                            .target
-                                                                            .value
-                                                                        )
-                                                                      }
-                                                                    />
-                                                                    <Textarea
-                                                                      label={`Feature ${
-                                                                        featureIndex +
-                                                                        1
-                                                                      } Description`}
-                                                                      value={
-                                                                        feature.description ||
-                                                                        ""
-                                                                      }
-                                                                      onChange={(
-                                                                        e
-                                                                      ) =>
-                                                                        handleItemChange(
-                                                                          index,
-                                                                          "features",
-                                                                          featureIndex,
-                                                                          "description",
-                                                                          e
-                                                                            .target
-                                                                            .value
-                                                                        )
-                                                                      }
-                                                                      rows={2}
-                                                                    />
-                                                                  </div>
-                                                                )}
-                                                              </Draggable>
-                                                            )
-                                                          )}
-                                                          {provided.placeholder}
-                                                        </div>
-                                                      )}
-                                                    </Droppable>
-                                                  </DragDropContext>
-                                                  <Button
-                                                    text="Add Feature"
-                                                    className="btn-outline-primary btn-sm"
-                                                    onClick={() =>
-                                                      handleAddItem(
-                                                        index,
-                                                        "features",
-                                                        {
-                                                          icon: "CheckCircle",
-                                                          title: "",
-                                                          description: "",
-                                                        }
-                                                      )
-                                                    }
-                                                    icon="Plus"
-                                                    type="button"
-                                                  />
-                                                </div>
-
-                                                <div className="space-y-4 mt-2 border-t pt-4">
-                                                  <h4 className="font-medium text-sm">
-                                                    List Items:
-                                                  </h4>
-                                                  <DragDropContext
-                                                    onDragEnd={(result) => {
-                                                      if (!result.destination)
-                                                        return;
-                                                      const items = Array.from(
-                                                        block.content
-                                                          ?.listItems || []
-                                                      );
-                                                      const [reorderedItem] =
-                                                        items.splice(
-                                                          result.source.index,
-                                                          1
-                                                        );
-                                                      items.splice(
-                                                        result.destination
-                                                          .index,
-                                                        0,
-                                                        reorderedItem
-                                                      );
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "listItems",
-                                                        items
-                                                      );
-                                                    }}
-                                                  >
-                                                    <Droppable
-                                                      droppableId={`list-items-${index}`}
-                                                    >
-                                                      {(provided) => (
-                                                        <div
-                                                          {...provided.droppableProps}
-                                                          ref={
-                                                            provided.innerRef
-                                                          }
-                                                          className="space-y-3"
-                                                        >
-                                                          {(
-                                                            block.content
-                                                              ?.listItems || []
-                                                          ).map(
-                                                            (
-                                                              item,
-                                                              itemIndex
-                                                            ) => (
-                                                              <Draggable
-                                                                key={`list-item-${index}-${itemIndex}`}
-                                                                draggableId={`list-item-${index}-${itemIndex}`}
-                                                                index={
-                                                                  itemIndex
-                                                                }
-                                                              >
-                                                                {(provided) => (
-                                                                  <div
-                                                                    ref={
-                                                                      provided.innerRef
-                                                                    }
-                                                                    {...provided.draggableProps}
-                                                                    className="flex items-center space-x-2 border p-3 rounded bg-slate-50"
-                                                                  >
-                                                                    <div
-                                                                      {...provided.dragHandleProps}
-                                                                      className="cursor-move text-gray-400 hover:text-gray-600"
-                                                                    >
-                                                                      <Icon
-                                                                        icon="Bars3"
-                                                                        className="h-5 w-5"
-                                                                      />
-                                                                    </div>
-                                                                    <Textinput
-                                                                      value={
-                                                                        item.text ||
-                                                                        ""
-                                                                      }
-                                                                      onChange={(
-                                                                        e
-                                                                      ) =>
-                                                                        handleItemChange(
-                                                                          index,
-                                                                          "listItems",
-                                                                          itemIndex,
-                                                                          "text",
-                                                                          e
-                                                                            .target
-                                                                            .value
-                                                                        )
-                                                                      }
-                                                                      className="flex-grow"
-                                                                      placeholder={`List item ${
-                                                                        itemIndex +
-                                                                        1
-                                                                      }`}
-                                                                    />
-                                                                    <button
-                                                                      type="button"
-                                                                      onClick={() =>
-                                                                        handleRemoveItem(
-                                                                          index,
-                                                                          "listItems",
-                                                                          itemIndex
-                                                                        )
-                                                                      }
-                                                                      className="p-1 text-red-500 hover:bg-red-100 rounded-full"
-                                                                      aria-label="Remove Item"
-                                                                    >
-                                                                      <Icon
-                                                                        icon="XMark"
-                                                                        className="h-4 w-4"
-                                                                      />
-                                                                    </button>
-                                                                  </div>
-                                                                )}
-                                                              </Draggable>
-                                                            )
-                                                          )}
-                                                          {provided.placeholder}
-                                                        </div>
-                                                      )}
-                                                    </Droppable>
-                                                  </DragDropContext>
-                                                  <Button
-                                                    text="Add List Item"
-                                                    className="btn-outline-primary btn-sm"
-                                                    onClick={() =>
-                                                      handleAddItem(
-                                                        index,
-                                                        "listItems",
-                                                        {
-                                                          text: "",
-                                                        }
-                                                      )
-                                                    }
-                                                    icon="Plus"
-                                                    type="button"
-                                                  />
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {block.type === "video" && (
-                                              <div className="space-y-3">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                  <Textinput
-                                                    label="Section Title"
-                                                    value={
-                                                      block.content?.title || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "title",
-                                                        e.target.value
-                                                      )
-                                                    }
-                                                    placeholder="e.g. Watch Our Video"
-                                                  />
-                                                  <Textinput
-                                                    label="Video Embed URL"
-                                                    value={
-                                                      block.content?.videoUrl ||
-                                                      ""
-                                                    }
-                                                    onChange={(e) =>
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "videoUrl",
-                                                        e.target.value
-                                                      )
-                                                    }
-                                                    placeholder="e.g. https://www.youtube.com/embed/xxxxxxxxxxx"
-                                                  />
-                                                </div>
-
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Description
-                                                  </label>
-                                                  <div className="custom-quill min-h-[200px]">
-                                                    <ReactQuill
-                                                      theme="snow"
-                                                      value={
-                                                        block.content
-                                                          ?.description || ""
-                                                      }
-                                                      onChange={(value) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "description",
-                                                          value
-                                                        )
-                                                      }
-                                                      modules={quillModules}
-                                                      placeholder="Enter your description here..."
-                                                      className="h-full"
-                                                    />
-                                                  </div>
-                                                </div>
-
-                                                <Select
-                                                  label="Video Position"
-                                                  value={
-                                                    block.content
-                                                      ?.videoPosition || "right"
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "videoPosition",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  options={[
-                                                    {
-                                                      value: "left",
-                                                      label: "Left",
-                                                    },
-                                                    {
-                                                      value: "right",
-                                                      label: "Right",
-                                                    },
-                                                  ]}
-                                                />
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                  <Textinput
-                                                    label="Button Text"
-                                                    value={
-                                                      block.content
-                                                        ?.buttonText || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "buttonText",
-                                                        e.target.value
-                                                      )
-                                                    }
-                                                    placeholder="e.g. Learn More"
-                                                  />
-                                                  <Textinput
-                                                    label="Button Link"
-                                                    value={
-                                                      block.content
-                                                        ?.buttonLink || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "buttonLink",
-                                                        e.target.value
-                                                      )
-                                                    }
-                                                    placeholder="e.g. /contact"
-                                                  />
-                                                </div>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                  <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                      Button Background Color
-                                                    </label>
-                                                    <div className="flex items-center">
-                                                      <input
-                                                        type="color"
-                                                        value={
-                                                          block.content
-                                                            ?.buttonBgColor ||
-                                                          "#dd3333"
-                                                        }
-                                                        onChange={(e) =>
-                                                          handleBlockContentChange(
-                                                            index,
-                                                            "buttonBgColor",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        className="h-9 w-16 p-1 border rounded mr-2"
-                                                      />
-                                                      <Textinput
-                                                        value={
-                                                          block.content
-                                                            ?.buttonBgColor ||
-                                                          "#dd3333"
-                                                        }
-                                                        onChange={(e) =>
-                                                          handleBlockContentChange(
-                                                            index,
-                                                            "buttonBgColor",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        placeholder="#dd3333"
-                                                      />
-                                                    </div>
-                                                  </div>
-                                                  <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                      Button Text Color
-                                                    </label>
-                                                    <div className="flex items-center">
-                                                      <input
-                                                        type="color"
-                                                        value={
-                                                          block.content
-                                                            ?.buttonTextColor ||
-                                                          "#ffffff"
-                                                        }
-                                                        onChange={(e) =>
-                                                          handleBlockContentChange(
-                                                            index,
-                                                            "buttonTextColor",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        className="h-9 w-16 p-1 border rounded mr-2"
-                                                      />
-                                                      <Textinput
-                                                        value={
-                                                          block.content
-                                                            ?.buttonTextColor ||
-                                                          "#ffffff"
-                                                        }
-                                                        onChange={(e) =>
-                                                          handleBlockContentChange(
-                                                            index,
-                                                            "buttonTextColor",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        placeholder="#ffffff"
-                                                      />
-                                                    </div>
-                                                  </div>
-                                                </div>
-
-                                                <div className="space-y-4 mt-2 border-t pt-4">
-                                                  <h4 className="font-medium text-sm">
-                                                    List Items:
-                                                  </h4>
-                                                  <DragDropContext
-                                                    onDragEnd={(result) => {
-                                                      if (!result.destination)
-                                                        return;
-                                                      const items = Array.from(
-                                                        block.content
-                                                          ?.listItems || []
-                                                      );
-                                                      const [reorderedItem] =
-                                                        items.splice(
-                                                          result.source.index,
-                                                          1
-                                                        );
-                                                      items.splice(
-                                                        result.destination
-                                                          .index,
-                                                        0,
-                                                        reorderedItem
-                                                      );
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "listItems",
-                                                        items
-                                                      );
-                                                    }}
-                                                  >
-                                                    <Droppable
-                                                      droppableId={`list-items-${index}`}
-                                                    >
-                                                      {(provided) => (
-                                                        <div
-                                                          {...provided.droppableProps}
-                                                          ref={
-                                                            provided.innerRef
-                                                          }
-                                                          className="space-y-3"
-                                                        >
-                                                          {(
-                                                            block.content
-                                                              ?.listItems || []
-                                                          ).map(
-                                                            (
-                                                              item,
-                                                              itemIndex
-                                                            ) => (
-                                                              <Draggable
-                                                                key={`list-item-${index}-${itemIndex}`}
-                                                                draggableId={`list-item-${index}-${itemIndex}`}
-                                                                index={
-                                                                  itemIndex
-                                                                }
-                                                              >
-                                                                {(provided) => (
-                                                                  <div
-                                                                    ref={
-                                                                      provided.innerRef
-                                                                    }
-                                                                    {...provided.draggableProps}
-                                                                    className="flex items-center space-x-2 border p-3 rounded bg-slate-50"
-                                                                  >
-                                                                    <div
-                                                                      {...provided.dragHandleProps}
-                                                                      className="cursor-move text-gray-400 hover:text-gray-600"
-                                                                    >
-                                                                      <Icon
-                                                                        icon="Bars3"
-                                                                        className="h-5 w-5"
-                                                                      />
-                                                                    </div>
-                                                                    <Textinput
-                                                                      value={
-                                                                        item.text ||
-                                                                        ""
-                                                                      }
-                                                                      onChange={(
-                                                                        e
-                                                                      ) =>
-                                                                        handleItemChange(
-                                                                          index,
-                                                                          "listItems",
-                                                                          itemIndex,
-                                                                          "text",
-                                                                          e
-                                                                            .target
-                                                                            .value
-                                                                        )
-                                                                      }
-                                                                      className="flex-grow"
-                                                                      placeholder={`List item ${
-                                                                        itemIndex +
-                                                                        1
-                                                                      }`}
-                                                                    />
-                                                                    <button
-                                                                      type="button"
-                                                                      onClick={() =>
-                                                                        handleRemoveItem(
-                                                                          index,
-                                                                          "listItems",
-                                                                          itemIndex
-                                                                        )
-                                                                      }
-                                                                      className="p-1 text-red-500 hover:bg-red-100 rounded-full"
-                                                                      aria-label="Remove Item"
-                                                                    >
-                                                                      <Icon
-                                                                        icon="XMark"
-                                                                        className="h-4 w-4"
-                                                                      />
-                                                                    </button>
-                                                                  </div>
-                                                                )}
-                                                              </Draggable>
-                                                            )
-                                                          )}
-                                                          {provided.placeholder}
-                                                        </div>
-                                                      )}
-                                                    </Droppable>
-                                                  </DragDropContext>
-                                                  <Button
-                                                    text="Add List Item"
-                                                    className="btn-outline-primary btn-sm"
-                                                    onClick={() =>
-                                                      handleAddItem(
-                                                        index,
-                                                        "listItems",
-                                                        {
-                                                          text: "",
-                                                        }
-                                                      )
-                                                    }
-                                                    icon="Plus"
-                                                    type="button"
-                                                  />
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {block.type === "partners" && (
-                                              <div className="space-y-3">
-                                                <Textinput
-                                                  label="Section Title"
-                                                  value={
-                                                    block.content
-                                                      ?.sectionTitle || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "sectionTitle",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  placeholder="Our Partners"
-                                                />
-                                                <Textarea
-                                                  label="Section Description"
-                                                  value={
-                                                    block.content
-                                                      ?.sectionDescription || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "sectionDescription",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  rows={2}
-                                                  placeholder="Brief description about your partners"
-                                                />
-
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Colored Description Section
-                                                    Background
-                                                  </label>
-                                                  <div className="flex items-center">
-                                                    <input
-                                                      type="color"
-                                                      value={
-                                                        block.content
-                                                          ?.coloredSectionBg ||
-                                                        "#f3f4f6"
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "coloredSectionBg",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      className="h-9 w-16 p-1 border rounded mr-2"
-                                                    />
-                                                    <Textinput
-                                                      value={
-                                                        block.content
-                                                          ?.coloredSectionBg ||
-                                                        "#f3f4f6"
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "coloredSectionBg",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      placeholder="#f3f4f6"
-                                                    />
-                                                  </div>
-                                                </div>
-
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Colored Description Section
-                                                    Text Color
-                                                  </label>
-                                                  <div className="flex items-center">
-                                                    <input
-                                                      type="color"
-                                                      value={
-                                                        block.content
-                                                          ?.coloredSectionTextColor ||
-                                                        "#000000"
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "coloredSectionTextColor",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      className="h-9 w-16 p-1 border rounded mr-2"
-                                                    />
-                                                    <Textinput
-                                                      value={
-                                                        block.content
-                                                          ?.coloredSectionTextColor ||
-                                                        "#000000"
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "coloredSectionTextColor",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      placeholder="#000000"
-                                                    />
-                                                  </div>
-                                                </div>
-
-                                                <Textinput
-                                                  label="Colored Section Text"
-                                                  value={
-                                                    block.content
-                                                      ?.coloredSectionText || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "coloredSectionText",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  placeholder="Over 2500 companies use our tools to better their business."
-                                                />
-
-                                                <Textinput
-                                                  label="Colored Section Link Text"
-                                                  value={
-                                                    block.content
-                                                      ?.coloredSectionLinkText ||
-                                                    ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "coloredSectionLinkText",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  placeholder="Read our customer stories"
-                                                />
-
-                                                <Textinput
-                                                  label="Colored Section Link URL"
-                                                  value={
-                                                    block.content
-                                                      ?.coloredSectionLinkUrl ||
-                                                    ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "coloredSectionLinkUrl",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  placeholder="/customer-stories"
-                                                />
-
-                                                <div className="space-y-4 mt-2 border-t pt-4">
-                                                  <h4 className="font-medium text-sm">
-                                                    Partner Logos:
-                                                  </h4>
-                                                  {(
-                                                    block.content?.partners ||
-                                                    []
-                                                  ).map(
-                                                    (partner, partnerIndex) => {
-                                                      const identifier = {
-                                                        blockIndex: index,
-                                                        partnerIndex:
-                                                          partnerIndex,
-                                                      };
-                                                      const uploadKey = `partner-${index}-${partnerIndex}`;
-                                                      const uState =
-                                                        uploadStates[
-                                                          uploadKey
-                                                        ] || {
-                                                          loading: false,
-                                                          error: null,
-                                                        };
-                                                      return (
-                                                        <div
-                                                          key={partnerIndex}
-                                                          className="border p-3 rounded bg-slate-50 space-y-3 relative"
-                                                        >
-                                                          <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                              handleRemoveItem(
-                                                                index,
-                                                                "partners",
-                                                                partnerIndex
-                                                              )
-                                                            }
-                                                            className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full z-10"
-                                                            aria-label="Remove Partner"
-                                                          >
-                                                            <Icon
-                                                              icon="XMark"
-                                                              className="h-4 w-4"
-                                                            />
-                                                          </button>
-
-                                                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                                            <div className="sm:col-span-1">
-                                                              <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                                Partner{" "}
-                                                                {partnerIndex +
-                                                                  1}{" "}
-                                                                Logo*
-                                                              </label>
-                                                              <MediaUpload
-                                                                file={
-                                                                  partner.imageUrl
-                                                                }
-                                                                onDrop={(e) =>
-                                                                  handlePartnerImageUpload(
-                                                                    e,
-                                                                    identifier
-                                                                  )
-                                                                }
-                                                                onRemove={() =>
-                                                                  handleRemovePartnerImage(
-                                                                    identifier
-                                                                  )
-                                                                }
-                                                                loading={
-                                                                  uState.loading
-                                                                }
-                                                                error={
-                                                                  uState.error
-                                                                }
-                                                                maxSize={
-                                                                  5 *
-                                                                  1024 *
-                                                                  1024
-                                                                }
-                                                                identifier={
-                                                                  identifier
-                                                                }
-                                                              />
-                                                            </div>
-                                                            <div className="sm:col-span-2 space-y-3">
-                                                              <Textinput
-                                                                label={`Partner ${
-                                                                  partnerIndex +
-                                                                  1
-                                                                } Name`}
-                                                                value={
-                                                                  partner.name ||
-                                                                  ""
-                                                                }
-                                                                onChange={(e) =>
-                                                                  handleItemChange(
-                                                                    index,
-                                                                    "partners",
-                                                                    partnerIndex,
-                                                                    "name",
-                                                                    e.target
-                                                                      .value
-                                                                  )
-                                                                }
-                                                                placeholder="Partner name"
-                                                              />
-                                                              <Textinput
-                                                                label={`Partner ${
-                                                                  partnerIndex +
-                                                                  1
-                                                                } URL`}
-                                                                value={
-                                                                  partner.url ||
-                                                                  ""
-                                                                }
-                                                                onChange={(e) =>
-                                                                  handleItemChange(
-                                                                    index,
-                                                                    "partners",
-                                                                    partnerIndex,
-                                                                    "url",
-                                                                    e.target
-                                                                      .value
-                                                                  )
-                                                                }
-                                                                placeholder="https://partner-website.com"
-                                                              />
-                                                            </div>
-                                                          </div>
-                                                        </div>
-                                                      );
-                                                    }
-                                                  )}
-                                                  <Button
-                                                    text="Add Partner"
-                                                    className="btn-outline-primary btn-sm"
-                                                    onClick={() =>
-                                                      handleAddItem(
-                                                        index,
-                                                        "partners",
-                                                        {
-                                                          imageUrl: null,
-                                                          name: "",
-                                                          url: "",
-                                                        }
-                                                      )
-                                                    }
-                                                    icon="Plus"
-                                                    type="button"
-                                                  />
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {block.type === "form" && (
-                                              <div className="space-y-3">
-                                                <Textinput
-                                                  label="Section Title"
-                                                  value={
-                                                    block.content
-                                                      ?.sectionTitle || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "sectionTitle",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  placeholder="Contact Us"
-                                                />
-
-                                                <Textarea
-                                                  label="Section Description"
-                                                  value={
-                                                    block.content
-                                                      ?.description || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "description",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  rows={3}
-                                                  placeholder="Fill out the form below to get in touch with us"
-                                                />
-
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Select Form
-                                                  </label>
-                                                  <Select
-                                                    value={
-                                                      block.content?.formId ||
-                                                      ""
-                                                    }
-                                                    onChange={(e) =>
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "formId",
-                                                        e.target.value
-                                                          ? parseInt(
-                                                              e.target.value
-                                                            )
-                                                          : null
-                                                      )
-                                                    }
-                                                    options={[
-                                                      {
-                                                        value: "",
-                                                        label:
-                                                          "- Select a form -",
-                                                      },
-                                                      ...(
-                                                        block._forms || []
-                                                      ).map((form) => ({
-                                                        value:
-                                                          form.id.toString(),
-                                                        label: form.title,
-                                                      })),
-                                                    ]}
-                                                  />
-                                                  {/* The "Load Forms" button below will be removed */}
-                                                  {/*
-                                                  <button
-                                                    type="button"
-                                                    className="mt-2 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                                                    onClick={async () => {
-                                                      try {
-                                                        const { data } =
-                                                          await http.get(
-                                                            "/forms/published"
-                                                          );
-                                                        const updatedBlocks = [
-                                                          ...formData.blocks,
-                                                        ];
-                                                        updatedBlocks[index] = {
-                                                          ...updatedBlocks[
-                                                            index
-                                                          ],
-                                                          _forms: data || [],
-                                                        };
-                                                        setFormData((prev) => ({
-                                                          ...prev,
-                                                          blocks: updatedBlocks,
-                                                        }));
-                                                        toast.success(
-                                                          "Forms loaded successfully"
-                                                        );
-                                                      } catch (error) {
-                                                        console.error(
-                                                          "Error loading forms:",
-                                                          error
-                                                        );
-                                                        toast.error(
-                                                          "Failed to load forms"
-                                                        );
-                                                      }
-                                                    }}
-                                                  >
-                                                    <Icon
-                                                      icon="ArrowPath"
-                                                      className="h-4 w-4 mr-1"
-                                                    />
-                                                    Load Forms
-                                                  </button>
-                                                  */}
-                                                </div>
-
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Submit Button Text
-                                                  </label>
-                                                  <Textinput
-                                                    value={
-                                                      block.content
-                                                        ?.buttonText || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "buttonText",
-                                                        e.target.value
-                                                      )
-                                                    }
-                                                    placeholder="Submit"
-                                                  />
-                                                </div>
-
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Button Color
-                                                  </label>
-                                                  <div className="flex items-center">
-                                                    <input
-                                                      type="color"
-                                                      value={
-                                                        block.content
-                                                          ?.buttonColor ||
-                                                        "#2563eb"
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "buttonColor",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      className="h-9 w-16 p-1 border rounded mr-2"
-                                                    />
-                                                    <Textinput
-                                                      value={
-                                                        block.content
-                                                          ?.buttonColor ||
-                                                        "#2563eb"
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "buttonColor",
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      placeholder="#2563eb"
-                                                    />
-                                                  </div>
-                                                </div>
-
-                                                <div>
-                                                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Success Message
-                                                  </label>
-                                                  <Textarea
-                                                    value={
-                                                      block.content
-                                                        ?.successMessage || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                      handleBlockContentChange(
-                                                        index,
-                                                        "successMessage",
-                                                        e.target.value
-                                                      )
-                                                    }
-                                                    rows={2}
-                                                    placeholder="Thank you for your submission! We'll get back to you soon."
-                                                  />
-                                                </div>
-
-                                                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                                                  <div className="flex items-center mb-2">
-                                                    <input
-                                                      type="checkbox"
-                                                      className="h-4 w-4 text-primary-600 border-gray-300 rounded mr-2"
-                                                      checked={
-                                                        block.content
-                                                          ?.showBackground ||
-                                                        false
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleBlockContentChange(
-                                                          index,
-                                                          "showBackground",
-                                                          e.target.checked
-                                                        )
-                                                      }
-                                                      id={`show-bg-${index}`}
-                                                    />
-                                                    <label
-                                                      htmlFor={`show-bg-${index}`}
-                                                      className="text-sm text-gray-700"
-                                                    >
-                                                      Show Background
-                                                    </label>
-                                                  </div>
-
-                                                  {block.content
-                                                    ?.showBackground && (
-                                                    <div>
-                                                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                        Background Color
-                                                      </label>
-                                                      <div className="flex items-center">
-                                                        <input
-                                                          type="color"
-                                                          value={
-                                                            block.content
-                                                              ?.backgroundColor ||
-                                                            "#f3f4f6"
-                                                          }
-                                                          onChange={(e) =>
-                                                            handleBlockContentChange(
-                                                              index,
-                                                              "backgroundColor",
-                                                              e.target.value
-                                                            )
-                                                          }
-                                                          className="h-9 w-16 p-1 border rounded mr-2"
-                                                        />
-                                                        <Textinput
-                                                          value={
-                                                            block.content
-                                                              ?.backgroundColor ||
-                                                            "#f3f4f6"
-                                                          }
-                                                          onChange={(e) =>
-                                                            handleBlockContentChange(
-                                                              index,
-                                                              "backgroundColor",
-                                                              e.target.value
-                                                            )
-                                                          }
-                                                          placeholder="#f3f4f6"
-                                                        />
-                                                      </div>
-                                                    </div>
-                                                  )}
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {block.type === "gallery" && (
-                                              <div className="space-y-3">
-                                                <Textinput
-                                                  label="Section Title"
-                                                  value={
-                                                    block.content
-                                                      ?.sectionTitle || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "sectionTitle",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  placeholder="Gallery Title"
-                                                />
-                                                
-                                                <Textinput
-                                                  label="Total Count Text"
-                                                  value={
-                                                    block.content
-                                                      ?.totalCountText || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "totalCountText",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  placeholder="(132 total)"
-                                                />
-                                                
-                                                <Textinput
-                                                  label="View All Text"
-                                                  value={
-                                                    block.content
-                                                      ?.viewAllText || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleBlockContentChange(
-                                                      index,
-                                                      "viewAllText",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  placeholder="View all photos"
-                                                />
-                                                
-                                                <div className="space-y-4 mt-2 border-t pt-4">
-                                                  <h4 className="font-medium text-sm">
-                                                    Gallery Images:
-                                                  </h4>
-                                                  {(block.content?.galleryImages || []).map((image, imageIndex) => {
-                                                    const identifier = {
-                                                      blockIndex: index,
-                                                      imageIndex: imageIndex,
-                                                    };
-                                                    const uploadKey = `gallery-${index}-${imageIndex}`;
-                                                    const uState = uploadStates[uploadKey] || {
-                                                      loading: false,
-                                                      error: null,
-                                                    };
-                                                    return (
-                                                      <div
-                                                        key={imageIndex}
-                                                        className="border p-3 rounded bg-slate-50 space-y-3 relative"
-                                                      >
-                                                        <button
-                                                          type="button"
-                                                          onClick={() =>
-                                                            handleRemoveItem(
-                                                              index,
-                                                              "galleryImages",
-                                                              imageIndex
-                                                            )
-                                                          }
-                                                          className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full z-10"
-                                                          aria-label="Remove Image"
-                                                        >
-                                                          <Icon
-                                                            icon="XMark"
-                                                            className="h-4 w-4"
-                                                          />
-                                                        </button>
-
-                                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                                          <div className="sm:col-span-1">
-                                                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                              Image {imageIndex + 1}
-                                                            </label>
-                                                            <MediaUpload
-                                                              file={image.imageUrl}
-                                                              onDrop={(e) =>
-                                                                handleGalleryImageUpload(
-                                                                  e,
-                                                                  identifier
-                                                                )
-                                                              }
-                                                              onRemove={() =>
-                                                                handleRemoveGalleryImage(
-                                                                  identifier
-                                                                )
-                                                              }
-                                                              loading={uState.loading}
-                                                              error={uState.error}
-                                                              maxSize={5 * 1024 * 1024}
-                                                              identifier={identifier}
-                                                            />
-                                                          </div>
-                                                          <div className="sm:col-span-2 space-y-3">
-                                                            <Textinput
-                                                              label={`Image ${imageIndex + 1} Caption`}
-                                                              value={
-                                                                image.caption ||
-                                                                ""
-                                                              }
-                                                              onChange={(e) =>
-                                                                handleItemChange(
-                                                                  index,
-                                                                  "galleryImages",
-                                                                  imageIndex,
-                                                                  "caption",
-                                                                  e.target.value
-                                                                )
-                                                              }
-                                                              placeholder="Image caption"
-                                                            />
-                                                            <Textinput
-                                                              label={`Image ${imageIndex + 1} Alt Text`}
-                                                              value={
-                                                                image.altText ||
-                                                                ""
-                                                              }
-                                                              onChange={(e) =>
-                                                                handleItemChange(
-                                                                  index,
-                                                                  "galleryImages",
-                                                                  imageIndex,
-                                                                  "altText",
-                                                                  e.target.value
-                                                                )
-                                                              }
-                                                              placeholder="Image alt text"
-                                                            />
-                                                          </div>
-                                                        </div>
-                                                      </div>
-                                                    );
-                                                  })}
-                                                  <Button
-                                                    text="Add Image"
-                                                    className="btn-outline-primary btn-sm"
-                                                    onClick={() =>
-                                                      handleAddItem(
-                                                        index,
-                                                        "galleryImages",
-                                                        {
-                                                          imageUrl: null,
-                                                          caption: "",
-                                                          altText: "",
-                                                        }
-                                                      )
-                                                    }
-                                                    icon="Plus"
-                                                    type="button"
-                                                  />
-                                                </div>
-                                              </div>
-                                            )}
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
-                                  </Draggable>
-                                ))}
-                                {provided.placeholder}
-                              </div>
-                            )}
-                          </Droppable>
-                        </DragDropContext>
-                      </div>
-                    </Disclosure.Panel>
-                  </Transition>
-                </Card>
-              )}
-            </Disclosure>
             {/* Action Buttons Section */}
             <div className="bg-white p-4 border border-gray-200 rounded-lg mt-6 sticky bottom-0 z-10 shadow-md">
               <div className="flex flex-col space-y-3 sm:flex-row sm:justify-end sm:space-x-3 sm:space-y-0">
@@ -4687,8 +1273,3462 @@ const PageForm = ({ id }) => {
                 />
               </div>
             </div>
-          </div>{" "}
-          {/* End of space-y-6 div */}
+          </div>
+
+)}
+
+{formTab === "seo" && (
+    
+      <Disclosure defaultOpen>
+      {({ open }) => (
+        <Card>
+          <Disclosure.Button className="w-full flex justify-between items-center text-left px-4 py-3 bg-gray-50 rounded-t-lg border-b border-gray-200 hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-primary-500 focus-visible:ring-opacity-75">
+            <span className="text-lg font-medium text-gray-900">
+              SEO Information
+            </span>
+            <Icon
+              icon="ChevronDown"
+              className={`${
+                open ? "rotate-180 transform" : ""
+              } h-5 w-5 text-primary-500 transition-transform duration-200`}
+            />
+          </Disclosure.Button>
+          <Transition
+            enter="transition duration-100 ease-out"
+            enterFrom="transform scale-95 opacity-0"
+            enterTo="transform scale-100 opacity-100"
+            leave="transition duration-75 ease-out"
+            leaveFrom="transform scale-100 opacity-100"
+            leaveTo="transform scale-95 opacity-0"
+          >
+            <Disclosure.Panel className="px-4 py-5 text-sm text-gray-500">
+              <div className="space-y-4">
+                <Textinput
+                  label="Meta Title"
+                  name="metaTitle"
+                  placeholder="Custom title for SEO (leave blank to use page title)"
+                  value={formData.metaTitle}
+                  onChange={handleChange}
+                />
+                <Textarea
+                  label="Meta Description"
+                  name="description"
+                  placeholder="Brief description for search engines"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows={3}
+                />
+                <Textinput
+                  label="Meta Keywords"
+                  name="metaKeywords"
+                  placeholder="Comma-separated keywords"
+                  value={formData.metaKeywords}
+                  onChange={handleChange}
+                />
+                <Textinput
+                  label="Canonical URL"
+                  name="canonicalUrl"
+                  placeholder="https://example.com/canonical-page"
+                  value={formData.canonicalUrl}
+                  onChange={handleChange}
+                  helper="Set this if this page is a duplicate of another page"
+                />
+                <Select
+                  label="Robots Meta Tag"
+                  name="robots"
+                  value={formData.robots}
+                  onChange={handleChange}
+                  helper="Controls how search engines should handle this page"
+                  options={[
+                    {
+                      value: "index, follow",
+                      label: "Index, Follow (default)",
+                    },
+                    {
+                      value: "noindex, follow",
+                      label: "NoIndex, Follow",
+                    },
+                    {
+                      value: "index, nofollow",
+                      label: "Index, NoFollow",
+                    },
+                    {
+                      value: "noindex, nofollow",
+                      label: "NoIndex, NoFollow",
+                    },
+                  ]}
+                />
+                <Textarea
+                  label="Structured Data (JSON-LD)"
+                  name="structuredData"
+                  placeholder='{"@context": "https://schema.org", "@type": "WebPage", "name": "Page Title"}'
+                  value={formData.structuredData}
+                  onChange={handleChange}
+                  rows={6}
+                  className="font-mono text-sm"
+                  helper="Add structured data in JSON-LD format for enhanced search results"
+                />
+
+                <SeoDashboard
+                  pageData={formData}
+                  onUpdateSuggestions={handleSeoSuggestions}
+                />
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Open Graph Image
+                  </label>
+                  <MediaUpload
+                    file={formData.ogImage}
+                    onDrop={(e) => handleOgImageUpload(e, "ogImage")}
+                    onRemove={() =>
+                      handleRemoveOgImage(
+                        "ogImage",
+                        formData.ogImage?.fromMediaLibrary
+                      )
+                    }
+                    loading={uploadStates["ogImage"]?.loading}
+                    error={uploadStates["ogImage"]?.error}
+                    identifier="ogImage"
+                    helperText="Image that appears when shared on social media (1200x630px recommended)"
+                  />
+                </div>
+              </div>
+            </Disclosure.Panel>
+          </Transition>
+        </Card>
+      )}
+    </Disclosure>
+)}
+
+
+{formTab === "blocks" && (
+       <Disclosure defaultOpen>
+       {({ open }) => (
+         <Card>
+           <Disclosure.Button className="w-full flex justify-between items-center text-left px-4 py-3 bg-gray-50 rounded-t-lg border-b border-gray-200 hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-primary-500 focus-visible:ring-opacity-75">
+             <span className="text-lg font-medium text-gray-900">
+               Page Blocks
+             </span>
+             <Icon
+               icon="ChevronDown"
+               className={`${
+                 open ? "rotate-180 transform" : ""
+               } h-5 w-5 text-primary-500 transition-transform duration-200`}
+             />
+           </Disclosure.Button>
+           <Transition
+             enter="transition duration-100 ease-out"
+             enterFrom="transform scale-95 opacity-0"
+             enterTo="transform scale-100 opacity-100"
+             leave="transition duration-75 ease-out"
+             leaveFrom="transform scale-100 opacity-100"
+             leaveTo="transform scale-95 opacity-0"
+           >
+             <Disclosure.Panel className="px-4 py-5 text-sm text-gray-500">
+               <div className="mb-6">
+                 {/* ... existing block selection code ... */}
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                   <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                       Add Block
+                     </label>
+                     <Select
+                       placeholder="Select block type..."
+                       options={blockTypeOptions}
+                       onChange={(e) => handleAddBlock(e.target.value)}
+                       value=""
+                     />
+                   </div>
+
+                   {/* <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Add from Template
+                  </label>
+                  <Select
+                    placeholder="Select a template..."
+                    options={getTemplateOptions()}
+                    onChange={(e) => handleAddTemplateBlock(e.target.value)}
+                    value=""
+                  />
+                </div> */}
+                 </div>
+
+                 <DragDropContext onDragEnd={onDragEnd}>
+                   <Droppable droppableId="blocks">
+                     {(provided) => (
+                       <div
+                         {...provided.droppableProps}
+                         ref={provided.innerRef}
+                         className="space-y-4"
+                       >
+                         {formData.blocks.map((block, index) => (
+                           <Draggable
+                             key={block.id || `block-${index}`}
+                             draggableId={
+                               block.id
+                                 ? `block-${block.id}`
+                                 : `block-new-${index}`
+                             }
+                             index={index}
+                           >
+                             {(provided) => (
+                               <div
+                                 ref={provided.innerRef}
+                                 {...provided.draggableProps}
+                                 className="border border-gray-200 p-4 rounded-lg bg-white shadow-md hover:shadow-lg transition-shadow duration-200"
+                                 id={
+                                   block.id
+                                     ? `block-${block.id}`
+                                     : `block-new-${index}`
+                                 }
+                               >
+                                 <div className="flex justify-between items-center mb-3">
+                                   <div className="flex items-center flex-grow">
+                                     <div
+                                       {...provided.dragHandleProps}
+                                       className="flex items-center cursor-move mr-3 text-gray-400 hover:text-gray-600"
+                                     >
+                                       <Icon icon="Bars3" />
+                                     </div>
+                                     <span className="font-semibold px-3 py-1 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-sm">
+                                       {block.title ||
+                                         `${
+                                           block.type
+                                             .charAt(0)
+                                             .toUpperCase() +
+                                           block.type.slice(1)
+                                         } Block`}
+                                     </span>
+                                     {block.templateId && (
+                                       <span className="ml-2 px-2 py-0.5 bg-primary-100 text-primary-800 text-xs rounded-full border border-primary-200">
+                                         Template:{" "}
+                                         {templates.find(
+                                           (t) =>
+                                             t.id === block.templateId
+                                         )?.name || "Unknown"}
+                                       </span>
+                                     )}
+                                   </div>
+                                   <div className="flex items-center space-x-2">
+                                     <button
+                                       type="button"
+                                       className="p-1.5 text-primary-500 hover:text-primary-700 hover:bg-primary-50 rounded-full transition-colors"
+                                       onClick={() =>
+                                         handleBlockPreviewToggle(index)
+                                       }
+                                       aria-label="Preview block"
+                                     >
+                                       <Icon
+                                         icon="Eye"
+                                         className="h-5 w-5"
+                                       />
+                                     </button>
+                                     <button
+                                       type="button"
+                                       className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                                       onClick={() =>
+                                         handleToggleBlock(index)
+                                       }
+                                       aria-expanded={block.isExpanded}
+                                       aria-label={
+                                         block.isExpanded
+                                           ? "Collapse block"
+                                           : "Expand block"
+                                       }
+                                     >
+                                       <Icon
+                                         icon={
+                                           block.isExpanded
+                                             ? "ChevronUp"
+                                             : "ChevronDown"
+                                         }
+                                         className="h-5 w-5"
+                                       />
+                                     </button>
+                                     <button
+                                       type="button"
+                                       className="p-1.5 !text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                       onClick={() =>
+                                         handleRemoveBlock(index)
+                                       }
+                                       aria-label="Remove block"
+                                     >
+                                       <Icon
+                                         icon="XMark"
+                                         className="h-5 w-5"
+                                       />
+                                     </button>
+                                   </div>
+                                 </div>
+
+                                 {blockPreview.show &&
+                                   blockPreview.blockIndex === index && (
+                                     <div className="my-4 border rounded-lg overflow-hidden">
+                                       <div className="bg-gray-100 px-3 py-2 border-b flex justify-between items-center">
+                                         <span className="text-sm font-medium">
+                                           Block Preview
+                                         </span>
+                                         <button
+                                           type="button"
+                                           className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded"
+                                           onClick={() =>
+                                             setBlockPreview({
+                                               show: false,
+                                               blockIndex: null,
+                                             })
+                                           }
+                                         >
+                                           <Icon
+                                             icon="XMark"
+                                             className="h-4 w-4"
+                                           />
+                                         </button>
+                                       </div>
+                                       <div className="overflow-hidden">
+                                         {BlockPreview(block)}
+                                       </div>
+                                     </div>
+                                   )}
+
+                                 {block.isExpanded && (
+                                   <div className="space-y-3 pt-3 border-t">
+                                     <Textinput
+                                       label="Block Title (Optional)"
+                                       value={block.title || ""}
+                                       onChange={(e) =>
+                                         handleBlockChange(
+                                           index,
+                                           "title",
+                                           e.target.value
+                                         )
+                                       }
+                                       placeholder="e.g., Our Services Slider"
+                                     />
+
+                                     {block.type === "hero" && (
+                                       <div className="space-y-3">
+                                         <Textinput
+                                           label="Heading"
+                                           value={
+                                             block.content?.heading || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "heading",
+                                               e.target.value
+                                             )
+                                           }
+                                         />
+                                         <Textarea
+                                           label="Subheading"
+                                           value={
+                                             block.content?.subheading ||
+                                             ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "subheading",
+                                               e.target.value
+                                             )
+                                           }
+                                           rows={2}
+                                         />
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Text Color
+                                           </label>
+                                           <div className="flex items-center">
+                                             <input
+                                               type="color"
+                                               value={
+                                                 block.content
+                                                   ?.textColor ||
+                                                 "#000000"
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "textColor",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               className="h-9 w-16 p-1 border rounded mr-2"
+                                             />
+                                             <Textinput
+                                               value={
+                                                 block.content
+                                                   ?.textColor || ""
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "textColor",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               placeholder="#000000"
+                                               className="flex-grow"
+                                             />
+                                           </div>
+                                         </div>
+                                         <Textinput
+                                           label="Button Text"
+                                           value={
+                                             block.content?.buttonText ||
+                                             ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "buttonText",
+                                               e.target.value
+                                             )
+                                           }
+                                         />
+                                         <Textinput
+                                           label="Button Link"
+                                           value={
+                                             block.content?.buttonLink ||
+                                             ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "buttonLink",
+                                               e.target.value
+                                             )
+                                           }
+                                         />
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Button Background Color
+                                           </label>
+                                           <div className="flex items-center">
+                                             <input
+                                               type="color"
+                                               value={
+                                                 block.content
+                                                   ?.buttonBgColor ||
+                                                 "#3b82f6"
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "buttonBgColor",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               className="h-9 w-16 p-1 border rounded mr-2"
+                                             />
+                                             <Textinput
+                                               value={
+                                                 block.content
+                                                   ?.buttonBgColor || ""
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "buttonBgColor",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               placeholder="#3b82f6"
+                                               className="flex-grow"
+                                             />
+                                           </div>
+                                         </div>
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Button Text Color
+                                           </label>
+                                           <div className="flex items-center">
+                                             <input
+                                               type="color"
+                                               value={
+                                                 block.content
+                                                   ?.buttonTextColor ||
+                                                 "#ffffff"
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "buttonTextColor",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               className="h-9 w-16 p-1 border rounded mr-2"
+                                             />
+                                             <Textinput
+                                               value={
+                                                 block.content
+                                                   ?.buttonTextColor ||
+                                                 ""
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "buttonTextColor",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               placeholder="#ffffff"
+                                               className="flex-grow"
+                                             />
+                                           </div>
+                                         </div>
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Background Color
+                                           </label>
+                                           <div className="flex items-center">
+                                             <input
+                                               type="color"
+                                               value={
+                                                 block.content
+                                                   ?.backgroundColor ||
+                                                 "#f3f4f6"
+                                               } // Default to a light gray if empty
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "backgroundColor",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               className="h-9 w-16 p-1 border rounded mr-2"
+                                             />
+                                             <Textinput
+                                               value={
+                                                 block.content
+                                                   ?.backgroundColor ||
+                                                 ""
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "backgroundColor",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               placeholder="#f3f4f6"
+                                               className="flex-grow" // Add flex-grow if needed
+                                             />
+                                           </div>
+                                         </div>
+                                         <Select
+                                           label="Text Direction"
+                                           value={
+                                             block.content
+                                               ?.textDirection || "left"
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "textDirection",
+                                               e.target.value
+                                             )
+                                           }
+                                           options={[
+                                             {
+                                               value: "left",
+                                               label: "Left",
+                                             },
+                                             {
+                                               value: "right",
+                                               label: "Right",
+                                             },
+                                             {
+                                               value: "center",
+                                               label: "Center",
+                                             },
+                                           ]}
+                                         />
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Hero Image
+                                           </label>
+                                           <MediaUpload
+                                             file={block.content?.imageUrl}
+                                             onDrop={handleHeroImageUpload}
+                                             onRemove={handleRemoveHeroImage}
+                                             loading={uploadStates[`hero-${index}`]?.loading || false}
+                                             error={uploadStates[`hero-${index}`]?.error || null}
+                                             maxSize={5 * 1024 * 1024}
+                                             identifier={{blockIndex: index}}
+                                             helperText="Recommended image size: 2880 × 1920 pixels for best quality"
+                                           />
+                                         </div>
+                                       </div>
+                                     )}
+
+                                     {block.type === "features" && (
+                                       <div className="space-y-3">
+                                         <Textinput
+                                           label="Section Title"
+                                           value={
+                                             block.content
+                                               ?.sectionTitle || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "sectionTitle",
+                                               e.target.value
+                                             )
+                                           }
+                                         />
+                                         <div className="space-y-4 mt-2 border-t pt-4">
+                                           <h4 className="font-medium text-sm">
+                                             Features:
+                                           </h4>
+                                           {(
+                                             block.content?.features ||
+                                             []
+                                           ).map(
+                                             (feature, featureIndex) => (
+                                               <div
+                                                 key={featureIndex}
+                                                 className="border p-3 rounded bg-slate-50 space-y-2 relative"
+                                               >
+                                                 <button
+                                                   type="button"
+                                                   onClick={() =>
+                                                     handleRemoveItem(
+                                                       index,
+                                                       "features",
+                                                       featureIndex
+                                                     )
+                                                   }
+                                                   className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full"
+                                                   aria-label="Remove Feature"
+                                                 >
+                                                   <Icon
+                                                     icon="XMark"
+                                                     className="h-4 w-4"
+                                                   />
+                                                 </button>
+                                                 <div>
+                                                   <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                     {`Feature ${
+                                                       featureIndex + 1
+                                                     } Icon`}
+                                                   </label>
+                                                   <div className="grid grid-cols-4 gap-2 mb-2">
+                                                     {ICON_OPTIONS.map(
+                                                       (opt) => (
+                                                         <button
+                                                           key={
+                                                             opt.value
+                                                           }
+                                                           type="button"
+                                                           onClick={() =>
+                                                             handleItemChange(
+                                                               index,
+                                                               "features",
+                                                               featureIndex,
+                                                               "icon",
+                                                               opt.value
+                                                             )
+                                                           }
+                                                           className={`p-2 rounded-lg border ${
+                                                             feature.icon ===
+                                                             opt.value
+                                                               ? "border-primary-500 bg-primary-50"
+                                                               : "border-gray-200"
+                                                           } hover:bg-gray-100 flex items-center justify-center`}
+                                                         >
+                                                           <Icon
+                                                             icon={
+                                                               opt.value
+                                                             }
+                                                             className="h-5 w-5"
+                                                           />
+                                                         </button>
+                                                       )
+                                                     )}
+                                                   </div>
+                                                   <Textinput
+                                                     placeholder="Or enter icon name (e.g. CheckCircle)"
+                                                     value={
+                                                       feature.icon || ""
+                                                     }
+                                                     onChange={(e) =>
+                                                       handleItemChange(
+                                                         index,
+                                                         "features",
+                                                         featureIndex,
+                                                         "icon",
+                                                         e.target.value
+                                                       )
+                                                     }
+                                                     className="mt-1"
+                                                   />
+                                                 </div>
+                                                 <Textinput
+                                                   label={`Feature ${
+                                                     featureIndex + 1
+                                                   } Title`}
+                                                   value={
+                                                     feature.title || ""
+                                                   }
+                                                   onChange={(e) =>
+                                                     handleItemChange(
+                                                       index,
+                                                       "features",
+                                                       featureIndex,
+                                                       "title",
+                                                       e.target.value
+                                                     )
+                                                   }
+                                                 />
+                                                 <Textarea
+                                                   label={`Feature ${
+                                                     featureIndex + 1
+                                                   } Description`}
+                                                   value={
+                                                     feature.description ||
+                                                     ""
+                                                   }
+                                                   onChange={(e) =>
+                                                     handleItemChange(
+                                                       index,
+                                                       "features",
+                                                       featureIndex,
+                                                       "description",
+                                                       e.target.value
+                                                     )
+                                                   }
+                                                   rows={2}
+                                                 />
+                                               </div>
+                                             )
+                                           )}
+                                           <Button
+                                             text="Add Feature"
+                                             className="btn-outline-primary btn-sm"
+                                             onClick={() =>
+                                               handleAddItem(
+                                                 index,
+                                                 "features",
+                                                 {
+                                                   icon: "",
+                                                   title: "",
+                                                   description: "",
+                                                 }
+                                               )
+                                             }
+                                             icon="Plus"
+                                             type="button"
+                                           />
+                                         </div>
+                                       </div>
+                                     )}
+
+                                     {block.type === "faq" && (
+                                       <div className="space-y-3">
+                                         <Textinput
+                                           label="Section Title"
+                                           value={
+                                             block.content
+                                               ?.sectionTitle || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "sectionTitle",
+                                               e.target.value
+                                             )
+                                           }
+                                         />
+                                         <div className="space-y-4 mt-2 border-t pt-4">
+                                           <h4 className="font-medium text-sm">
+                                             FAQs:
+                                           </h4>
+                                           {(
+                                             block.content?.faqs || []
+                                           ).map((faq, faqIndex) => (
+                                             <div
+                                               key={faqIndex}
+                                               className="border p-3 rounded bg-slate-50 space-y-2 relative"
+                                             >
+                                               <button
+                                                 type="button"
+                                                 onClick={() =>
+                                                   handleRemoveItem(
+                                                     index,
+                                                     "faqs",
+                                                     faqIndex
+                                                   )
+                                                 }
+                                                 className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full"
+                                                 aria-label="Remove FAQ"
+                                               >
+                                                 <Icon
+                                                   icon="XMark"
+                                                   className="h-4 w-4"
+                                                 />
+                                               </button>
+                                               <Textinput
+                                                 label={`FAQ ${
+                                                   faqIndex + 1
+                                                 } Question`}
+                                                 value={
+                                                   faq.question || ""
+                                                 }
+                                                 onChange={(e) =>
+                                                   handleItemChange(
+                                                     index,
+                                                     "faqs",
+                                                     faqIndex,
+                                                     "question",
+                                                     e.target.value
+                                                   )
+                                                 }
+                                               />
+                                               <Textinput
+                                                 label={`FAQ ${
+                                                   faqIndex + 1
+                                                 } Category`}
+                                                 value={
+                                                   faq.category || ""
+                                                 }
+                                                 onChange={(e) =>
+                                                   handleItemChange(
+                                                     index,
+                                                     "faqs",
+                                                     faqIndex,
+                                                     "category",
+                                                     e.target.value
+                                                   )
+                                                 }
+                                                 placeholder="e.g., General, Billing"
+                                               />
+                                               <Textarea
+                                                 label={`FAQ ${
+                                                   faqIndex + 1
+                                                 } Answer`}
+                                                 value={faq.answer || ""}
+                                                 onChange={(e) =>
+                                                   handleItemChange(
+                                                     index,
+                                                     "faqs",
+                                                     faqIndex,
+                                                     "answer",
+                                                     e.target.value
+                                                   )
+                                                 }
+                                                 rows={3}
+                                               />
+                                             </div>
+                                           ))}
+                                           <Button
+                                             text="Add FAQ"
+                                             className="btn-outline-primary btn-sm"
+                                             onClick={() =>
+                                               handleAddItem(
+                                                 index,
+                                                 "faqs",
+                                                 {
+                                                   question: "",
+                                                   answer: "",
+                                                   category: "",
+                                                 }
+                                               )
+                                             }
+                                             icon="Plus"
+                                             type="button"
+                                           />
+                                         </div>
+                                       </div>
+                                     )}
+
+                                     {block.type === "slider" && (
+                                       <div className="space-y-3">
+                                         <Textinput
+                                           label="Section Title (Optional)"
+                                           value={
+                                             block.content
+                                               ?.sectionTitle || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "sectionTitle",
+                                               e.target.value
+                                             )
+                                           }
+                                         />
+                                         <div className="space-y-4 mt-2 border-t pt-4">
+                                           <h4 className="font-medium text-sm">
+                                             Slides:
+                                           </h4>
+                                           {(
+                                             block.content?.slides || []
+                                           ).map((slide, slideIndex) => {
+                                             const identifier = {
+                                               blockIndex: index,
+                                               slideIndex: slideIndex,
+                                             };
+                                             const uploadKey = `${index}-${slideIndex}`;
+                                             const uState = uploadStates[
+                                               uploadKey
+                                             ] || {
+                                               loading: false,
+                                               error: null,
+                                             };
+                                             return (
+                                               <div
+                                                 key={slideIndex}
+                                                 className="border p-3 rounded bg-slate-50 space-y-3 relative"
+                                               >
+                                                 <button
+                                                   type="button"
+                                                   onClick={() =>
+                                                     handleRemoveItem(
+                                                       index,
+                                                       "slides",
+                                                       slideIndex
+                                                     )
+                                                   }
+                                                   className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full z-10"
+                                                   aria-label="Remove Slide"
+                                                 >
+                                                   <Icon
+                                                     icon="XMark"
+                                                     className="h-4 w-4"
+                                                   />
+                                                 </button>
+
+                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                   <div className="sm:col-span-1">
+                                                     <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                       Slide{" "}
+                                                       {slideIndex + 1}{" "}
+                                                       Image*
+                                                     </label>
+                                                     <MediaUpload
+                                                       file={
+                                                         slide.imageUrl
+                                                       }
+                                                       onDrop={(e) =>
+                                                         handleSlideImageUpload(
+                                                           e,
+                                                           identifier
+                                                         )
+                                                       }
+                                                       onRemove={() =>
+                                                         handleRemoveSlideImage(
+                                                           identifier,
+                                                           slide.imageUrl
+                                                             ?.fromMediaLibrary
+                                                         )
+                                                       }
+                                                       loading={
+                                                         uState.loading
+                                                       }
+                                                       error={
+                                                         uState.error
+                                                       }
+                                                       maxSize={
+                                                         5 * 1024 * 1024
+                                                       }
+                                                       identifier={
+                                                         identifier
+                                                       }
+                                                     />
+                                                   </div>
+                                                   <div className="sm:col-span-2 space-y-3">
+                                                     <Textinput
+                                                       label={`Slide ${
+                                                         slideIndex + 1
+                                                       } Alt Text`}
+                                                       value={
+                                                         slide.altText ||
+                                                         ""
+                                                       }
+                                                       onChange={(e) =>
+                                                         handleItemChange(
+                                                           index,
+                                                           "slides",
+                                                           slideIndex,
+                                                           "altText",
+                                                           e.target.value
+                                                         )
+                                                       }
+                                                       placeholder="Describe the image"
+                                                     />
+                                                     <Textarea
+                                                       label={`Slide ${
+                                                         slideIndex + 1
+                                                       } Caption`}
+                                                       value={
+                                                         slide.caption ||
+                                                         ""
+                                                       }
+                                                       onChange={(e) =>
+                                                         handleItemChange(
+                                                           index,
+                                                           "slides",
+                                                           slideIndex,
+                                                           "caption",
+                                                           e.target.value
+                                                         )
+                                                       }
+                                                       rows={2}
+                                                       placeholder="Optional caption text"
+                                                     />
+                                                   </div>
+                                                 </div>
+                                               </div>
+                                             );
+                                           })}
+                                           <Button
+                                             text="Add Slide"
+                                             className="btn-outline-primary btn-sm"
+                                             onClick={() =>
+                                               handleAddItem(
+                                                 index,
+                                                 "slides",
+                                                 {
+                                                   imageUrl: null,
+                                                   altText: "",
+                                                   caption: "",
+                                                 }
+                                               )
+                                             }
+                                             icon="Plus"
+                                             type="button"
+                                           />
+                                         </div>
+                                       </div>
+                                     )}
+
+                                     {block.type === "cta" && (
+                                       <div className="space-y-3">
+                                         <Textinput
+                                           label="Heading"
+                                           value={
+                                             block.content?.heading || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "heading",
+                                               e.target.value
+                                             )
+                                           }
+                                         />
+                                         <Textarea
+                                           label="Description"
+                                           value={
+                                             block.content
+                                               ?.description || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "description",
+                                               e.target.value
+                                             )
+                                           }
+                                           rows={2}
+                                         />
+                                         <Textinput
+                                           label="Button Text"
+                                           value={
+                                             block.content?.buttonText ||
+                                             ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "buttonText",
+                                               e.target.value
+                                             )
+                                           }
+                                         />
+                                         <Textinput
+                                           label="Button Link"
+                                           value={
+                                             block.content?.buttonLink ||
+                                             ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "buttonLink",
+                                               e.target.value
+                                             )
+                                           }
+                                         />
+                                         <Select
+                                           label="Background Style"
+                                           value={
+                                             block.content?.bgStyle ||
+                                             "color"
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "bgStyle",
+                                               e.target.value
+                                             )
+                                           }
+                                           options={[
+                                             {
+                                               value: "color",
+                                               label: "Solid Color",
+                                             },
+                                             {
+                                               value: "image",
+                                               label: "Background Image",
+                                             },
+                                             {
+                                               value: "gradient",
+                                               label: "Gradient",
+                                             },
+                                           ]}
+                                         />
+                                       </div>
+                                     )}
+
+                                     {block.type === "testimonials" && (
+                                       <div className="space-y-3">
+                                         <Textinput
+                                           label="Section Title"
+                                           value={
+                                             block.content
+                                               ?.sectionTitle || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "sectionTitle",
+                                               e.target.value
+                                             )
+                                           }
+                                         />
+                                         <div className="space-y-4 mt-2 border-t pt-4">
+                                           <h4 className="font-medium text-sm">
+                                             Testimonials:
+                                           </h4>
+                                           {(
+                                             block.content
+                                               ?.testimonials || []
+                                           ).map(
+                                             (
+                                               testimonial,
+                                               testimonialIndex
+                                             ) => (
+                                               <div
+                                                 key={testimonialIndex}
+                                                 className="border p-3 rounded bg-slate-50 space-y-2 relative"
+                                               >
+                                                 <button
+                                                   type="button"
+                                                   onClick={() =>
+                                                     handleRemoveItem(
+                                                       index,
+                                                       "testimonials",
+                                                       testimonialIndex
+                                                     )
+                                                   }
+                                                   className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full"
+                                                   aria-label="Remove Testimonial"
+                                                 >
+                                                   <Icon
+                                                     icon="XMark"
+                                                     className="h-4 w-4"
+                                                   />
+                                                 </button>
+                                                 <Textarea
+                                                   label={`Testimonial ${
+                                                     testimonialIndex + 1
+                                                   } Quote`}
+                                                   value={
+                                                     testimonial.quote ||
+                                                     ""
+                                                   }
+                                                   onChange={(e) =>
+                                                     handleItemChange(
+                                                       index,
+                                                       "testimonials",
+                                                       testimonialIndex,
+                                                       "quote",
+                                                       e.target.value
+                                                     )
+                                                   }
+                                                   rows={3}
+                                                 />
+                                                 <Textinput
+                                                   label={`Testimonial ${
+                                                     testimonialIndex + 1
+                                                   } Author Name`}
+                                                   value={
+                                                     testimonial.authorName ||
+                                                     ""
+                                                   }
+                                                   onChange={(e) =>
+                                                     handleItemChange(
+                                                       index,
+                                                       "testimonials",
+                                                       testimonialIndex,
+                                                       "authorName",
+                                                       e.target.value
+                                                     )
+                                                   }
+                                                 />
+                                                 <Textinput
+                                                   label={`Testimonial ${
+                                                     testimonialIndex + 1
+                                                   } Author Title/Company`}
+                                                   value={
+                                                     testimonial.authorTitle ||
+                                                     ""
+                                                   }
+                                                   onChange={(e) =>
+                                                     handleItemChange(
+                                                       index,
+                                                       "testimonials",
+                                                       testimonialIndex,
+                                                       "authorTitle",
+                                                       e.target.value
+                                                     )
+                                                   }
+                                                 />
+                                               </div>
+                                             )
+                                           )}
+                                           <Button
+                                             text="Add Testimonial"
+                                             className="btn-outline-primary btn-sm"
+                                             onClick={() =>
+                                               handleAddItem(
+                                                 index,
+                                                 "testimonials",
+                                                 {
+                                                   quote: "",
+                                                   authorName: "",
+                                                   authorTitle: "",
+                                                 }
+                                               )
+                                             }
+                                             icon="Plus"
+                                             type="button"
+                                           />
+                                         </div>
+                                       </div>
+                                     )}
+
+                                     {block.type === "content" && (
+                                       <div className="space-y-3">
+                                         <Textinput
+                                           label="Section Title (Optional)"
+                                           value={
+                                             block.content
+                                               ?.sectionTitle || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "sectionTitle",
+                                               e.target.value
+                                             )
+                                           }
+                                         />
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             HTML Content
+                                           </label>
+                                           <div className="custom-quill min-h-[250px]">
+                                             <ReactQuill
+                                               theme="snow"
+                                               value={
+                                                 block.content?.html ||
+                                                 ""
+                                               }
+                                               onChange={(value) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "html",
+                                                   value
+                                                 )
+                                               }
+                                               modules={quillModules}
+                                               placeholder="Enter your content here..."
+                                               className="h-full"
+                                             />
+                                           </div>
+                                         </div>
+                                       </div>
+                                     )}
+
+                                     {block.type === "products" && (
+                                       <div className="space-y-3">
+                                         <Textinput
+                                           label="Section Title"
+                                           value={
+                                             block.content
+                                               ?.sectionTitle || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "sectionTitle",
+                                               e.target.value
+                                             )
+                                           }
+                                         />
+                                         <div className="space-y-4 mt-2 border-t pt-4">
+                                           <h4 className="font-medium text-sm">
+                                             Products:
+                                           </h4>
+                                           {(
+                                             block.content?.products ||
+                                             []
+                                           ).map(
+                                             (product, productIndex) => {
+                                               const identifier = {
+                                                 blockIndex: index,
+                                                 productIndex:
+                                                   productIndex,
+                                               };
+                                               const uploadKey = `product-${index}-${productIndex}`;
+                                               const uState =
+                                                 uploadStates[
+                                                   uploadKey
+                                                 ] || {
+                                                   loading: false,
+                                                   error: null,
+                                                 };
+                                               return (
+                                                 <div
+                                                   key={productIndex}
+                                                   className="border p-3 rounded bg-slate-50 space-y-3 relative"
+                                                 >
+                                                   <button
+                                                     type="button"
+                                                     onClick={() =>
+                                                       handleRemoveItem(
+                                                         index,
+                                                         "products",
+                                                         productIndex
+                                                       )
+                                                     }
+                                                     className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full z-10"
+                                                     aria-label="Remove Product"
+                                                   >
+                                                     <Icon
+                                                       icon="XMark"
+                                                       className="h-4 w-4"
+                                                     />
+                                                   </button>
+
+                                                   <div className="grid grid-cols-1 sm:grid-cols-1 gap-3">
+                                                     <div className="sm:col-span-1">
+                                                       <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                         Product{" "}
+                                                         {productIndex +
+                                                           1}{" "}
+                                                         Image*
+                                                       </label>
+                                                       <MediaUpload
+                                                         file={
+                                                           product.imageUrl
+                                                         }
+                                                         onDrop={
+                                                           handleProductImageUpload
+                                                         }
+                                                         onRemove={
+                                                           handleRemoveProductImage
+                                                         }
+                                                         loading={
+                                                           uState.loading
+                                                         }
+                                                         error={
+                                                           uState.error
+                                                         }
+                                                         maxSize={
+                                                           5 *
+                                                           1024 *
+                                                           1024
+                                                         }
+                                                         identifier={
+                                                           identifier
+                                                         }
+                                                       />
+                                                     </div>
+                                                     <div className="sm:col-span-2 space-y-3">
+                                                       <Textinput
+                                                         label={`Product ${
+                                                           productIndex +
+                                                           1
+                                                         } Title*`}
+                                                         value={
+                                                           product.title ||
+                                                           ""
+                                                         }
+                                                         onChange={(e) =>
+                                                           handleItemChange(
+                                                             index,
+                                                             "products",
+                                                             productIndex,
+                                                             "title",
+                                                             e.target
+                                                               .value
+                                                           )
+                                                         }
+                                                         placeholder="Product title"
+                                                         required
+                                                       />
+                                                       <Textarea
+                                                         label={`Product ${
+                                                           productIndex +
+                                                           1
+                                                         } Description`}
+                                                         value={
+                                                           product.description ||
+                                                           ""
+                                                         }
+                                                         onChange={(e) =>
+                                                           handleItemChange(
+                                                             index,
+                                                             "products",
+                                                             productIndex,
+                                                             "description",
+                                                             e.target
+                                                               .value
+                                                           )
+                                                         }
+                                                         rows={2}
+                                                         placeholder="Product description"
+                                                       />
+                                                       <Textinput
+                                                         label={`Product ${
+                                                           productIndex +
+                                                           1
+                                                         } Price`}
+                                                         value={
+                                                           product.price ||
+                                                           ""
+                                                         }
+                                                         onChange={(e) =>
+                                                           handleItemChange(
+                                                             index,
+                                                             "products",
+                                                             productIndex,
+                                                             "price",
+                                                             e.target
+                                                               .value
+                                                           )
+                                                         }
+                                                         placeholder="e.g. $19.99"
+                                                       />
+                                                       <Textinput
+                                                         label={`Product ${
+                                                           productIndex +
+                                                           1
+                                                         } Link`}
+                                                         value={
+                                                           product.link ||
+                                                           ""
+                                                         }
+                                                         onChange={(e) =>
+                                                           handleItemChange(
+                                                             index,
+                                                             "products",
+                                                             productIndex,
+                                                             "link",
+                                                             e.target
+                                                               .value
+                                                           )
+                                                         }
+                                                         placeholder="URL to product page"
+                                                       />
+                                                     </div>
+                                                   </div>
+                                                 </div>
+                                               );
+                                             }
+                                           )}
+                                           <Button
+                                             text="Add Product"
+                                             className="btn-outline-primary btn-sm"
+                                             onClick={() =>
+                                               handleAddItem(
+                                                 index,
+                                                 "products",
+                                                 {
+                                                   imageUrl: null,
+                                                   title: "",
+                                                   description: "",
+                                                   price: "",
+                                                   link: "",
+                                                 }
+                                               )
+                                             }
+                                             icon="Plus"
+                                             type="button"
+                                           />
+                                         </div>
+                                       </div>
+                                     )}
+
+                                     {block.type ===
+                                       "blocktextimage" && (
+                                       <div className="space-y-3">
+                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                           <Textinput
+                                             label="Main Title"
+                                             value={
+                                               block.content
+                                                 ?.mainTitle || ""
+                                             }
+                                             onChange={(e) =>
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "mainTitle",
+                                                 e.target.value
+                                               )
+                                             }
+                                           />
+                                           <div>
+                                             <label className="block text-xs font-medium text-gray-700 mb-1">
+                                               Background Color
+                                             </label>
+                                             <div className="flex items-center">
+                                               <input
+                                                 type="color"
+                                                 value={
+                                                   block.content
+                                                     ?.backgroundColor ||
+                                                   "#ededed"
+                                                 }
+                                                 onChange={(e) =>
+                                                   handleBlockContentChange(
+                                                     index,
+                                                     "backgroundColor",
+                                                     e.target.value
+                                                   )
+                                                 }
+                                                 className="h-9 w-16 p-1 border rounded mr-2"
+                                               />
+                                               <Textinput
+                                                 value={
+                                                   block.content
+                                                     ?.backgroundColor ||
+                                                   "#ededed"
+                                                 }
+                                                 onChange={(e) =>
+                                                   handleBlockContentChange(
+                                                     index,
+                                                     "backgroundColor",
+                                                     e.target.value
+                                                   )
+                                                 }
+                                                 placeholder="#ededed"
+                                               />
+                                             </div>
+                                           </div>
+                                         </div>
+
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Main Description
+                                           </label>
+                                           <div className="custom-quill min-h-[200px]">
+                                             <ReactQuill
+                                               theme="snow"
+                                               value={
+                                                 block.content
+                                                   ?.mainDescription ||
+                                                 ""
+                                               }
+                                               onChange={(value) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "mainDescription",
+                                                   value
+                                                 )
+                                               }
+                                               modules={quillModules}
+                                               placeholder="Enter your description here..."
+                                               className="h-full"
+                                             />
+                                           </div>
+                                         </div>
+
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Image
+                                           </label>
+                                           <MediaUpload
+                                             file={
+                                               block.content?.imageUrl
+                                             }
+                                             onDrop={(e) => {
+                                               const identifier = {
+                                                 blockIndex: index,
+                                               };
+                                               handleHeroImageUpload(
+                                                 e,
+                                                 identifier
+                                               );
+                                             }}
+                                             onRemove={() => {
+                                               const identifier = {
+                                                 blockIndex: index,
+                                               };
+                                               handleRemoveHeroImage(
+                                                 identifier
+                                               );
+                                             }}
+                                             loading={
+                                               uploadStates[
+                                                 `hero-${index}`
+                                               ]?.loading || false
+                                             }
+                                             error={
+                                               uploadStates[
+                                                 `hero-${index}`
+                                               ]?.error || null
+                                             }
+                                             maxSize={5 * 1024 * 1024}
+                                             identifier={{
+                                               blockIndex: index,
+                                             }}
+                                           />
+                                         </div>
+
+                                         <Select
+                                           label="Image Position"
+                                           value={
+                                             block.content
+                                               ?.imagePosition || "right"
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "imagePosition",
+                                               e.target.value
+                                             )
+                                           }
+                                           options={[
+                                             {
+                                               value: "left",
+                                               label: "Left",
+                                             },
+                                             {
+                                               value: "right",
+                                               label: "Right",
+                                             },
+                                           ]}
+                                         />
+
+                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                           <Textinput
+                                             label="Button Text"
+                                             value={
+                                               block.content
+                                                 ?.buttonText || ""
+                                             }
+                                             onChange={(e) =>
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "buttonText",
+                                                 e.target.value
+                                               )
+                                             }
+                                             placeholder="e.g. Book a Service"
+                                           />
+                                           <Textinput
+                                             label="Button Link"
+                                             value={
+                                               block.content
+                                                 ?.buttonLink || ""
+                                             }
+                                             onChange={(e) =>
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "buttonLink",
+                                                 e.target.value
+                                               )
+                                             }
+                                             placeholder="e.g. /contact"
+                                           />
+                                         </div>
+
+                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                           <div>
+                                             <label className="block text-xs font-medium text-gray-700 mb-1">
+                                               Button Background Color
+                                             </label>
+                                             <div className="flex items-center">
+                                               <input
+                                                 type="color"
+                                                 value={
+                                                   block.content
+                                                     ?.buttonBgColor ||
+                                                   "#dd3333"
+                                                 }
+                                                 onChange={(e) =>
+                                                   handleBlockContentChange(
+                                                     index,
+                                                     "buttonBgColor",
+                                                     e.target.value
+                                                   )
+                                                 }
+                                                 className="h-9 w-16 p-1 border rounded mr-2"
+                                               />
+                                               <Textinput
+                                                 value={
+                                                   block.content
+                                                     ?.buttonBgColor ||
+                                                   "#dd3333"
+                                                 }
+                                                 onChange={(e) =>
+                                                   handleBlockContentChange(
+                                                     index,
+                                                     "buttonBgColor",
+                                                     e.target.value
+                                                   )
+                                                 }
+                                                 placeholder="#dd3333"
+                                               />
+                                             </div>
+                                           </div>
+                                           <div>
+                                             <label className="block text-xs font-medium text-gray-700 mb-1">
+                                               Button Text Color
+                                             </label>
+                                             <div className="flex items-center">
+                                               <input
+                                                 type="color"
+                                                 value={
+                                                   block.content
+                                                     ?.buttonTextColor ||
+                                                   "#ffffff"
+                                                 }
+                                                 onChange={(e) =>
+                                                   handleBlockContentChange(
+                                                     index,
+                                                     "buttonTextColor",
+                                                     e.target.value
+                                                   )
+                                                 }
+                                                 className="h-9 w-16 p-1 border rounded mr-2"
+                                               />
+                                               <Textinput
+                                                 value={
+                                                   block.content
+                                                     ?.buttonTextColor ||
+                                                   "#ffffff"
+                                                 }
+                                                 onChange={(e) =>
+                                                   handleBlockContentChange(
+                                                     index,
+                                                     "buttonTextColor",
+                                                     e.target.value
+                                                   )
+                                                 }
+                                                 placeholder="#ffffff"
+                                               />
+                                             </div>
+                                           </div>
+                                         </div>
+
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Custom HTML/Widget Code
+                                             (Optional)
+                                           </label>
+                                           <Textarea
+                                             value={
+                                               block.content
+                                                 ?.customHtml || ""
+                                             }
+                                             onChange={(e) =>
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "customHtml",
+                                                 e.target.value
+                                               )
+                                             }
+                                             rows={4}
+                                             placeholder="Paste any custom HTML or widget code here"
+                                           />
+                                         </div>
+                                       </div>
+                                     )}
+
+                                     {block.type === "about" && (
+                                       <div className="space-y-3">
+                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                           <Textinput
+                                             label="Sub Title"
+                                             value={
+                                               block.content?.subTitle ||
+                                               ""
+                                             }
+                                             onChange={(e) =>
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "subTitle",
+                                                 e.target.value
+                                               )
+                                             }
+                                             placeholder="e.g. About Our Company"
+                                           />
+                                           <Textinput
+                                             label="Title"
+                                             value={
+                                               block.content?.title || ""
+                                             }
+                                             onChange={(e) =>
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "title",
+                                                 e.target.value
+                                               )
+                                             }
+                                             placeholder="e.g. We Care About After Care."
+                                           />
+                                         </div>
+
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Description
+                                           </label>
+                                           <div className="custom-quill min-h-[200px]">
+                                             <ReactQuill
+                                               theme="snow"
+                                               value={
+                                                 block.content
+                                                   ?.description || ""
+                                               }
+                                               onChange={(value) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "description",
+                                                   value
+                                                 )
+                                               }
+                                               modules={quillModules}
+                                               placeholder="Enter your description here..."
+                                               className="h-full"
+                                             />
+                                           </div>
+                                         </div>
+
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Link
+                                           </label>
+                                           <div className="flex space-x-2">
+                                             <Textinput
+                                               value={
+                                                 block.content
+                                                   ?.linkUrl || ""
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "linkUrl",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               placeholder="e.g. /about-us"
+                                               className="flex-grow"
+                                             />
+                                             <Button
+                                               text="Add Link"
+                                               className="btn-outline-primary"
+                                               type="button"
+                                               onClick={() => {
+                                                 if (
+                                                   !block.content
+                                                     ?.linkUrl
+                                                 ) {
+                                                   handleBlockContentChange(
+                                                     index,
+                                                     "linkUrl",
+                                                     "/about-us"
+                                                   );
+                                                 }
+                                               }}
+                                             />
+                                           </div>
+                                         </div>
+
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Image
+                                           </label>
+                                           <MediaUpload
+                                             file={
+                                               block.content?.imageUrl
+                                             }
+                                             onDrop={(e) => {
+                                               const identifier = {
+                                                 blockIndex: index,
+                                               };
+                                               handleHeroImageUpload(
+                                                 e,
+                                                 identifier
+                                               );
+                                             }}
+                                             onRemove={() => {
+                                               const identifier = {
+                                                 blockIndex: index,
+                                               };
+                                               handleRemoveHeroImage(
+                                                 identifier
+                                               );
+                                             }}
+                                             loading={
+                                               uploadStates[
+                                                 `hero-${index}`
+                                               ]?.loading || false
+                                             }
+                                             error={
+                                               uploadStates[
+                                                 `hero-${index}`
+                                               ]?.error || null
+                                             }
+                                             maxSize={5 * 1024 * 1024}
+                                             identifier={{
+                                               blockIndex: index,
+                                             }}
+                                           />
+                                         </div>
+
+                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                           <Textinput
+                                             label="Years Description"
+                                             value={
+                                               block.content
+                                                 ?.yearsDescription || ""
+                                             }
+                                             onChange={(e) =>
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "yearsDescription",
+                                                 e.target.value
+                                               )
+                                             }
+                                             placeholder="e.g. Gas Safe Registered"
+                                           />
+
+                                           <div>
+                                             <label className="block text-xs font-medium text-gray-700 mb-1">
+                                               Icon
+                                             </label>
+                                             <div className="flex space-x-2">
+                                               <Select
+                                                 value={
+                                                   block.content?.icon ||
+                                                   ""
+                                                 }
+                                                 onChange={(e) =>
+                                                   handleBlockContentChange(
+                                                     index,
+                                                     "icon",
+                                                     e.target.value
+                                                   )
+                                                 }
+                                                 options={ICON_OPTIONS}
+                                                 className="flex-grow"
+                                               />
+                                             </div>
+                                           </div>
+                                         </div>
+
+                                         <div className="space-y-4 mt-2 border-t pt-4">
+                                           <h4 className="font-medium text-sm">
+                                             Features:
+                                           </h4>
+                                           <DragDropContext
+                                             onDragEnd={(result) => {
+                                               if (!result.destination)
+                                                 return;
+                                               const items = Array.from(
+                                                 block.content
+                                                   ?.features || []
+                                               );
+                                               const [reorderedItem] =
+                                                 items.splice(
+                                                   result.source.index,
+                                                   1
+                                                 );
+                                               items.splice(
+                                                 result.destination
+                                                   .index,
+                                                 0,
+                                                 reorderedItem
+                                               );
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "features",
+                                                 items
+                                               );
+                                             }}
+                                           >
+                                             <Droppable
+                                               droppableId={`features-${index}`}
+                                             >
+                                               {(provided) => (
+                                                 <div
+                                                   {...provided.droppableProps}
+                                                   ref={
+                                                     provided.innerRef
+                                                   }
+                                                   className="space-y-3"
+                                                 >
+                                                   {(
+                                                     block.content
+                                                       ?.features || []
+                                                   ).map(
+                                                     (
+                                                       feature,
+                                                       featureIndex
+                                                     ) => (
+                                                       <Draggable
+                                                         key={`feature-${index}-${featureIndex}`}
+                                                         draggableId={`feature-${index}-${featureIndex}`}
+                                                         index={
+                                                           featureIndex
+                                                         }
+                                                       >
+                                                         {(provided) => (
+                                                           <div
+                                                             ref={
+                                                               provided.innerRef
+                                                             }
+                                                             {...provided.draggableProps}
+                                                             {...provided.dragHandleProps}
+                                                             className="border p-3 rounded bg-slate-50 space-y-2 relative"
+                                                           >
+                                                             <button
+                                                               type="button"
+                                                               onClick={() =>
+                                                                 handleRemoveItem(
+                                                                   index,
+                                                                   "features",
+                                                                   featureIndex
+                                                                 )
+                                                               }
+                                                               className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full"
+                                                               aria-label="Remove Feature"
+                                                             >
+                                                               <Icon
+                                                                 icon="XMark"
+                                                                 className="h-4 w-4"
+                                                               />
+                                                             </button>
+                                                             <div>
+                                                               <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                                 {`Feature ${
+                                                                   featureIndex +
+                                                                   1
+                                                                 } Icon`}
+                                                               </label>
+                                                               <div className="grid grid-cols-4 gap-2 mb-2">
+                                                                 {ICON_OPTIONS.map(
+                                                                   (
+                                                                     opt
+                                                                   ) => (
+                                                                     <button
+                                                                       key={
+                                                                         opt.value
+                                                                       }
+                                                                       type="button"
+                                                                       onClick={() =>
+                                                                         handleItemChange(
+                                                                           index,
+                                                                           "features",
+                                                                           featureIndex,
+                                                                           "icon",
+                                                                           opt.value
+                                                                         )
+                                                                       }
+                                                                       className={`p-2 rounded-lg border ${
+                                                                         feature.icon ===
+                                                                         opt.value
+                                                                           ? "border-primary-500 bg-primary-50"
+                                                                           : "border-gray-200"
+                                                                       } hover:bg-gray-100 flex items-center justify-center`}
+                                                                     >
+                                                                       <Icon
+                                                                         icon={
+                                                                           opt.value
+                                                                         }
+                                                                         className="h-5 w-5"
+                                                                       />
+                                                                     </button>
+                                                                   )
+                                                                 )}
+                                                               </div>
+                                                               <Textinput
+                                                                 placeholder="Or enter icon name (e.g. CheckCircle)"
+                                                                 value={
+                                                                   feature.icon ||
+                                                                   ""
+                                                                 }
+                                                                 onChange={(
+                                                                   e
+                                                                 ) =>
+                                                                   handleItemChange(
+                                                                     index,
+                                                                     "features",
+                                                                     featureIndex,
+                                                                     "icon",
+                                                                     e
+                                                                       .target
+                                                                       .value
+                                                                   )
+                                                                 }
+                                                                 className="mt-1"
+                                                               />
+                                                             </div>
+                                                             <Textinput
+                                                               label={`Feature ${
+                                                                 featureIndex +
+                                                                 1
+                                                               } Title`}
+                                                               value={
+                                                                 feature.title ||
+                                                                 ""
+                                                               }
+                                                               onChange={(
+                                                                 e
+                                                               ) =>
+                                                                 handleItemChange(
+                                                                   index,
+                                                                   "features",
+                                                                   featureIndex,
+                                                                   "title",
+                                                                   e
+                                                                     .target
+                                                                     .value
+                                                                 )
+                                                               }
+                                                             />
+                                                             <Textarea
+                                                               label={`Feature ${
+                                                                 featureIndex +
+                                                                 1
+                                                               } Description`}
+                                                               value={
+                                                                 feature.description ||
+                                                                 ""
+                                                               }
+                                                               onChange={(
+                                                                 e
+                                                               ) =>
+                                                                 handleItemChange(
+                                                                   index,
+                                                                   "features",
+                                                                   featureIndex,
+                                                                   "description",
+                                                                   e
+                                                                     .target
+                                                                     .value
+                                                                 )
+                                                               }
+                                                               rows={2}
+                                                             />
+                                                           </div>
+                                                         )}
+                                                       </Draggable>
+                                                     )
+                                                   )}
+                                                   {provided.placeholder}
+                                                 </div>
+                                               )}
+                                             </Droppable>
+                                           </DragDropContext>
+                                           <Button
+                                             text="Add Feature"
+                                             className="btn-outline-primary btn-sm"
+                                             onClick={() =>
+                                               handleAddItem(
+                                                 index,
+                                                 "features",
+                                                 {
+                                                   icon: "CheckCircle",
+                                                   title: "",
+                                                   description: "",
+                                                 }
+                                               )
+                                             }
+                                             icon="Plus"
+                                             type="button"
+                                           />
+                                         </div>
+
+                                         <div className="space-y-4 mt-2 border-t pt-4">
+                                           <h4 className="font-medium text-sm">
+                                             List Items:
+                                           </h4>
+                                           <DragDropContext
+                                             onDragEnd={(result) => {
+                                               if (!result.destination)
+                                                 return;
+                                               const items = Array.from(
+                                                 block.content
+                                                   ?.listItems || []
+                                               );
+                                               const [reorderedItem] =
+                                                 items.splice(
+                                                   result.source.index,
+                                                   1
+                                                 );
+                                               items.splice(
+                                                 result.destination
+                                                   .index,
+                                                 0,
+                                                 reorderedItem
+                                               );
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "listItems",
+                                                 items
+                                               );
+                                             }}
+                                           >
+                                             <Droppable
+                                               droppableId={`list-items-${index}`}
+                                             >
+                                               {(provided) => (
+                                                 <div
+                                                   {...provided.droppableProps}
+                                                   ref={
+                                                     provided.innerRef
+                                                   }
+                                                   className="space-y-3"
+                                                 >
+                                                   {(
+                                                     block.content
+                                                       ?.listItems || []
+                                                   ).map(
+                                                     (
+                                                       item,
+                                                       itemIndex
+                                                     ) => (
+                                                       <Draggable
+                                                         key={`list-item-${index}-${itemIndex}`}
+                                                         draggableId={`list-item-${index}-${itemIndex}`}
+                                                         index={
+                                                           itemIndex
+                                                         }
+                                                       >
+                                                         {(provided) => (
+                                                           <div
+                                                             ref={
+                                                               provided.innerRef
+                                                             }
+                                                             {...provided.draggableProps}
+                                                             className="flex items-center space-x-2 border p-3 rounded bg-slate-50"
+                                                           >
+                                                             <div
+                                                               {...provided.dragHandleProps}
+                                                               className="cursor-move text-gray-400 hover:text-gray-600"
+                                                             >
+                                                               <Icon
+                                                                 icon="Bars3"
+                                                                 className="h-5 w-5"
+                                                               />
+                                                             </div>
+                                                             <Textinput
+                                                               value={
+                                                                 item.text ||
+                                                                 ""
+                                                               }
+                                                               onChange={(
+                                                                 e
+                                                               ) =>
+                                                                 handleItemChange(
+                                                                   index,
+                                                                   "listItems",
+                                                                   itemIndex,
+                                                                   "text",
+                                                                   e
+                                                                     .target
+                                                                     .value
+                                                                 )
+                                                               }
+                                                               className="flex-grow"
+                                                               placeholder={`List item ${
+                                                                 itemIndex +
+                                                                 1
+                                                               }`}
+                                                             />
+                                                             <button
+                                                               type="button"
+                                                               onClick={() =>
+                                                                 handleRemoveItem(
+                                                                   index,
+                                                                   "listItems",
+                                                                   itemIndex
+                                                                 )
+                                                               }
+                                                               className="p-1 text-red-500 hover:bg-red-100 rounded-full"
+                                                               aria-label="Remove Item"
+                                                             >
+                                                               <Icon
+                                                                 icon="XMark"
+                                                                 className="h-4 w-4"
+                                                               />
+                                                             </button>
+                                                           </div>
+                                                         )}
+                                                       </Draggable>
+                                                     )
+                                                   )}
+                                                   {provided.placeholder}
+                                                 </div>
+                                               )}
+                                             </Droppable>
+                                           </DragDropContext>
+                                           <Button
+                                             text="Add List Item"
+                                             className="btn-outline-primary btn-sm"
+                                             onClick={() =>
+                                               handleAddItem(
+                                                 index,
+                                                 "listItems",
+                                                 {
+                                                   text: "",
+                                                 }
+                                               )
+                                             }
+                                             icon="Plus"
+                                             type="button"
+                                           />
+                                         </div>
+                                       </div>
+                                     )}
+
+                                     {block.type === "video" && (
+                                       <div className="space-y-3">
+                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                           <Textinput
+                                             label="Section Title"
+                                             value={
+                                               block.content?.title || ""
+                                             }
+                                             onChange={(e) =>
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "title",
+                                                 e.target.value
+                                               )
+                                             }
+                                             placeholder="e.g. Watch Our Video"
+                                           />
+                                           <Textinput
+                                             label="Video Embed URL"
+                                             value={
+                                               block.content?.videoUrl ||
+                                               ""
+                                             }
+                                             onChange={(e) =>
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "videoUrl",
+                                                 e.target.value
+                                               )
+                                             }
+                                             placeholder="e.g. https://www.youtube.com/embed/xxxxxxxxxxx"
+                                           />
+                                         </div>
+
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Description
+                                           </label>
+                                           <div className="custom-quill min-h-[200px]">
+                                             <ReactQuill
+                                               theme="snow"
+                                               value={
+                                                 block.content
+                                                   ?.description || ""
+                                               }
+                                               onChange={(value) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "description",
+                                                   value
+                                                 )
+                                               }
+                                               modules={quillModules}
+                                               placeholder="Enter your description here..."
+                                               className="h-full"
+                                             />
+                                           </div>
+                                         </div>
+
+                                         <Select
+                                           label="Video Position"
+                                           value={
+                                             block.content
+                                               ?.videoPosition || "right"
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "videoPosition",
+                                               e.target.value
+                                             )
+                                           }
+                                           options={[
+                                             {
+                                               value: "left",
+                                               label: "Left",
+                                             },
+                                             {
+                                               value: "right",
+                                               label: "Right",
+                                             },
+                                           ]}
+                                         />
+
+                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                           <Textinput
+                                             label="Button Text"
+                                             value={
+                                               block.content
+                                                 ?.buttonText || ""
+                                             }
+                                             onChange={(e) =>
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "buttonText",
+                                                 e.target.value
+                                               )
+                                             }
+                                             placeholder="e.g. Learn More"
+                                           />
+                                           <Textinput
+                                             label="Button Link"
+                                             value={
+                                               block.content
+                                                 ?.buttonLink || ""
+                                             }
+                                             onChange={(e) =>
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "buttonLink",
+                                                 e.target.value
+                                               )
+                                             }
+                                             placeholder="e.g. /contact"
+                                           />
+                                         </div>
+
+                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                           <div>
+                                             <label className="block text-xs font-medium text-gray-700 mb-1">
+                                               Button Background Color
+                                             </label>
+                                             <div className="flex items-center">
+                                               <input
+                                                 type="color"
+                                                 value={
+                                                   block.content
+                                                     ?.buttonBgColor ||
+                                                   "#dd3333"
+                                                 }
+                                                 onChange={(e) =>
+                                                   handleBlockContentChange(
+                                                     index,
+                                                     "buttonBgColor",
+                                                     e.target.value
+                                                   )
+                                                 }
+                                                 className="h-9 w-16 p-1 border rounded mr-2"
+                                               />
+                                               <Textinput
+                                                 value={
+                                                   block.content
+                                                     ?.buttonBgColor ||
+                                                   "#dd3333"
+                                                 }
+                                                 onChange={(e) =>
+                                                   handleBlockContentChange(
+                                                     index,
+                                                     "buttonBgColor",
+                                                     e.target.value
+                                                   )
+                                                 }
+                                                 placeholder="#dd3333"
+                                               />
+                                             </div>
+                                           </div>
+                                           <div>
+                                             <label className="block text-xs font-medium text-gray-700 mb-1">
+                                               Button Text Color
+                                             </label>
+                                             <div className="flex items-center">
+                                               <input
+                                                 type="color"
+                                                 value={
+                                                   block.content
+                                                     ?.buttonTextColor ||
+                                                   "#ffffff"
+                                                 }
+                                                 onChange={(e) =>
+                                                   handleBlockContentChange(
+                                                     index,
+                                                     "buttonTextColor",
+                                                     e.target.value
+                                                   )
+                                                 }
+                                                 className="h-9 w-16 p-1 border rounded mr-2"
+                                               />
+                                               <Textinput
+                                                 value={
+                                                   block.content
+                                                     ?.buttonTextColor ||
+                                                   "#ffffff"
+                                                 }
+                                                 onChange={(e) =>
+                                                   handleBlockContentChange(
+                                                     index,
+                                                     "buttonTextColor",
+                                                     e.target.value
+                                                   )
+                                                 }
+                                                 placeholder="#ffffff"
+                                               />
+                                             </div>
+                                           </div>
+                                         </div>
+
+                                         <div className="space-y-4 mt-2 border-t pt-4">
+                                           <h4 className="font-medium text-sm">
+                                             List Items:
+                                           </h4>
+                                           <DragDropContext
+                                             onDragEnd={(result) => {
+                                               if (!result.destination)
+                                                 return;
+                                               const items = Array.from(
+                                                 block.content
+                                                   ?.listItems || []
+                                               );
+                                               const [reorderedItem] =
+                                                 items.splice(
+                                                   result.source.index,
+                                                   1
+                                                 );
+                                               items.splice(
+                                                 result.destination
+                                                   .index,
+                                                 0,
+                                                 reorderedItem
+                                               );
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "listItems",
+                                                 items
+                                               );
+                                             }}
+                                           >
+                                             <Droppable
+                                               droppableId={`list-items-${index}`}
+                                             >
+                                               {(provided) => (
+                                                 <div
+                                                   {...provided.droppableProps}
+                                                   ref={
+                                                     provided.innerRef
+                                                   }
+                                                   className="space-y-3"
+                                                 >
+                                                   {(
+                                                     block.content
+                                                       ?.listItems || []
+                                                   ).map(
+                                                     (
+                                                       item,
+                                                       itemIndex
+                                                     ) => (
+                                                       <Draggable
+                                                         key={`list-item-${index}-${itemIndex}`}
+                                                         draggableId={`list-item-${index}-${itemIndex}`}
+                                                         index={
+                                                           itemIndex
+                                                         }
+                                                       >
+                                                         {(provided) => (
+                                                           <div
+                                                             ref={
+                                                               provided.innerRef
+                                                             }
+                                                             {...provided.draggableProps}
+                                                             className="flex items-center space-x-2 border p-3 rounded bg-slate-50"
+                                                           >
+                                                             <div
+                                                               {...provided.dragHandleProps}
+                                                               className="cursor-move text-gray-400 hover:text-gray-600"
+                                                             >
+                                                               <Icon
+                                                                 icon="Bars3"
+                                                                 className="h-5 w-5"
+                                                               />
+                                                             </div>
+                                                             <Textinput
+                                                               value={
+                                                                 item.text ||
+                                                                 ""
+                                                               }
+                                                               onChange={(
+                                                                 e
+                                                               ) =>
+                                                                 handleItemChange(
+                                                                   index,
+                                                                   "listItems",
+                                                                   itemIndex,
+                                                                   "text",
+                                                                   e
+                                                                     .target
+                                                                     .value
+                                                                 )
+                                                               }
+                                                               className="flex-grow"
+                                                               placeholder={`List item ${
+                                                                 itemIndex +
+                                                                 1
+                                                               }`}
+                                                             />
+                                                             <button
+                                                               type="button"
+                                                               onClick={() =>
+                                                                 handleRemoveItem(
+                                                                   index,
+                                                                   "listItems",
+                                                                   itemIndex
+                                                                 )
+                                                               }
+                                                               className="p-1 text-red-500 hover:bg-red-100 rounded-full"
+                                                               aria-label="Remove Item"
+                                                             >
+                                                               <Icon
+                                                                 icon="XMark"
+                                                                 className="h-4 w-4"
+                                                               />
+                                                             </button>
+                                                           </div>
+                                                         )}
+                                                       </Draggable>
+                                                     )
+                                                   )}
+                                                   {provided.placeholder}
+                                                 </div>
+                                               )}
+                                             </Droppable>
+                                           </DragDropContext>
+                                           <Button
+                                             text="Add List Item"
+                                             className="btn-outline-primary btn-sm"
+                                             onClick={() =>
+                                               handleAddItem(
+                                                 index,
+                                                 "listItems",
+                                                 {
+                                                   text: "",
+                                                 }
+                                               )
+                                             }
+                                             icon="Plus"
+                                             type="button"
+                                           />
+                                         </div>
+                                       </div>
+                                     )}
+
+                                     {block.type === "partners" && (
+                                       <div className="space-y-3">
+                                         <Textinput
+                                           label="Section Title"
+                                           value={
+                                             block.content
+                                               ?.sectionTitle || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "sectionTitle",
+                                               e.target.value
+                                             )
+                                           }
+                                           placeholder="Our Partners"
+                                         />
+                                         <Textarea
+                                           label="Section Description"
+                                           value={
+                                             block.content
+                                               ?.sectionDescription || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "sectionDescription",
+                                               e.target.value
+                                             )
+                                           }
+                                           rows={2}
+                                           placeholder="Brief description about your partners"
+                                         />
+
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Colored Description Section
+                                             Background
+                                           </label>
+                                           <div className="flex items-center">
+                                             <input
+                                               type="color"
+                                               value={
+                                                 block.content
+                                                   ?.coloredSectionBg ||
+                                                 "#f3f4f6"
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "coloredSectionBg",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               className="h-9 w-16 p-1 border rounded mr-2"
+                                             />
+                                             <Textinput
+                                               value={
+                                                 block.content
+                                                   ?.coloredSectionBg ||
+                                                 "#f3f4f6"
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "coloredSectionBg",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               placeholder="#f3f4f6"
+                                             />
+                                           </div>
+                                         </div>
+
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Colored Description Section
+                                             Text Color
+                                           </label>
+                                           <div className="flex items-center">
+                                             <input
+                                               type="color"
+                                               value={
+                                                 block.content
+                                                   ?.coloredSectionTextColor ||
+                                                 "#000000"
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "coloredSectionTextColor",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               className="h-9 w-16 p-1 border rounded mr-2"
+                                             />
+                                             <Textinput
+                                               value={
+                                                 block.content
+                                                   ?.coloredSectionTextColor ||
+                                                 "#000000"
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "coloredSectionTextColor",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               placeholder="#000000"
+                                             />
+                                           </div>
+                                         </div>
+
+                                         <Textinput
+                                           label="Colored Section Text"
+                                           value={
+                                             block.content
+                                               ?.coloredSectionText || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "coloredSectionText",
+                                               e.target.value
+                                             )
+                                           }
+                                           placeholder="Over 2500 companies use our tools to better their business."
+                                         />
+
+                                         <Textinput
+                                           label="Colored Section Link Text"
+                                           value={
+                                             block.content
+                                               ?.coloredSectionLinkText ||
+                                             ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "coloredSectionLinkText",
+                                               e.target.value
+                                             )
+                                           }
+                                           placeholder="Read our customer stories"
+                                         />
+
+                                         <Textinput
+                                           label="Colored Section Link URL"
+                                           value={
+                                             block.content
+                                               ?.coloredSectionLinkUrl ||
+                                             ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "coloredSectionLinkUrl",
+                                               e.target.value
+                                             )
+                                           }
+                                           placeholder="/customer-stories"
+                                         />
+
+                                         <div className="space-y-4 mt-2 border-t pt-4">
+                                           <h4 className="font-medium text-sm">
+                                             Partner Logos:
+                                           </h4>
+                                           {(
+                                             block.content?.partners ||
+                                             []
+                                           ).map(
+                                             (partner, partnerIndex) => {
+                                               const identifier = {
+                                                 blockIndex: index,
+                                                 partnerIndex:
+                                                   partnerIndex,
+                                               };
+                                               const uploadKey = `partner-${index}-${partnerIndex}`;
+                                               const uState =
+                                                 uploadStates[
+                                                   uploadKey
+                                                 ] || {
+                                                   loading: false,
+                                                   error: null,
+                                                 };
+                                               return (
+                                                 <div
+                                                   key={partnerIndex}
+                                                   className="border p-3 rounded bg-slate-50 space-y-3 relative"
+                                                 >
+                                                   <button
+                                                     type="button"
+                                                     onClick={() =>
+                                                       handleRemoveItem(
+                                                         index,
+                                                         "partners",
+                                                         partnerIndex
+                                                       )
+                                                     }
+                                                     className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full z-10"
+                                                     aria-label="Remove Partner"
+                                                   >
+                                                     <Icon
+                                                       icon="XMark"
+                                                       className="h-4 w-4"
+                                                     />
+                                                   </button>
+
+                                                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                     <div className="sm:col-span-1">
+                                                       <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                         Partner{" "}
+                                                         {partnerIndex +
+                                                           1}{" "}
+                                                         Logo*
+                                                       </label>
+                                                       <MediaUpload
+                                                         file={
+                                                           partner.imageUrl
+                                                         }
+                                                         onDrop={(e) =>
+                                                           handlePartnerImageUpload(
+                                                             e,
+                                                             identifier
+                                                           )
+                                                         }
+                                                         onRemove={() =>
+                                                           handleRemovePartnerImage(
+                                                             identifier
+                                                           )
+                                                         }
+                                                         loading={
+                                                           uState.loading
+                                                         }
+                                                         error={
+                                                           uState.error
+                                                         }
+                                                         maxSize={
+                                                           5 *
+                                                           1024 *
+                                                           1024
+                                                         }
+                                                         identifier={
+                                                           identifier
+                                                         }
+                                                       />
+                                                     </div>
+                                                     <div className="sm:col-span-2 space-y-3">
+                                                       <Textinput
+                                                         label={`Partner ${
+                                                           partnerIndex +
+                                                           1
+                                                         } Name`}
+                                                         value={
+                                                           partner.name ||
+                                                           ""
+                                                         }
+                                                         onChange={(e) =>
+                                                           handleItemChange(
+                                                             index,
+                                                             "partners",
+                                                             partnerIndex,
+                                                             "name",
+                                                             e.target
+                                                               .value
+                                                           )
+                                                         }
+                                                         placeholder="Partner name"
+                                                       />
+                                                       <Textinput
+                                                         label={`Partner ${
+                                                           partnerIndex +
+                                                           1
+                                                         } URL`}
+                                                         value={
+                                                           partner.url ||
+                                                           ""
+                                                         }
+                                                         onChange={(e) =>
+                                                           handleItemChange(
+                                                             index,
+                                                             "partners",
+                                                             partnerIndex,
+                                                             "url",
+                                                             e.target
+                                                               .value
+                                                           )
+                                                         }
+                                                         placeholder="https://partner-website.com"
+                                                       />
+                                                     </div>
+                                                   </div>
+                                                 </div>
+                                               );
+                                             }
+                                           )}
+                                           <Button
+                                             text="Add Partner"
+                                             className="btn-outline-primary btn-sm"
+                                             onClick={() =>
+                                               handleAddItem(
+                                                 index,
+                                                 "partners",
+                                                 {
+                                                   imageUrl: null,
+                                                   name: "",
+                                                   url: "",
+                                                 }
+                                               )
+                                             }
+                                             icon="Plus"
+                                             type="button"
+                                           />
+                                         </div>
+                                       </div>
+                                     )}
+
+                                     {block.type === "form" && (
+                                       <div className="space-y-3">
+                                         <Textinput
+                                           label="Section Title"
+                                           value={
+                                             block.content
+                                               ?.sectionTitle || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "sectionTitle",
+                                               e.target.value
+                                             )
+                                           }
+                                           placeholder="Contact Us"
+                                         />
+
+                                         <Textarea
+                                           label="Section Description"
+                                           value={
+                                             block.content
+                                               ?.description || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "description",
+                                               e.target.value
+                                             )
+                                           }
+                                           rows={3}
+                                           placeholder="Fill out the form below to get in touch with us"
+                                         />
+
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Select Form
+                                           </label>
+                                           <Select
+                                             value={
+                                               block.content?.formId ||
+                                               ""
+                                             }
+                                             onChange={(e) =>
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "formId",
+                                                 e.target.value
+                                                   ? parseInt(
+                                                       e.target.value
+                                                     )
+                                                   : null
+                                               )
+                                             }
+                                             options={[
+                                               {
+                                                 value: "",
+                                                 label:
+                                                   "- Select a form -",
+                                               },
+                                               ...(
+                                                 block._forms || []
+                                               ).map((form) => ({
+                                                 value:
+                                                   form.id.toString(),
+                                                 label: form.title,
+                                               })),
+                                             ]}
+                                           />
+                                           {/* The "Load Forms" button below will be removed */}
+                                           {/*
+                                           <button
+                                             type="button"
+                                             className="mt-2 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                                             onClick={async () => {
+                                               try {
+                                                 const { data } =
+                                                   await http.get(
+                                                     "/forms/published"
+                                                   );
+                                                 const updatedBlocks = [
+                                                   ...formData.blocks,
+                                                 ];
+                                                 updatedBlocks[index] = {
+                                                   ...updatedBlocks[
+                                                     index
+                                                   ],
+                                                   _forms: data || [],
+                                                 };
+                                                 setFormData((prev) => ({
+                                                   ...prev,
+                                                   blocks: updatedBlocks,
+                                                 }));
+                                                 toast.success(
+                                                   "Forms loaded successfully"
+                                                 );
+                                               } catch (error) {
+                                                 console.error(
+                                                   "Error loading forms:",
+                                                   error
+                                                 );
+                                                 toast.error(
+                                                   "Failed to load forms"
+                                                 );
+                                               }
+                                             }}
+                                           >
+                                             <Icon
+                                               icon="ArrowPath"
+                                               className="h-4 w-4 mr-1"
+                                             />
+                                             Load Forms
+                                           </button>
+                                           */}
+                                         </div>
+
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Submit Button Text
+                                           </label>
+                                           <Textinput
+                                             value={
+                                               block.content
+                                                 ?.buttonText || ""
+                                             }
+                                             onChange={(e) =>
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "buttonText",
+                                                 e.target.value
+                                               )
+                                             }
+                                             placeholder="Submit"
+                                           />
+                                         </div>
+
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Button Color
+                                           </label>
+                                           <div className="flex items-center">
+                                             <input
+                                               type="color"
+                                               value={
+                                                 block.content
+                                                   ?.buttonColor ||
+                                                 "#2563eb"
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "buttonColor",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               className="h-9 w-16 p-1 border rounded mr-2"
+                                             />
+                                             <Textinput
+                                               value={
+                                                 block.content
+                                                   ?.buttonColor ||
+                                                 "#2563eb"
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "buttonColor",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               placeholder="#2563eb"
+                                             />
+                                           </div>
+                                         </div>
+
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Success Message
+                                           </label>
+                                           <Textarea
+                                             value={
+                                               block.content
+                                                 ?.successMessage || ""
+                                             }
+                                             onChange={(e) =>
+                                               handleBlockContentChange(
+                                                 index,
+                                                 "successMessage",
+                                                 e.target.value
+                                               )
+                                             }
+                                             rows={2}
+                                             placeholder="Thank you for your submission! We'll get back to you soon."
+                                           />
+                                         </div>
+
+                                         <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                           <div className="flex items-center mb-2">
+                                             <input
+                                               type="checkbox"
+                                               className="h-4 w-4 text-primary-600 border-gray-300 rounded mr-2"
+                                               checked={
+                                                 block.content
+                                                   ?.showBackground ||
+                                                 false
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "showBackground",
+                                                   e.target.checked
+                                                 )
+                                               }
+                                               id={`show-bg-${index}`}
+                                             />
+                                             <label
+                                               htmlFor={`show-bg-${index}`}
+                                               className="text-sm text-gray-700"
+                                             >
+                                               Show Background
+                                             </label>
+                                           </div>
+
+                                           {block.content
+                                             ?.showBackground && (
+                                             <div>
+                                               <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                 Background Color
+                                               </label>
+                                               <div className="flex items-center">
+                                                 <input
+                                                   type="color"
+                                                   value={
+                                                     block.content
+                                                       ?.backgroundColor ||
+                                                     "#f3f4f6"
+                                                   }
+                                                   onChange={(e) =>
+                                                     handleBlockContentChange(
+                                                       index,
+                                                       "backgroundColor",
+                                                       e.target.value
+                                                     )
+                                                   }
+                                                   className="h-9 w-16 p-1 border rounded mr-2"
+                                                 />
+                                                 <Textinput
+                                                   value={
+                                                     block.content
+                                                       ?.backgroundColor ||
+                                                     "#f3f4f6"
+                                                   }
+                                                   onChange={(e) =>
+                                                     handleBlockContentChange(
+                                                       index,
+                                                       "backgroundColor",
+                                                       e.target.value
+                                                     )
+                                                   }
+                                                   placeholder="#f3f4f6"
+                                                 />
+                                               </div>
+                                             </div>
+                                           )}
+                                         </div>
+                                       </div>
+                                     )}
+
+                                     {block.type === "gallery" && (
+                                       <div className="space-y-3">
+                                         <Textinput
+                                           label="Section Title"
+                                           value={
+                                             block.content
+                                               ?.sectionTitle || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "sectionTitle",
+                                               e.target.value
+                                             )
+                                           }
+                                           placeholder="Gallery Title"
+                                         />
+                                         
+                                         <Textinput
+                                           label="Total Count Text"
+                                           value={
+                                             block.content
+                                               ?.totalCountText || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "totalCountText",
+                                               e.target.value
+                                             )
+                                           }
+                                           placeholder="(132 total)"
+                                         />
+                                         
+                                         <Textinput
+                                           label="View All Text"
+                                           value={
+                                             block.content
+                                               ?.viewAllText || ""
+                                           }
+                                           onChange={(e) =>
+                                             handleBlockContentChange(
+                                               index,
+                                               "viewAllText",
+                                               e.target.value
+                                             )
+                                           }
+                                           placeholder="View all photos"
+                                         />
+                                         
+                                         <div className="space-y-4 mt-2 border-t pt-4">
+                                           <h4 className="font-medium text-sm">
+                                             Gallery Images:
+                                           </h4>
+                                           {(block.content?.galleryImages || []).map((image, imageIndex) => {
+                                             const identifier = {
+                                               blockIndex: index,
+                                               imageIndex: imageIndex,
+                                             };
+                                             const uploadKey = `gallery-${index}-${imageIndex}`;
+                                             const uState = uploadStates[uploadKey] || {
+                                               loading: false,
+                                               error: null,
+                                             };
+                                             return (
+                                               <div
+                                                 key={imageIndex}
+                                                 className="border p-3 rounded bg-slate-50 space-y-3 relative"
+                                               >
+                                                 <button
+                                                   type="button"
+                                                   onClick={() =>
+                                                     handleRemoveItem(
+                                                       index,
+                                                       "galleryImages",
+                                                       imageIndex
+                                                     )
+                                                   }
+                                                   className="absolute top-1 right-1 p-1 text-red-500 hover:bg-red-100 rounded-full z-10"
+                                                   aria-label="Remove Image"
+                                                 >
+                                                   <Icon
+                                                     icon="XMark"
+                                                     className="h-4 w-4"
+                                                   />
+                                                 </button>
+
+                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                   <div className="sm:col-span-1">
+                                                     <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                       Image {imageIndex + 1}
+                                                     </label>
+                                                     <MediaUpload
+                                                       file={image.imageUrl}
+                                                       onDrop={(e) =>
+                                                         handleGalleryImageUpload(
+                                                           e,
+                                                           identifier
+                                                         )
+                                                       }
+                                                       onRemove={() =>
+                                                         handleRemoveGalleryImage(
+                                                           identifier
+                                                         )
+                                                       }
+                                                       loading={uState.loading}
+                                                       error={uState.error}
+                                                       maxSize={5 * 1024 * 1024}
+                                                       identifier={identifier}
+                                                     />
+                                                   </div>
+                                                   <div className="sm:col-span-2 space-y-3">
+                                                     <Textinput
+                                                       label={`Image ${imageIndex + 1} Caption`}
+                                                       value={
+                                                         image.caption ||
+                                                         ""
+                                                       }
+                                                       onChange={(e) =>
+                                                         handleItemChange(
+                                                           index,
+                                                           "galleryImages",
+                                                           imageIndex,
+                                                           "caption",
+                                                           e.target.value
+                                                         )
+                                                       }
+                                                       placeholder="Image caption"
+                                                     />
+                                                     <Textinput
+                                                       label={`Image ${imageIndex + 1} Alt Text`}
+                                                       value={
+                                                         image.altText ||
+                                                         ""
+                                                       }
+                                                       onChange={(e) =>
+                                                         handleItemChange(
+                                                           index,
+                                                           "galleryImages",
+                                                           imageIndex,
+                                                           "altText",
+                                                           e.target.value
+                                                         )
+                                                       }
+                                                       placeholder="Image alt text"
+                                                     />
+                                                   </div>
+                                                 </div>
+                                               </div>
+                                             );
+                                           })}
+                                           <Button
+                                             text="Add Image"
+                                             className="btn-outline-primary btn-sm"
+                                             onClick={() =>
+                                               handleAddItem(
+                                                 index,
+                                                 "galleryImages",
+                                                 {
+                                                   imageUrl: null,
+                                                   caption: "",
+                                                   altText: "",
+                                                 }
+                                               )
+                                             }
+                                             icon="Plus"
+                                             type="button"
+                                           />
+                                         </div>
+                                       </div>
+                                     )}
+                                   </div>
+                                 )}
+                               </div>
+                             )}
+                           </Draggable>
+                         ))}
+                         {provided.placeholder}
+                       </div>
+                     )}
+                   </Droppable>
+                 </DragDropContext>
+               </div>
+             </Disclosure.Panel>
+           </Transition>
+         </Card>
+       )}
+     </Disclosure>
+)}
+
+         
         </form>
       </div>
       <div

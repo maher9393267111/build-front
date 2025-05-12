@@ -406,3 +406,26 @@ export const getNextPreviousBlog = async (id) => {
     previous: data.previous
   };
 };
+
+// Site SEO Analysis API
+export const analyzeSiteSEO = async (siteData, pageData) => {
+  const { data } = await http.post('/analyze-site', { siteData, pageData });
+  return data;
+};
+
+
+// ... existing code ...
+
+// Add note to a submission
+export const addNoteToSubmission = async (formId, submissionId, content) => {
+  const { data } = await http.post(`/forms/${formId}/submissions/${submissionId}/notes`, { content });
+  return data;
+};
+
+// Delete note from a submission
+export const deleteNoteFromSubmission = async (formId, submissionId, noteId) => {
+  const { data } = await http.delete(`/forms/${formId}/submissions/${submissionId}/notes/${noteId}`);
+  return data;
+};
+
+// ... existing code ...

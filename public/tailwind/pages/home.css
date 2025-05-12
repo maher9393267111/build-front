@@ -26,7 +26,7 @@
 }
 
 .breadcrumb {
-    background: url('/images/bg/11.jpg');
+    background: url('/images/bg/11.jpg'); /* Default background */
     background-size: cover;
     background-position: center;
     position: relative;

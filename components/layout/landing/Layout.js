@@ -24,7 +24,7 @@ import { useSelector } from 'react-redux'
 
 
 
-const Layout = ({ headerStyle, footerStyle, children, headerBg, breadcrumbTitle, breadcrumbSubTitle, breadcrumbAlign }) => {
+const Layout = ({ headerStyle, footerStyle, children, headerBg, breadcrumbTitle, breadcrumbSubTitle, breadcrumbAlign, breadcrumbImage }) => {
     const [isToggled, setToggled] = useState(false)
     const handleToggle = () => setToggled(!isToggled)
     const {showPopupMyProfile} = useSelector(state => state.profile); 
@@ -69,7 +69,12 @@ const Layout = ({ headerStyle, footerStyle, children, headerBg, breadcrumbTitle,
             {headerStyle === 5 && <Header5 isToggled={isToggled} handleToggle={handleToggle} scroll={scroll} pagesData={pagesData || []} isLoading={isLoading} settings={settings} />}
             <MobileMenu pagesData={pagesData || []} isToggled={isToggled} handleToggle={handleToggle} settings={settings} />
             {breadcrumbTitle &&
-                <Breadcrumb breadcrumbTitle={breadcrumbTitle} breadcrumbSubTitle={breadcrumbSubTitle} breadcrumbAlign={breadcrumbAlign} />
+                <Breadcrumb  
+                    breadcrumbTitle={breadcrumbTitle} 
+                    breadcrumbSubTitle={breadcrumbSubTitle} 
+                    breadcrumbAlign={breadcrumbAlign}
+                    backgroundImage={breadcrumbImage}
+                />
             }
             {children}
             {!footerStyle && <Footer1 settings={settings} />}

@@ -7,11 +7,12 @@ import Button from '@components/ui/Button';
 import Table from '@components/ui/Table';
 import Icon from '@components/ui/Icon';
 import { toast } from 'react-toastify';
-import { getFormById, getFormSubmissions, updateFormSubmissionStatus, deleteFormSubmission } from '@services/api';
+import { getFormById, getFormSubmissions, updateFormSubmissionStatus, deleteFormSubmission, addNoteToSubmission, deleteNoteFromSubmission } from '@services/api';
 import PaginationDynamic from '@components/elements/PaginationDynamic';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { Listbox } from '@headlessui/react';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const FormSubmissionsPage = ({ params }) => {
   const { id } = params;
@@ -26,6 +27,9 @@ const FormSubmissionsPage = ({ params }) => {
   const [newStatus, setNewStatus] = useState('');
   const [deleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
   const [submissionToDelete, setSubmissionToDelete] = useState(null);
+  const [viewMode, setViewMode] = useState('table');
+  const [newNote, setNewNote] = useState('');
+  const [addingNote, setAddingNote] = useState(false);
 
   const { data: form, isLoading: formLoading } = useQuery(
     ['form', formId],
@@ -40,8 +44,11 @@ const FormSubmissionsPage = ({ params }) => {
   );
 
   const { data: submissionsData, isLoading: submissionsLoading, isError } = useQuery(
-    ['formSubmissions', formId, currentPage],
-    () => getFormSubmissions(formId, { page: currentPage, limit: 3 }),
+    ['formSubmissions', formId, currentPage, viewMode],
+    () => getFormSubmissions(formId, { 
+      page: currentPage, 
+      limit: viewMode === 'pipeline' ? 100 : 12
+    }),
     {
       enabled: !!form,
       keepPreviousData: true,
@@ -57,15 +64,33 @@ const FormSubmissionsPage = ({ params }) => {
   const updateStatusMutation = useMutation(
     ({ formId, submissionId, status }) => updateFormSubmissionStatus(formId, submissionId, status),
     {
+      onMutate: async ({ formId, submissionId, status }) => {
+        await queryClient.cancelQueries(['formSubmissions', formId, currentPage, viewMode]);
+        
+        const previousData = queryClient.getQueryData(['formSubmissions', formId, currentPage, viewMode]);
+        
+        // Optimistically update the submission's status in the cache
+        queryClient.setQueryData(['formSubmissions', formId, currentPage, viewMode], old => {
+          if (!old) return old;
+          return {
+            ...old,
+            submissions: old.submissions.map(submission =>
+              submission.id === submissionId ? { ...submission, status } : submission
+            ),
+          };
+        });
+        
+        return { previousData };
+      },
+      onError: (err, variables, context) => {
+        // Rollback on error
+        if (context?.previousData) {
+          queryClient.setQueryData(['formSubmissions', formId, currentPage, viewMode], context.previousData);
+        }
+        toast.error('Failed to update status');
+      },
       onSuccess: () => {
         toast.success('Submission status updated successfully');
-        queryClient.invalidateQueries(['formSubmissions', formId, currentPage]);
-        setStatusChangeModalOpen(false);
-        setSubmissionToUpdate(null);
-      },
-      onError: (error) => {
-        console.error('Error updating submission status:', error);
-        toast.error('Failed to update submission status');
       },
     }
   );
@@ -84,6 +109,54 @@ const FormSubmissionsPage = ({ params }) => {
         toast.error('Failed to delete submission');
         setDeleteConfirmModalOpen(false);
         setSubmissionToDelete(null);
+      },
+    }
+  );
+
+  const addNoteMutation = useMutation(
+    ({ formId, submissionId, content }) => addNoteToSubmission(formId, submissionId, content),
+    {
+      onSuccess: () => {
+        toast.success('Note added successfully');
+        setNewNote('');
+        setAddingNote(false);
+        queryClient.invalidateQueries(['formSubmissions', formId, currentPage, viewMode]);
+        
+        // Refresh currentSubmission data after adding a note
+        if (currentSubmission) {
+          getFormSubmissions(formId, { page: currentPage, limit: viewMode === 'pipeline' ? 100 : 12 })
+            .then(data => {
+              const updatedSubmission = data.submissions.find(sub => sub.id === currentSubmission.id);
+              if (updatedSubmission) setCurrentSubmission(updatedSubmission);
+            });
+        }
+      },
+      onError: (error) => {
+        console.error('Error adding note:', error);
+        toast.error('Failed to add note');
+      },
+    }
+  );
+
+  const deleteNoteMutation = useMutation(
+    ({ formId, submissionId, noteId }) => deleteNoteFromSubmission(formId, submissionId, noteId),
+    {
+      onSuccess: () => {
+        toast.success('Note deleted successfully');
+        queryClient.invalidateQueries(['formSubmissions', formId, currentPage, viewMode]);
+        
+        // Refresh currentSubmission data after deleting a note
+        if (currentSubmission) {
+          getFormSubmissions(formId, { page: currentPage, limit: viewMode === 'pipeline' ? 100 : 12 })
+            .then(data => {
+              const updatedSubmission = data.submissions.find(sub => sub.id === currentSubmission.id);
+              if (updatedSubmission) setCurrentSubmission(updatedSubmission);
+            });
+        }
+      },
+      onError: (error) => {
+        console.error('Error deleting note:', error);
+        toast.error('Failed to delete note');
       },
     }
   );
@@ -126,6 +199,24 @@ const FormSubmissionsPage = ({ params }) => {
         submissionId: submissionToDelete.id,
       });
     }
+  };
+
+  const handleAddNote = () => {
+    if (!newNote.trim()) return;
+    
+    addNoteMutation.mutate({
+      formId,
+      submissionId: currentSubmission.id,
+      content: newNote
+    });
+  };
+
+  const handleDeleteNote = (noteId) => {
+    deleteNoteMutation.mutate({
+      formId,
+      submissionId: currentSubmission.id,
+      noteId
+    });
   };
 
   const getSubmissionValue = (submission, field) => {
@@ -188,6 +279,43 @@ const FormSubmissionsPage = ({ params }) => {
         return typeof value === 'object' ? JSON.stringify(value) : value;
     }
   };
+
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+  };
+  
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+    
+    const { source, destination, draggableId } = result;
+    
+    // Only process if moving between different columns
+    if (source.droppableId !== destination.droppableId) {
+      const submissionId = parseInt(draggableId.split('-')[1]);
+      const newStatus = destination.droppableId;
+      
+      updateStatusMutation.mutate({
+        formId,
+        submissionId,
+        status: newStatus,
+      });
+    }
+  };
+  
+  // Group submissions by status for pipeline view
+  const submissionsByStatus = {
+    new: submissionsData?.submissions?.filter(submission => submission.status === 'new') || [],
+    processed: submissionsData?.submissions?.filter(submission => submission.status === 'processed') || [],
+    closed: submissionsData?.submissions?.filter(submission => submission.status === 'closed') || [],
+  };
+
+  // Reset addingNote state when modal is closed
+  useEffect(() => {
+    if (!detailsModalOpen) {
+      setAddingNote(false);
+      setNewNote('');
+    }
+  }, [detailsModalOpen]);
 
   if (formLoading) {
     return (
@@ -280,12 +408,28 @@ const FormSubmissionsPage = ({ params }) => {
             <h4 className="card-title">{form?.title} - Submissions</h4>
             <p className="text-gray-500 text-sm mt-1">View and manage form submissions</p>
           </div>
-          <Button
-            text="Back to Forms"
-            icon="ArrowLeft"
-            className="btn-outline-primary"
-            onClick={() => router.push('/admin/forms')}
-          />
+          <div className="flex space-x-3">
+            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+              <button
+                className={`px-3 py-1 rounded-md ${viewMode === 'table' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                onClick={() => handleViewModeChange('table')}
+              >
+                <Icon icon="Bars3" className="h-5 w-5" />
+              </button>
+              <button
+                className={`px-3 py-1 rounded-md ${viewMode === 'pipeline' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                onClick={() => handleViewModeChange('pipeline')}
+              >
+                <Icon icon="ViewColumns" className="h-5 w-5" />
+              </button>
+            </div>
+            <Button
+              text="Back to Forms"
+              icon="ArrowLeft"
+              className="btn-outline-primary"
+              onClick={() => router.push('/admin/forms')}
+            />
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -295,14 +439,303 @@ const FormSubmissionsPage = ({ params }) => {
             </div>
           ) : submissionsData?.submissions?.length > 0 ? (
             <>
-              <Table columns={columns} data={submissionsData.submissions} />
-              {submissionsData.totalPages > 1 && (
-                <div className="flex justify-center mt-6">
-                  <PaginationDynamic
-                    currentPage={currentPage}
-                    totalPages={submissionsData.totalPages}
-                    onPageChange={handlePageChange}
-                  />
+              {viewMode === 'table' ? (
+                <>
+                  <Table columns={columns} data={submissionsData.submissions} />
+                  {submissionsData.totalPages > 1 && (
+                    <div className="flex justify-center mt-6">
+                      <PaginationDynamic
+                        currentPage={currentPage}
+                        totalPages={submissionsData.totalPages}
+                        onPageChange={handlePageChange}
+                      />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="overflow-x-auto py-2">
+                  <DragDropContext onDragEnd={handleDragEnd}>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* New Column */}
+                      <div className="bg-slate-50 rounded-xl shadow-sm border border-slate-200">
+                        <div className="p-4 border-b border-slate-200">
+                          <h3 className="font-semibold text-base text-slate-700 mb-0 flex items-center">
+                            <span className="inline-block w-2.5 h-2.5 rounded-full mr-2.5 bg-blue-500"></span>
+                            New
+                            <span className="ml-auto text-slate-500 text-xs font-medium bg-slate-200 px-2 py-0.5 rounded-full">
+                              {submissionsByStatus.new.length}
+                            </span>
+                          </h3>
+                        </div>
+                        <Droppable droppableId="new">
+                          {(provided, snapshot) => (
+                            <div
+                              {...provided.droppableProps}
+                              ref={provided.innerRef}
+                              className={`p-4 min-h-[60vh] transition-colors duration-200 ease-in-out ${snapshot.isDraggingOver ? 'bg-sky-50' : 'bg-slate-50'}`}
+                            >
+                              {submissionsByStatus.new.map((submission, index) => (
+                                <Draggable
+                                  key={`submission-${submission.id}`}
+                                  draggableId={`submission-${submission.id}`}
+                                  index={index}
+                                >
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className={`bg-white p-3.5 mb-4 rounded-lg shadow-md border border-slate-200 hover:shadow-lg transition-shadow duration-200 ease-in-out ${snapshot.isDragging ? 'shadow-xl scale-105 !bg-sky-100 border-sky-300' : ''}`}
+                                    >
+                                      <div className="flex justify-between items-start mb-2.5">
+                                        <h4 className="font-semibold text-sm text-slate-800">Submission #{submission.id}</h4>
+                                        <div className="flex space-x-1.5">
+                                          <button
+                                            onClick={() => handleViewDetails(submission)}
+                                            className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                          >
+                                            <Icon icon="Eye" className="h-4 w-4" />
+                                          </button>
+                                          <button
+                                            onClick={() => handleStatusChange(submission)}
+                                            className="p-1 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+                                          >
+                                            <Icon icon="ArrowPathRoundedSquare" className="h-4 w-4" />
+                                          </button>
+                                          <button
+                                            onClick={() => handleDeleteSubmission(submission)}
+                                            className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                          >
+                                            <Icon icon="Trash" className="h-4 w-4" />
+                                          </button>
+                                        </div>
+                                      </div>
+                                      {submission.data && (
+                                        <div className="text-slate-700 font-medium text-xs mb-2">
+                                          {form?.fields?.slice(0, 2).map(field => {
+                                            const value = getSubmissionValue(submission, field);
+                                            return value ? (
+                                              <div key={field.id} className="mb-1">
+                                                <span className="text-slate-500">{field.label}: </span>
+                                                <span className="text-slate-700">
+                                                  {typeof value === 'string' && value.length > 30 
+                                                    ? value.substring(0, 30) + '...' 
+                                                    : String(value)}
+                                                </span>
+                                              </div>
+                                            ) : null;
+                                          })}
+                                        </div>
+                                      )}
+                                      <div className="mt-3 pt-2.5 border-t border-slate-100 text-xs text-slate-500 flex justify-between items-center">
+                                        <span>
+                                          {new Date(submission.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                              {submissionsByStatus.new.length === 0 && (
+                                <div className="text-center py-10 text-slate-400 border-2 border-dashed border-slate-200 rounded-lg mt-4">
+                                  <Icon icon="InboxArrowDown" className="h-10 w-10 mx-auto mb-2 text-slate-300" />
+                                  <p className="text-sm font-medium">No submissions here</p>
+                                  <p className="text-xs">Drag and drop to add</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </Droppable>
+                      </div>
+
+                      {/* Processed Column */}
+                      <div className="bg-slate-50 rounded-xl shadow-sm border border-slate-200">
+                        <div className="p-4 border-b border-slate-200">
+                          <h3 className="font-semibold text-base text-slate-700 mb-0 flex items-center">
+                            <span className="inline-block w-2.5 h-2.5 rounded-full mr-2.5 bg-green-500"></span>
+                            Processed
+                            <span className="ml-auto text-slate-500 text-xs font-medium bg-slate-200 px-2 py-0.5 rounded-full">
+                              {submissionsByStatus.processed.length}
+                            </span>
+                          </h3>
+                        </div>
+                        <Droppable droppableId="processed">
+                          {(provided, snapshot) => (
+                            <div
+                              {...provided.droppableProps}
+                              ref={provided.innerRef}
+                              className={`p-4 min-h-[60vh] transition-colors duration-200 ease-in-out ${snapshot.isDraggingOver ? 'bg-sky-50' : 'bg-slate-50'}`}
+                            >
+                              {submissionsByStatus.processed.map((submission, index) => (
+                                <Draggable
+                                  key={`submission-${submission.id}`}
+                                  draggableId={`submission-${submission.id}`}
+                                  index={index}
+                                >
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className={`bg-white p-3.5 mb-4 rounded-lg shadow-md border border-slate-200 hover:shadow-lg transition-shadow duration-200 ease-in-out ${snapshot.isDragging ? 'shadow-xl scale-105 !bg-sky-100 border-sky-300' : ''}`}
+                                    >
+                                      <div className="flex justify-between items-start mb-2.5">
+                                        <h4 className="font-semibold text-sm text-slate-800">Submission #{submission.id}</h4>
+                                        <div className="flex space-x-1.5">
+                                          <button
+                                            onClick={() => handleViewDetails(submission)}
+                                            className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                          >
+                                            <Icon icon="Eye" className="h-4 w-4" />
+                                          </button>
+                                          <button
+                                            onClick={() => handleStatusChange(submission)}
+                                            className="p-1 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+                                          >
+                                            <Icon icon="ArrowPathRoundedSquare" className="h-4 w-4" />
+                                          </button>
+                                          <button
+                                            onClick={() => handleDeleteSubmission(submission)}
+                                            className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                          >
+                                            <Icon icon="Trash" className="h-4 w-4" />
+                                          </button>
+                                        </div>
+                                      </div>
+                                      {submission.data && (
+                                        <div className="text-slate-700 font-medium text-xs mb-2">
+                                          {form?.fields?.slice(0, 2).map(field => {
+                                            const value = getSubmissionValue(submission, field);
+                                            return value ? (
+                                              <div key={field.id} className="mb-1">
+                                                <span className="text-slate-500">{field.label}: </span>
+                                                <span className="text-slate-700">
+                                                  {typeof value === 'string' && value.length > 30 
+                                                    ? value.substring(0, 30) + '...' 
+                                                    : String(value)}
+                                                </span>
+                                              </div>
+                                            ) : null;
+                                          })}
+                                        </div>
+                                      )}
+                                      <div className="mt-3 pt-2.5 border-t border-slate-100 text-xs text-slate-500 flex justify-between items-center">
+                                        <span>
+                                          {new Date(submission.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                              {submissionsByStatus.processed.length === 0 && (
+                                <div className="text-center py-10 text-slate-400 border-2 border-dashed border-slate-200 rounded-lg mt-4">
+                                  <Icon icon="InboxArrowDown" className="h-10 w-10 mx-auto mb-2 text-slate-300" />
+                                  <p className="text-sm font-medium">No submissions here</p>
+                                  <p className="text-xs">Drag and drop to add</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </Droppable>
+                      </div>
+
+                      {/* Closed Column */}
+                      <div className="bg-slate-50 rounded-xl shadow-sm border border-slate-200">
+                        <div className="p-4 border-b border-slate-200">
+                          <h3 className="font-semibold text-base text-slate-700 mb-0 flex items-center">
+                            <span className="inline-block w-2.5 h-2.5 rounded-full mr-2.5 bg-gray-500"></span>
+                            Closed
+                            <span className="ml-auto text-slate-500 text-xs font-medium bg-slate-200 px-2 py-0.5 rounded-full">
+                              {submissionsByStatus.closed.length}
+                            </span>
+                          </h3>
+                        </div>
+                        <Droppable droppableId="closed">
+                          {(provided, snapshot) => (
+                            <div
+                              {...provided.droppableProps}
+                              ref={provided.innerRef}
+                              className={`p-4 min-h-[60vh] transition-colors duration-200 ease-in-out ${snapshot.isDraggingOver ? 'bg-sky-50' : 'bg-slate-50'}`}
+                            >
+                              {submissionsByStatus.closed.map((submission, index) => (
+                                <Draggable
+                                  key={`submission-${submission.id}`}
+                                  draggableId={`submission-${submission.id}`}
+                                  index={index}
+                                >
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className={`bg-white p-3.5 mb-4 rounded-lg shadow-md border border-slate-200 hover:shadow-lg transition-shadow duration-200 ease-in-out ${snapshot.isDragging ? 'shadow-xl scale-105 !bg-sky-100 border-sky-300' : ''}`}
+                                    >
+                                      <div className="flex justify-between items-start mb-2.5">
+                                        <h4 className="font-semibold text-sm text-slate-800">Submission #{submission.id}</h4>
+                                        <div className="flex space-x-1.5">
+                                          <button
+                                            onClick={() => handleViewDetails(submission)}
+                                            className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                          >
+                                            <Icon icon="Eye" className="h-4 w-4" />
+                                          </button>
+                                          <button
+                                            onClick={() => handleStatusChange(submission)}
+                                            className="p-1 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+                                          >
+                                            <Icon icon="ArrowPathRoundedSquare" className="h-4 w-4" />
+                                          </button>
+                                          <button
+                                            onClick={() => handleDeleteSubmission(submission)}
+                                            className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                          >
+                                            <Icon icon="Trash" className="h-4 w-4" />
+                                          </button>
+                                        </div>
+                                      </div>
+                                      {submission.data && (
+                                        <div className="text-slate-700 font-medium text-xs mb-2">
+                                          {form?.fields?.slice(0, 2).map(field => {
+                                            const value = getSubmissionValue(submission, field);
+                                            return value ? (
+                                              <div key={field.id} className="mb-1">
+                                                <span className="text-slate-500">{field.label}: </span>
+                                                <span className="text-slate-700">
+                                                  {typeof value === 'string' && value.length > 30 
+                                                    ? value.substring(0, 30) + '...' 
+                                                    : String(value)}
+                                                </span>
+                                              </div>
+                                            ) : null;
+                                          })}
+                                        </div>
+                                      )}
+                                      <div className="mt-3 pt-2.5 border-t border-slate-100 text-xs text-slate-500 flex justify-between items-center">
+                                        <span>
+                                          {new Date(submission.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                              {submissionsByStatus.closed.length === 0 && (
+                                <div className="text-center py-10 text-slate-400 border-2 border-dashed border-slate-200 rounded-lg mt-4">
+                                  <Icon icon="InboxArrowDown" className="h-10 w-10 mx-auto mb-2 text-slate-300" />
+                                  <p className="text-sm font-medium">No submissions here</p>
+                                  <p className="text-xs">Drag and drop to add</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </Droppable>
+                      </div>
+                    </div>
+                  </DragDropContext>
                 </div>
               )}
             </>
@@ -352,12 +785,6 @@ const FormSubmissionsPage = ({ params }) => {
                   <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-6 py-4">
                     <Dialog.Title as="h3" className="text-lg font-semibold text-white">
                       Submission Details
-                      {/* {currentSubmission && (
-                        <div className="text-sm text-white/80 mt-1 flex items-center">
-                          <Icon icon="Calendar" className="h-4 w-4 mr-1" />
-                          {new Date(currentSubmission.createdAt).toLocaleString()}
-                        </div>
-                      )} */}
                     </Dialog.Title>
                   </div>
 
@@ -407,6 +834,94 @@ const FormSubmissionsPage = ({ params }) => {
                             </div>
                           </div>
                         ))}
+                      </div>
+                      
+                      {/* Notes Section - Enhanced Design */}
+                      <div className="mt-6 bg-gray-50 rounded-xl p-5 border">
+                        <div className="flex justify-between items-center mb-4">
+                          <h4 className="font-medium text-gray-700 flex items-center">
+                            <Icon icon="ChatBubbleBottomCenterText" className="h-5 w-5 mr-2 text-gray-500" />
+                            Notes
+                          </h4>
+                          {!addingNote && (
+                            <button
+                              className="text-sm bg-white text-primary-600 hover:text-primary-700 flex items-center px-3 py-1.5 rounded-lg border border-gray-200 hover:border-primary-200 transition-colors shadow-sm"
+                              onClick={() => setAddingNote(true)}
+                            >
+                              <Icon icon="Plus" className="h-4 w-4 mr-1" />
+                              Add Note
+                            </button>
+                          )}
+                        </div>
+                        
+                        {addingNote && (
+                          <div className="mb-4 bg-white p-4 rounded-lg border shadow-sm">
+                            <textarea
+                              className="w-full rounded-lg border-2 border-gray-200 p-3 min-h-[100px] focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all outline-none resize-vertical"
+                              placeholder="Add a note about this submission..."
+                              value={newNote}
+                              onChange={(e) => setNewNote(e.target.value)}
+                            />
+                            <div className="flex justify-end mt-3 space-x-2">
+                              <button
+                                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                                onClick={() => {
+                                  setAddingNote(false);
+                                  setNewNote('');
+                                }}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                className="px-3 py-1.5 text-sm bg-primary-500 text-white rounded-md hover:bg-primary-600 flex items-center disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                onClick={handleAddNote}
+                                disabled={addNoteMutation.isLoading || !newNote.trim()}
+                              >
+                                {addNoteMutation.isLoading ? (
+                                  <span className="flex items-center">
+                                    <div className="loader animate-spin border-2 border-t-2 rounded-full h-4 w-4 border-white border-t-transparent mr-1.5"></div>
+                                    Saving...
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center">
+                                    <Icon icon="PaperAirplane" className="h-4 w-4 mr-1.5" />
+                                    Add Note
+                                  </span>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {currentSubmission?.notes && Array.isArray(currentSubmission.notes) && currentSubmission.notes.length > 0 ? (
+                          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                            {currentSubmission.notes.map((note) => (
+                              <div key={note.id} className="bg-white p-3.5 rounded-lg border shadow-sm hover:shadow-md transition-shadow">
+                                <div className="flex justify-between items-start">
+                                  <div className="text-gray-800 break-words whitespace-pre-wrap">
+                                    {note.content}
+                                  </div>
+                                  <button
+                                    className="text-gray-400 hover:text-red-500 ml-2 p-1 hover:bg-red-50 rounded-full transition-colors"
+                                    onClick={() => handleDeleteNote(note.id)}
+                                    title="Delete note"
+                                  >
+                                    <Icon icon="XCircle" className="h-4 w-4" />
+                                  </button>
+                                </div>
+                                <div className="text-gray-400 text-xs mt-2 flex items-center">
+                                  <Icon icon="Clock" className="h-3.5 w-3.5 mr-1" />
+                                  {new Date(note.createdAt).toLocaleString()}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center p-6 text-gray-500 bg-white rounded-lg border border-dashed">
+                            <Icon icon="ChatBubbleLeftEllipsis" className="h-6 w-6 mx-auto mb-2 text-gray-400" />
+                            <p className="text-sm">No notes added yet.</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

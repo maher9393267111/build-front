@@ -102,4 +102,69 @@ li {
 }
 
 
+/* ---------- */
+/* Add to your global CSS or create a new component */
+.contact-page-form form .mb-4 {
+    margin-bottom: 1.25rem; /* 20px */
+  }
+  
+  .contact-page-form form input[type="text"],
+  .contact-page-form form input[type="email"],
+  .contact-page-form form input[type="tel"],
+  .contact-page-form form select,
+  .contact-page-form form textarea {
+    width: 100%;
+    padding: 1rem; /* 16px */
+    color: #1f2937; /* text-gray-800 */
+    background-color: #f9fafb; /* bg-gray-50 */
+    border-radius: 0.5rem; /* rounded-lg */
+    border: 1px solid #e5e7eb; /* border-gray-200 */
+    outline: none;
+    transition: all 0.2s;
+  }
+  
+  .contact-page-form form input:focus,
+  .contact-page-form form select:focus,
+  .contact-page-form form textarea:focus {
+    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+    --tw-ring-color: rgba(59, 130, 246, 0.5); /* focus:ring-primary-400 */
+    --tw-ring-opacity: 0.5;
+    border-color: #60a5fa; /* focus:border-primary-400 */
+  }
+  
+  .contact-page-form form label {
+    display: block;
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500; /* font-medium */
+    color: #374151; /* text-gray-700 */
+    margin-bottom: 0.25rem; /* mb-1 */
+  }
+  
+  .contact-page-form form button[type="submit"] {
+    padding: 1rem 2rem; /* py-4 px-8 */
+    color: white;
+    font-weight: 600; /* font-semibold */
+    text-align: center;
+    width: 100%;
+    border-radius: 0.5rem; /* rounded-lg */
+    background-color: var(--primary-color); /* bg-primary-600 */
+    transition-property: all;
+    transition-duration: 300ms;
+    transform: translateY(0);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+  }
+  
+  .contact-page-form form button[type="submit"]:hover {
+    background-color: var(--primary-color-dark, #4338ca); /* hover:bg-primary-700 */
+    transform: translateY(-0.25rem); /* hover:-translate-y-1 */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* hover:shadow-xl */
+  }
+  
+  @media (min-width: 768px) {
+    .contact-page-form form button[type="submit"] {
+      width: auto;
+    }
+  }
 

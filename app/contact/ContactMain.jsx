@@ -1,20 +1,28 @@
+
 'use client';
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import SectionTitle from '@components/elements/SectionTitle'
-import NewsletterSection1 from '@components/sections/newsletter/Newsletter1'
-import { PhoneIcon, EnvelopeIcon, MapPinIcon } from '@heroicons/react/24/outline'
+// import NewsletterSection1 from '@components/sections/newsletter/Newsletter1'
+import { PhoneIcon, EnvelopeIcon, MapPinIcon, ClockIcon } from '@heroicons/react/24/outline'
 import { toast } from 'react-toastify'
 import http from '@services/api/http'
+import { getFormById, getSiteSettings } from '@services/api'
+import DynamicForm from '@components/DynamicForm'
+import FormattedWorkingHours from './FormattedWorkingHours'
 
 const ContactPageContent = ({ initialSettings }) => {
+    console.log('initialSettings--->', initialSettings)
     const [formData, setFormData] = useState({
         subject: '',
         name: '',
         email: '',
         message: ''
     })
+
     const [submitting, setSubmitting] = useState(false)
+    const [selectedForm, setSelectedForm] = useState(null)
+    const [loading, setLoading] = useState(false)
     
     // Extract contact information from props
     const contactSection = initialSettings?.contactSection || {}
@@ -24,6 +32,30 @@ const ContactPageContent = ({ initialSettings }) => {
     const googleMapsEmbed = contactSection.googleMapsEmbed || ""
     const adminEmail = contactSection.adminEmail || ""
     const workingHours = contactSection.workingHours || ""
+
+    // Fetch selected form if available
+    useEffect(() => {
+        const fetchSelectedForm = async () => {
+            const contactFormId = contactSection.contactFormId;
+            if (contactFormId) {
+                try {
+                    setLoading(true);
+                    console.log('contactFormId--->', contactFormId)
+                    const formData = await getFormById(contactFormId);
+                    setSelectedForm(formData);
+                    console.log('formData2222--->', formData)
+                } catch (error) {
+                    console.error('Error fetching contact form:', error);
+                    toast.error('Could not load contact form');
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchSelectedForm();
+    }, []);
+    console.log('selectedForm--->', selectedForm)
 
     const handleInputChange = (e) => {
         const { name, value } = e.target
@@ -56,6 +88,101 @@ const ContactPageContent = ({ initialSettings }) => {
             setSubmitting(false)
         }
     }
+
+    const handleFormSubmitSuccess = () => {
+        toast.success('Form submitted successfully!');
+    };
+
+    // Custom form rendering function to match existing contact form style
+    const renderContactForm = () => {
+        if (loading) {
+            return (
+                <div className="flex justify-center items-center h-40">
+                    <div className="loader animate-spin border-4 border-t-4 rounded-full h-12 w-12 border-primary-500 border-t-transparent"></div>
+                </div>
+            );
+        }
+
+        if (selectedForm) {
+            return (
+                <DynamicForm 
+                    form={selectedForm} 
+                    onSubmitSuccess={handleFormSubmitSuccess}
+                    customButtonText="Send Message"
+                    customButtonColor="var(--primary-color)"
+                    customClass="contact-page-form"
+                    useSteps={false}
+                />
+            );
+        }
+
+        // Default contact form (original form)
+        return (
+            <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="wow animate__animated animate__fadeInUp">
+                    <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                    <input 
+                        id="subject"
+                        className="w-full p-4 text-gray-800 bg-gray-50 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-400 focus:border-primary-400 outline-none transition-all" 
+                        type="text" 
+                        placeholder="What's this about?" 
+                        name="subject"
+                        value={formData.subject}
+                        onChange={handleInputChange}
+                    />
+                </div>
+                <div className="wow animate__animated animate__fadeInUp" data-wow-delay=".1s">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input 
+                        id="name"
+                        className="w-full p-4 text-gray-800 bg-gray-50 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-400 focus:border-primary-400 outline-none transition-all" 
+                        type="text" 
+                        placeholder="Your full name" 
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </div>
+                <div className="wow animate__animated animate__fadeInUp" data-wow-delay=".2s">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input 
+                        id="email"
+                        className="w-full p-4 text-gray-800 bg-gray-50 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-400 focus:border-primary-400 outline-none transition-all" 
+                        type="email" 
+                        placeholder="you@example.com" 
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </div>
+                <div className="wow animate__animated animate__fadeInUp" data-wow-delay=".3s">
+                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                    <textarea 
+                        id="message"
+                        className="w-full h-40 p-4 text-gray-800 bg-gray-50 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-400 focus:border-primary-400 outline-none transition-all resize-none" 
+                        placeholder="Your message here..." 
+                        name="message"
+                        value={formData.message}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </div>
+                <div className="pt-2 wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
+                    <button 
+                        className={`py-4 px-8 text-white font-semibold text-center w-full md:w-auto rounded-lg bg-primary-600 hover:bg-primary-700 transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl ${
+                            submitting ? 'opacity-70 cursor-not-allowed' : ''
+                        }`} 
+                        type="submit"
+                        disabled={submitting}
+                    >
+                        {submitting ? 'Sending...' : 'Send Message'}
+                    </button>
+                </div>
+            </form>
+        );
+    };
 
     return (
         <>
@@ -116,16 +243,20 @@ const ContactPageContent = ({ initialSettings }) => {
                                         <p key={i} className='text-lg font-medium mb-1'>{line}</p>
                                     ))}
                                 </div>
-                                {workingHours && (
-                                    <div className="mt-4 pt-4 border-t border-gray-200">
-                                        <h4 className="font-semibold text-gray-800 mb-2">Working Hours</h4>
-                                        <div className="text-gray-600">
-                                            {workingHours.split('\n').map((line, i) => (
-                                                <p key={i} className='text-sm font-medium'>{line}</p>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                            </div>
+                        </div>
+                        <div className="p-8 bg-white shadow-lg rounded-xl transform transition-all duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary-500 wow animate__animated animate__fadeInUp" data-wow-delay=".6s">
+                            <div className="flex justify-center">
+                                <div className="w-16 h-16 flex items-center justify-center bg-primary-50 rounded-full mb-6">
+                                    <ClockIcon className="h-8 w-8 text-primary-600" />
+                                </div>
+                            </div>
+                            <div className="text-center leading-relaxed">
+                                <h3 className="text-xl font-bold mb-4 text-gray-800">Working Hours</h3>
+                                <FormattedWorkingHours 
+                                    workingHours={workingHours} 
+                                    showStatus={true} 
+                                />
                             </div>
                         </div>
                     </div>
@@ -133,7 +264,7 @@ const ContactPageContent = ({ initialSettings }) => {
                     <div className="max--6xl mx-auto">
                         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                             <div className="grid grid-cols-1 lg:grid-cols-2">
-                                <div className="lg:order-2">
+                                <div className="order-2">
                                     {googleMapsEmbed ? (
                                         <div 
                                             className="h-full min-h-[400px] lg:min-h-[600px]" 
@@ -157,69 +288,7 @@ const ContactPageContent = ({ initialSettings }) => {
                                         <div className="w-20 h-1 bg-primary-500 mt-4"></div>
                                     </div>
                                     
-                                    <form onSubmit={handleSubmit} className="space-y-5">
-                                        <div className="wow animate__animated animate__fadeInUp">
-                                            <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                                            <input 
-                                                id="subject"
-                                                className="w-full p-4 text-gray-800 bg-gray-50 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-400 focus:border-primary-400 outline-none transition-all" 
-                                                type="text" 
-                                                placeholder="What's this about?" 
-                                                name="subject"
-                                                value={formData.subject}
-                                                onChange={handleInputChange}
-                                            />
-                                        </div>
-                                        <div className="wow animate__animated animate__fadeInUp" data-wow-delay=".1s">
-                                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                                            <input 
-                                                id="name"
-                                                className="w-full p-4 text-gray-800 bg-gray-50 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-400 focus:border-primary-400 outline-none transition-all" 
-                                                type="text" 
-                                                placeholder="Your full name" 
-                                                name="name"
-                                                value={formData.name}
-                                                onChange={handleInputChange}
-                                                required
-                                            />
-                                        </div>
-                                        <div className="wow animate__animated animate__fadeInUp" data-wow-delay=".2s">
-                                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                            <input 
-                                                id="email"
-                                                className="w-full p-4 text-gray-800 bg-gray-50 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-400 focus:border-primary-400 outline-none transition-all" 
-                                                type="email" 
-                                                placeholder="you@example.com" 
-                                                name="email"
-                                                value={formData.email}
-                                                onChange={handleInputChange}
-                                                required
-                                            />
-                                        </div>
-                                        <div className="wow animate__animated animate__fadeInUp" data-wow-delay=".3s">
-                                            <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                                            <textarea 
-                                                id="message"
-                                                className="w-full h-40 p-4 text-gray-800 bg-gray-50 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-400 focus:border-primary-400 outline-none transition-all resize-none" 
-                                                placeholder="Your message here..." 
-                                                name="message"
-                                                value={formData.message}
-                                                onChange={handleInputChange}
-                                                required
-                                            />
-                                        </div>
-                                        <div className="pt-2 wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
-                                            <button 
-                                                className={`py-4 px-8 text-white font-semibold text-center w-full md:w-auto rounded-lg bg-primary-600 hover:bg-primary-700 transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl ${
-                                                    submitting ? 'opacity-70 cursor-not-allowed' : ''
-                                                }`} 
-                                                type="submit"
-                                                disabled={submitting}
-                                            >
-                                                {submitting ? 'Sending...' : 'Send Message'}
-                                            </button>
-                                        </div>
-                                    </form>
+                                    {renderContactForm()}
                                 </div>
                             </div>
                         </div>
@@ -227,7 +296,7 @@ const ContactPageContent = ({ initialSettings }) => {
                 </div>
             </section>
 
-            <NewsletterSection1 />
+            {/* <NewsletterSection1 /> */}
         </>
     )
 }
