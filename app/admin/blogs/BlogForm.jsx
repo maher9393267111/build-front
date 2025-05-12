@@ -8,6 +8,7 @@ import { getBlogCategories, createBlog, updateBlog } from '@services/api';
 import http from '@services/api/http';
 import { toast } from 'react-toastify';
 import { XMarkIcon, PhotoIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { Switch } from "@headlessui/react";
 import MediaUpload from '@components/ui/MediaUpload';
 import Card from '@components/ui/Card';
 import Button from '@components/ui/Button';
@@ -1054,6 +1055,7 @@ const BlogForm = ({ initialData = null }) => {
     getValues,
   } = useForm({
     defaultValues: initialData || {
+      isIndexing: true,
       title: '',
       excerpt: '',
       categoryId: '',
@@ -1066,6 +1068,9 @@ const BlogForm = ({ initialData = null }) => {
       robots: 'index, follow',
     },
   });
+
+
+  const isIndexing = watch('isIndexing');
 
   // Format blog data for SEO analysis
   const getBlogDataForSeo = () => {
@@ -1139,6 +1144,8 @@ const BlogForm = ({ initialData = null }) => {
       });
     }
   };
+
+  // 
 
   // Get blog categories
   const { data: categories, isLoading: loadingCategories } = useQuery('blogCategories', getBlogCategories);
@@ -1790,21 +1797,42 @@ const BlogForm = ({ initialData = null }) => {
         )}
 
         {/* Form Actions */}
-        <div className="flex justify-end gap-3 sticky bottom-0 bg-white p-4 border-t border-gray-200 shadow-md rounded-b-lg">
-          <Button
-            text='Cancel'
-            className='btn-outline-dark'
-            onClick={() => router.push('/admin/blogs')}
-            type='button'
-          />
-          <Button
-            text={isSubmitting ? 'Saving...' : initialData ? 'Update Blog' : 'Create Blog'}
-            className='btn-primary'
-            disabled={isSubmitting}
-            type='submit'
-            icon={initialData ? 'Check' : 'Plus'}
-            isLoading={isSubmitting}
-          />
+        <div className="bg-white p-4 border border-gray-200 rounded-lg mt-6 sticky bottom-0 z-10 shadow-md">
+          <div className="flex flex-col space-y-3 sm:flex-row sm:justify-end sm:space-x-3 sm:space-y-0">
+            <label className="flex items-center">
+              <Switch
+                checked={isIndexing}
+                onChange={(checked) => setValue('isIndexing', checked)}
+                className={`${
+                  isIndexing ? 'bg-primary-600' : 'bg-gray-200'
+                } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2`}
+              >
+                <span className="sr-only">Enable Google Indexing</span>
+                <span
+                  className={`${
+                    isIndexing ? 'translate-x-6' : 'translate-x-1'
+                  } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                />
+              </Switch>
+              <span className="text-gray-700 font-medium ml-3">
+                Enable Google Indexing
+              </span>
+            </label>
+            <Button
+              text='Cancel'
+              className='btn-outline-dark'
+              onClick={() => router.push('/admin/blogs')}
+              type='button'
+            />
+            <Button
+              text={isSubmitting ? 'Saving...' : initialData ? 'Update Blog' : 'Create Blog'}
+              className='btn-primary'
+              disabled={isSubmitting}
+              type='submit'
+              icon={initialData ? 'Check' : 'Plus'}
+              isLoading={isSubmitting}
+            />
+          </div>
         </div>
       </form>
 

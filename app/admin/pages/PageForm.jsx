@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import BlockPreview from "./BlockPreview";
 import { useRouter } from "next/navigation";
-import { Dialog, Transition, Tab, Disclosure } from "@headlessui/react";
+import { Dialog, Transition, Tab, Disclosure ,Switch } from "@headlessui/react";
 import Card from "@components/ui/Card";
 import Button from "@components/ui/Button";
 import Textinput from "@components/ui/Textinput";
@@ -91,6 +91,7 @@ const PageForm = ({ id }) => {
     robots: "index, follow",
     structuredData: "",
     blocks: [],
+    isIndexing: true, // Add this new field - default to true
   });
 
   useEffect(() => {
@@ -224,6 +225,7 @@ const PageForm = ({ id }) => {
         ogImage: pageData.ogImage || "",
         status: pageData.status,
         isMainPage: pageData.isMainPage || false,
+        isIndexing: pageData.isIndexing !== undefined ? pageData.isIndexing : true,
         canonicalUrl: pageData.canonicalUrl || "",
         robots: pageData.robots || "index, follow",
         structuredData: pageData.structuredData
@@ -254,6 +256,11 @@ const PageForm = ({ id }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  // Add handler for indexing toggle
+const handleIndexingToggle = (checked) => {
+  setFormData((prev) => ({ ...prev, isIndexing: checked }));
+};
 
   const handleTitleChange = (e) => {
     const title = e.target.value;
@@ -1244,7 +1251,7 @@ const PageForm = ({ id }) => {
         
 
 
-            {/* Action Buttons Section */}
+            {/* Action Buttons Section
             <div className="bg-white p-4 border border-gray-200 rounded-lg mt-6 sticky bottom-0 z-10 shadow-md">
               <div className="flex flex-col space-y-3 sm:flex-row sm:justify-end sm:space-x-3 sm:space-y-0">
                 <Button
@@ -1272,7 +1279,7 @@ const PageForm = ({ id }) => {
                   }
                 />
               </div>
-            </div>
+            </div> */}
           </div>
 
 )}
@@ -4727,6 +4734,62 @@ const PageForm = ({ id }) => {
        )}
      </Disclosure>
 )}
+
+   {/* Action Buttons Section */}
+   <div className="bg-white p-4 border border-gray-200 rounded-lg mt-6 sticky bottom-0 z-10 shadow-md">
+              <div className="flex flex-col space-y-3 sm:flex-row sm:justify-end sm:space-x-3 sm:space-y-0">
+              
+           
+                  <label className="flex items-center">
+                    <Switch
+                      checked={formData.isIndexing}
+                      onChange={handleIndexingToggle}
+                      className={`${
+                        formData.isIndexing ? 'bg-primary-600' : 'bg-gray-200'
+                      } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2`}
+                    >
+                      <span className="sr-only">Enable Google Indexing</span>
+                      <span
+                        className={`${
+                          formData.isIndexing ? 'translate-x-6' : 'translate-x-1'
+                        } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                      />
+                    </Switch>
+                    <span className="text-gray-700 font-medium ml-3">
+                      Enable Google Indexing
+                    </span>
+                  </label>
+               
+              
+              
+              
+              
+                <Button
+                  text="Preview Page"
+                  className="btn-outline-secondary"
+                  type="button"
+                  icon="Eye"
+                  onClick={handlePreviewToggle}
+                />
+                <Button
+                  text="Cancel"
+                  className="btn-outline-dark"
+                  icon="XMark"
+                  onClick={() => router.push("/admin/pages")}
+                />
+                <Button
+                  text={isEditMode ? "Update Page" : "Create Page"}
+                  className="btn-primary"
+                  type="submit"
+                  icon="Check"
+                  isLoading={loading}
+                  disabled={
+                    loading ||
+                    Object.values(uploadStates).some((s) => s.loading)
+                  }
+                />
+              </div>
+            </div>
 
          
         </form>
