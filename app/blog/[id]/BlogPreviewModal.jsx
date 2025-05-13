@@ -37,7 +37,7 @@ const BlogPreviewModal = ({ isOpen, closeModal, blog }) => {
         </Transition.Child>
 
         <div className="fixed inset-0">
-          <div className="flex min-h-full items-center justify-center p-4 text-lef">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -130,7 +130,7 @@ const BlogPreviewModal = ({ isOpen, closeModal, blog }) => {
                     >
                       Read Full Article
                     </Link>
-                    <button
+                    {/* <button
                       onClick={() => {
                         console.log('BlogPreviewModal: "Continue Browsing" button clicked. Closing modal.');
                         closeModal();
@@ -138,7 +138,7 @@ const BlogPreviewModal = ({ isOpen, closeModal, blog }) => {
                       className="flex-1 rounded-lg border border-gray-300 px-6 py-3 font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                     >
                       Continue Browsing
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               </Dialog.Panel>
