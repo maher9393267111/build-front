@@ -37,7 +37,7 @@ const BlogPreviewModal = ({ isOpen, closeModal, blog }) => {
         </Transition.Child>
 
         <div className="fixed inset-0">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className="flex min-h-full items-center justify-center p-4 text-cente">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
