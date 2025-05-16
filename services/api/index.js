@@ -428,4 +428,55 @@ export const deleteNoteFromSubmission = async (formId, submissionId, noteId) => 
   return data;
 };
 
+// Analytics API Endpoints
+export const trackPageView = async (path) => {
+  try {
+    // This is a fire-and-forget request, we don't necessarily need the response
+    // unless we want to log success/failure client-side.
+    await http.post('/analytics/track-view', { path });
+  } catch (error) {
+    // Silently fail or log to console, as this shouldn't break user experience.
+    console.error('Failed to track page view:', error);
+  }
+};
+
+// export const getAnalyticsDashboardStats = async () => {
+//   const { data } = await http.get('/analytics/dashboard-stats');
+//   return data;
+// };
+export const getAnalyticsDashboardStats = async (params) => {
+  const { data } = await http.get('/analytics/dashboard-stats', { params });
+  return data;
+};
 // ... existing code ...
+
+// Add this new function
+export const getFormSubmissionStats = async (params) => {
+  const { data } = await http.get('/analytics/form-submission-stats', { params });
+  return data;
+};
+
+// Add this new function at the end of your API services file
+export const getPageActivityStats = async (params) => {
+  const { data } = await http.get('/analytics/page-activity-stats', { params });
+  return data;
+};
+
+// Add this new function
+export const trackPageActivity = async (activityData) => {
+  // activityData should contain pageId (optional), pageName, action
+  try {
+    await http.post('/analytics/track-page-activity', activityData);
+  } catch (error) {
+    console.error('Failed to track page activity:', error);
+    // Decide if you want to re-throw or handle silently
+  }
+};
+
+
+
+// Global Stats API Endpoints
+export const getGlobalStats = async () => {
+  const { data } = await http.get('/analytics/global-stats');
+  return data;
+};

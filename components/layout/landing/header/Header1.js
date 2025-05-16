@@ -221,9 +221,10 @@ export default function Header1({ handleToggle, scroll, pagesData, settings }) {
           
           <div className="hidden lg:flex lg:flex-1 lg:justify-end">
             {!token ? (
-              <Link href="/signin" className="text-white btn bg-primary-500 hover:bg-primary-800 transition duration-150 rounded-md px-5 py-2 cursor-pointer">
-                Signin
-              </Link>
+              null
+              // <Link href="/signin" className="text-white btn bg-primary-500 hover:bg-primary-800 transition duration-150 rounded-md px-5 py-2 cursor-pointer">
+              //   Signin
+              // </Link>
             ) : (
               <HeadlessMenu as="div" className="relative">
                 <HeadlessMenu.Button className="w-10 h-10 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500">

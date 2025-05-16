@@ -10,6 +10,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 
 import ClientProviders from './ClientProviders';
+import TrackPageViews from '@utils/TrackPageView';
 
 const inter = Inter({
     weight: ['300', '400', '500', '600', '700'],
@@ -156,6 +157,7 @@ export default async function RootLayout({ children }) {
             </head>
             <body className={inter.className} suppressHydrationWarning={true}>
                 <ClientProviders initialSettings={settings}>
+                    <TrackPageViews />
                     {children}
                 </ClientProviders>
 

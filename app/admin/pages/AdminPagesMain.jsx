@@ -7,7 +7,7 @@ import Button from '@components/ui/Button';
 import Table from '@components/ui/Table';
 import Icon from '@components/ui/Icon';
 import { toast } from 'react-toastify';
-import { getAllPages, deletePage } from '@services/api';
+import { getAllPages, deletePage, trackPageActivity } from '@services/api';
 import PaginationDynamic from '@components/elements/PaginationDynamic';
 import ConfirmationModal from '@components/modal/ConfirmationModal';
 
@@ -17,6 +17,7 @@ const AdminPagesMain = ({ initialPages, initialTotalPages, initialCurrentPage })
   const [currentPage, setCurrentPage] = useState(initialCurrentPage);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pageToDeleteId, setPageToDeleteId] = useState(null);
+  const [pageToDeleteName, setPageToDeleteName] = useState('');
 
   const { data: pagesData, isLoading, isError } = useQuery(
     ['adminPages', currentPage], // Query key includes currentPage
@@ -28,12 +29,17 @@ const AdminPagesMain = ({ initialPages, initialTotalPages, initialCurrentPage })
   );
 
   const deleteMutation = useMutation(deletePage, {
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success('Page deleted successfully');
+      if (pageToDeleteId && pageToDeleteName) {
+        await trackPageActivity({
+          pageId: pageToDeleteId,
+          pageName: pageToDeleteName,
+          action: 'deleted',
+        });
+      }
       queryClient.invalidateQueries(['adminPages', currentPage]);
       closeModal();
-      // Optionally: If the last item on a page is deleted, you might want to go to the previous page
-      // This logic can be added here if needed.
     },
     onError: (error) => {
       console.error('Error deleting page:', error);
@@ -47,8 +53,14 @@ const AdminPagesMain = ({ initialPages, initialTotalPages, initialCurrentPage })
   };
 
   const handleDelete = (id) => {
-    setPageToDeleteId(id);
-    setIsModalOpen(true);
+    const page = pagesData?.pages?.find(p => p.id === id);
+    if (page) {
+      setPageToDeleteId(id);
+      setPageToDeleteName(page.title);
+      setIsModalOpen(true);
+    } else {
+      toast.error("Could not find page details to delete.");
+    }
   };
 
   const confirmDelete = () => {
@@ -60,6 +72,7 @@ const AdminPagesMain = ({ initialPages, initialTotalPages, initialCurrentPage })
   const closeModal = () => {
     setIsModalOpen(false);
     setPageToDeleteId(null);
+    setPageToDeleteName('');
   };
 
   const handlePageChange = (page) => {
@@ -99,19 +112,19 @@ const AdminPagesMain = ({ initialPages, initialTotalPages, initialCurrentPage })
       {
         Header: 'Actions',
         accessor: 'id',
-        Cell: ({ row }) => ( // Changed value to row to access row.original.id
+        Cell: ({ row }) => (
           <div className="flex space-x-3 rtl:space-x-reverse">
             <button
               className="p-2 bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-100"
               type="button"
-              onClick={() => handleEdit(row.id)} // Use row.original.id
+              onClick={() => handleEdit(row.id)}
             >
               <Icon icon="PencilSquare" className="h-5 w-5" />
             </button>
             <button
               className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100"
               type="button"
-              onClick={() => handleDelete(row.id)} // Use row.original.id - Now opens modal
+              onClick={() => handleDelete(row.id)}
             >
               <Icon icon="Trash" className="h-5 w-5" />
             </button>
@@ -125,7 +138,6 @@ const AdminPagesMain = ({ initialPages, initialTotalPages, initialCurrentPage })
 
   if (isError) {
       toast.error('Failed to load pages');
-      // Optionally return an error message component here
   }
 
 
@@ -142,7 +154,7 @@ const AdminPagesMain = ({ initialPages, initialTotalPages, initialCurrentPage })
           />
         </div>
         <div className="overflow-x-auto">
-          {isLoading && !pagesData ? ( // Show loader only on initial load or hard refresh
+          {isLoading && !pagesData ? (
             <div className="flex justify-center items-center h-20">
               <div className="loader animate-spin border-4 border-t-4 rounded-full h-8 w-8 border-primary-500 border-t-transparent"></div>
             </div>

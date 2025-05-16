@@ -64,7 +64,7 @@ const page = () => {
 
     return (
         <>
-            <div className="flex min-h-full flex-col justify-center bg-gray-50">
+            {/* <div className="flex min-h-full flex-col justify-center bg-gray-50">
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm text-center">
                     <Link href="/" className="py-1 inline-block">
                         <Image
@@ -136,7 +136,7 @@ const page = () => {
                         </div>
                     </form>
 
-                    {/* Nút Sign in with Google */}
+                
                     <div className="mt-6">
                         <button
                             onClick={handleGoogleLogin}
@@ -154,7 +154,7 @@ const page = () => {
                         </Link>
                     </p>
                 </div>
-            </div>
+            </div> */}
         </>
     );
 };

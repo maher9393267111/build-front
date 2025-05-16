@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Disclosure, Transition } from '@headlessui/react';
+import React, { useState, useEffect, useCallback, Fragment } from 'react';
+import { Disclosure, Transition, Dialog } from '@headlessui/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import Icon from '@components/ui/Icon';
@@ -16,6 +16,134 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 export default function PageContent({ pageData }) {
+  const [formModalOpen, setFormModalOpen] = useState(false);
+  const [activeFormId, setActiveFormId] = useState(null);
+  const [modalTitle, setModalTitle] = useState('');
+
+  const handleButtonClick = (block, buttonType, buttonLink, buttonFormId, buttonText) => {
+    if (buttonType === 'popup' && buttonFormId) {
+      setActiveFormId(buttonFormId);
+      setModalTitle(buttonText || 'Contact Form');
+      setFormModalOpen(true);
+    } else if (buttonLink) {
+      window.location.href = buttonLink;
+    }
+  };
+
+  const FormModal = () => {
+    return (
+      <Transition appear show={formModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setFormModalOpen(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-200"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-150"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-200"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-150"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="relative bg-white p-8 rounded-2xl shadow-3xl w-full max-w-lg border-t-8 border-primary-500">
+                  {/* Close Button */}
+                  <button
+                    type="button"
+                    className="absolute top-4 right-4 bg-primary-50 hover:bg-primary-100 text-primary-600 hover:text-primary-700 rounded-full w-10 h-10 flex items-center justify-center shadow transition-all"
+                    onClick={() => setFormModalOpen(false)}
+                    aria-label="Close"
+                  >
+                    <span className="text-2xl font-bold">&times;</span>
+                  </button>
+                  
+                  <Dialog.Title className="text-3xl font-extrabold mb-6 text-primary-700 text-center tracking-tight">
+                    {modalTitle}
+                  </Dialog.Title>
+                  
+                  <div className="mt-2">
+                    {activeFormId ? (
+                      <FormModalContent formId={activeFormId} onSuccess={() => setFormModalOpen(false)} />
+                    ) : (
+                      <p className="text-gray-500 text-center">No form selected</p>
+                    )}
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+    );
+  };
+
+  const FormModalContent = ({ formId, onSuccess }) => {
+    const [form, setForm] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+      const fetchForm = async () => {
+        try {
+          setLoading(true);
+          const formData = await getFormById(formId);
+          setForm(formData);
+          setError(null);
+        } catch (err) {
+          console.error("Error fetching form:", err);
+          setError("Could not load the form. Please try again later.");
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchForm();
+    }, [formId]);
+
+    const handleSubmitSuccess = () => {
+      if (onSuccess) {
+        setTimeout(() => {
+          onSuccess();
+        }, 1500);
+      }
+    };
+
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-600"></div>
+        </div>
+      );
+    }
+
+    if (error) {
+      return <div className="text-red-500 py-4">{error}</div>;
+    }
+
+    if (!form) {
+      return <div className="text-gray-500 py-4">Form not found</div>;
+    }
+
+    return (
+      <DynamicForm 
+        form={form} 
+        onSubmitSuccess={handleSubmitSuccess}
+        useSteps={true}
+      />
+    );
+  };
+
   if (!pageData) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
@@ -33,7 +161,7 @@ export default function PageContent({ pageData }) {
             .sort((a, b) => a.orderIndex - b.orderIndex)
             .map((block, index) => (
               <div key={index} id={`block-${index}`} className="block-content">
-                {renderBlock(block, index)}
+                {renderBlock(block, index, handleButtonClick)}
               </div>
             ))}
         </div>
@@ -43,77 +171,77 @@ export default function PageContent({ pageData }) {
           <p className="text-gray-600">This page has no content blocks yet.</p>
         </div>
       )}
+      <FormModal />
     </div>
   );
 }
 
-// Render individual blocks based on type
-function renderBlock(block, blockIndex) {
+function renderBlock(block, blockIndex, handleButtonClick) {
   switch (block.type) {
     case "hero":
-        return (
+      return (
+        <div
+          className="relative mb-10 bg-gray-100 min-h-[75vh] overflow-hidden flex items-center"
+          style={{
+            backgroundColor: block.content?.backgroundColor || "#f3f4f6",
+            backgroundImage: block.content?.imageUrl?.url ? `url(${block.content.imageUrl.url})` : 'none',
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: 'cover',
+          }}
+        >
           <div
-          className="relative mb-10 bg-gray-100  min-h-[75vh] overflow-hidden flex items-center"
-
-            // className="relative mb-10 bg-gray-100 h-96 md:!min-h-96 md:h-[90vh] overflow-hidden flex items-center"
-            style={{
-              backgroundColor: block.content?.backgroundColor || "#f3f4f6",
-              backgroundImage: block.content?.imageUrl?.url ? `url(${block.content.imageUrl.url})` : 'none',
-              backgroundPosition: 'center top',
-              backgroundRepeat: 'no-repeat',
-              backgroundSize: 'cover',
-            }}
+            className={`relative z-10 container mx-auto px-4 ${
+              block.content?.textDirection === "center"
+                ? "text-center"
+                : block.content?.textDirection === "right"
+                ? "text-right ml-auto"
+                : ""
+            }`}
           >
-            <div
-              className={`relative z-10 container mx-auto px-4 ${
-                block.content?.textDirection === "center"
-                  ? "text-center"
-                  : block.content?.textDirection === "right"
-                  ? "text-right ml-auto"
-                  : ""
-              }`}
+            <div className="max-w-full sm:max-w-lg bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-lg shadow-lg overflow-hidden"
+              style={{
+                backgroundColor: block.content?.backgroundColor || "#f3f4f6",
+              }}
             >
-              <div className="max-w-full sm:max-w-lg bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-lg shadow-lg overflow-hidden"
+              <h1
+                className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-4 break-words"
                 style={{
-                  backgroundColor: block.content?.backgroundColor || "#f3f4f6",
+                  color: block.content?.textColor || "#000000",
                 }}
               >
-                <h1
-                  className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-4 break-words"
+                {block.content?.heading || "Hero Heading"}
+              </h1>
+              <p
+                className="text-sm sm:text-base md:text-lg mb-3 sm:mb-6 break-words"
+                style={{
+                  color: block.content?.textColor || "#000000",
+                }}
+              >
+                {block.content?.subheading || "Hero subheading text goes here"}
+              </p>
+              {block.content?.buttonText && (
+                <button
+                  className="text-sm sm:text-base hover:opacity-90 px-4 sm:px-6 py-1.5 sm:py-2 rounded-md transition-colors"
                   style={{
-                    color: block.content?.textColor || "#000000",
+                    backgroundColor: block.content?.buttonBgColor || "#3b82f6",
+                    color: block.content?.buttonTextColor || "#ffffff",
                   }}
+                  onClick={() => handleButtonClick(
+                    block, 
+                    block.content?.buttonType || 'link',
+                    block.content?.buttonLink,
+                    block.content?.buttonFormId,
+                    block.content?.buttonText
+                  )}
                 >
-                  {block.content?.heading || "Hero Heading"}
-                </h1>
-                <p
-                  className="text-sm sm:text-base md:text-lg mb-3 sm:mb-6 break-words"
-                  style={{
-                    color: block.content?.textColor || "#000000",
-                  }}
-                >
-                  {block.content?.subheading || "Hero subheading text goes here"}
-                </p>
-                {block.content?.buttonText && (
-                  <button
-                    className="text-sm sm:text-base hover:opacity-90 px-4 sm:px-6 py-1.5 sm:py-2 rounded-md transition-colors"
-                    style={{
-                      backgroundColor: block.content?.buttonBgColor || "#3b82f6",
-                      color: block.content?.buttonTextColor || "#ffffff",
-                    }}
-                    onClick={() => {
-                      if (block.content?.buttonLink) {
-                        window.location.href = block.content.buttonLink;
-                      }
-                    }}
-                  >
-                    {block.content.buttonText}
-                  </button>
-                )}
-              </div>
+                  {block.content.buttonText}
+                </button>
+              )}
             </div>
           </div>
-        );
+        </div>
+      );
   
     case "features":
       return (
@@ -182,7 +310,16 @@ function renderBlock(block, blockIndex) {
                       "Call to action description text"}
                   </p>
                   {block.content?.buttonText && (
-                    <button className="bg-white text-primary-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                    <button 
+                      className="bg-white text-primary-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                      onClick={() => handleButtonClick(
+                        block, 
+                        block.content?.buttonType || 'link',
+                        block.content?.buttonLink,
+                        block.content?.buttonFormId,
+                        block.content?.buttonText
+                      )}
+                    >
                       {block.content.buttonText}
                     </button>
                   )}
@@ -687,7 +824,7 @@ function renderBlock(block, blockIndex) {
                           className="block mx-auto w-[200px] h-[200px] object-contain transition-all duration-300 mb-"
                         /> 
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center">
+                          <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                             <span className="text-gray-400 flex flex-col items-center">
                               <Icon icon="ShoppingBag" className="h-12 w-12 mb-2" />
                               Product image
@@ -826,11 +963,13 @@ function renderBlock(block, blockIndex) {
                         color: block.content?.buttonTextColor || "#ffffff",
                         boxShadow: "0 4px 6px rgba(221, 51, 51, 0.25)"
                       }}
-                      onClick={() => {
-                        if (block.content?.buttonLink) {
-                          window.location.href = block.content.buttonLink;
-                        }
-                      }}
+                      onClick={() => handleButtonClick(
+                        block, 
+                        block.content?.buttonType || 'link',
+                        block.content?.buttonLink,
+                        block.content?.buttonFormId,
+                        block.content?.buttonText
+                      )}
                     >
                       {block.content.buttonText}
                     </button>
@@ -843,11 +982,13 @@ function renderBlock(block, blockIndex) {
                         borderColor: block.content?.buttonBgColor || "#dd3333",
                         color: block.content?.buttonBgColor || "#dd3333",
                       }}
-                      onClick={() => {
-                        if (block.content?.secondaryButtonLink) {
-                          window.location.href = block.content.secondaryButtonLink;
-                        }
-                      }}
+                      onClick={() => handleButtonClick(
+                        block, 
+                        block.content?.buttonType || 'link',
+                        block.content?.buttonLink,
+                        block.content?.buttonFormId,
+                        block.content?.buttonText
+                      )}
                     >
                       {block.content.secondaryButtonText}
                     </button>
@@ -966,11 +1107,13 @@ function renderBlock(block, blockIndex) {
                           backgroundColor: block.content?.buttonBgColor || "#dd3333",
                           color: block.content?.buttonTextColor || "#ffffff"
                         }}
-                        onClick={() => {
-                          if (block.content?.buttonLink) {
-                            window.location.href = block.content.buttonLink;
-                          }
-                        }}
+                        onClick={() => handleButtonClick(
+                          block, 
+                          block.content?.buttonType || 'link',
+                          block.content?.buttonLink,
+                          block.content?.buttonFormId,
+                          block.content?.buttonText
+                        )}
                       >
                         {block.content.buttonText}
                       </button>
@@ -1039,11 +1182,13 @@ function renderBlock(block, blockIndex) {
                           backgroundColor: block.content?.buttonBgColor || "#dd3333",
                           color: block.content?.buttonTextColor || "#ffffff"
                         }}
-                        onClick={() => {
-                          if (block.content?.buttonLink) {
-                            window.location.href = block.content.buttonLink;
-                          }
-                        }}
+                        onClick={() => handleButtonClick(
+                          block, 
+                          block.content?.buttonType || 'link',
+                          block.content?.buttonLink,
+                          block.content?.buttonFormId,
+                          block.content?.buttonText
+                        )}
                       >
                         <span className="flex items-center">
                           {block.content?.buttonIcon && (

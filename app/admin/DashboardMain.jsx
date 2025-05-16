@@ -1,28 +1,64 @@
-export const revalidate = 0; 
-// Make page server component (no 'use client' directive)
-import { getAnalyticsDashboardStats, getFormSubmissionStats, getPageActivityStats, getGlobalStats } from '@services/api';
-import DashboardMain from './DashboardMain';
+'use client'
+import PageActivityCharts from '@components/dashboard/PageActivityCharts';
+import FormSubmissionCharts from '@components/dashboard/FormSubmissionCharts';
+import ViewsAnalytics from '@components/dashboard/ViewsAnalytics';
+import GlobalStatsCharts from '@components/dashboard/GlobalStatsCharts';
+import { Tab } from '@headlessui/react';
+import { useState } from 'react';
 
-export default async function Dashboard() {
-    // Fetch initial data server-side
-    const [analyticsStats, formStats, pageActivityStats, globalStats] = await Promise.all([
-        getAnalyticsDashboardStats({ period: 'weekly' }),
-        getFormSubmissionStats({ page: 1, limit: 3 }),
-        getPageActivityStats({ page: 1, limit: 3 }),
-        getGlobalStats()
-    ]);
-
-    console.log('Execute fetching data', pageActivityStats, globalStats);
+function DashboardMain({ initialAnalyticsStats, initialFormStats, initialPageActivityStats, initialGlobalStats }) {
+    const [selectedTab, setSelectedTab] = useState(0);
+    
+    const tabs = [
+        { label: 'Global', component: GlobalStatsCharts, initialData: initialGlobalStats },
+        { label: 'Page Views', component: ViewsAnalytics, initialData: initialAnalyticsStats },
+        { label: 'Page Activity', component: PageActivityCharts, initialData: initialPageActivityStats },
+        { label: 'Form Submissions', component: FormSubmissionCharts, initialData: initialFormStats },
+    ];
     
     return (
-        <DashboardMain 
-            initialAnalyticsStats={analyticsStats}
-            initialFormStats={formStats}
-            initialPageActivityStats={pageActivityStats}
-            initialGlobalStats={globalStats}
-        />
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h2 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h2>
+                {/* <div className="text-sm text-gray-500">
+                    Last updated: {new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </div> */}
+            </div>
+            
+            <Tab.Group selectedIndex={selectedTab} onChange={setSelectedTab}>
+                <Tab.List className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
+                    {tabs.map((tab, index) => (
+                        <Tab
+                            key={index}
+                            className={({ selected }) =>
+                                `w-full rounded-lg py-2.5 px-3 text-sm font-medium leading-5 flex items-center justify-center transition-all duration-200 touch-manipulation focus:outline-none focus:ring-2 ring-offset-2 ring-offset-primary-400 ring-primary-500 ${
+                                    selected 
+                                        ? 'bg-white text-primary-600 shadow' 
+                                        : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                                }`
+                            }
+                        >
+                            {tab.label}
+                        </Tab>
+                    ))}
+                </Tab.List>
+                
+                <Tab.Panels>
+                    {tabs.map((tab, index) => {
+                        const Component = tab.component;
+                        return (
+                            <Tab.Panel key={index}>
+                                <Component initialData={tab.initialData} />
+                            </Tab.Panel>
+                        );
+                    })}
+                </Tab.Panels>
+            </Tab.Group>
+        </div>
     );
 }
+
+export default DashboardMain;
 // 'use client'
 // import { useState } from 'react';
 // import Card from '@components/ui/Card';
@@ -31,11 +67,11 @@ export default async function Dashboard() {
 // import TopPagesBarChart from '@components/dashboard/TopPagesBarChart';
 // import FormSubmissionCharts from '@components/dashboard/FormSubmissionCharts';
 // import { Tab } from '@headlessui/react';
-// // import WidgetStats from '@components/dashboard/WidgetStats';
-// import { getAnalyticsDashboardStats } from '@services/api';
 // import { useQuery } from 'react-query';
+// import { getAnalyticsDashboardStats } from '@services/api';
+// import ViewsAnalytics from '@components/dashboard/ViewsAnalytics';
 
-// function Dashboard() {
+// function DashboardMain({ initialAnalyticsStats, initialFormStats, initialPageActivityStats }) {
 //     const [selectedTab, setSelectedTab] = useState(0);
     
 //     return (
@@ -75,18 +111,15 @@ export default async function Dashboard() {
                 
 //                 <Tab.Panels>
 //                     <Tab.Panel>
-//                         {/* Page Views Analytics */}
-//                         <ViewsAnalytics />
+//                         <ViewsAnalytics initialData={initialAnalyticsStats} />
 //                     </Tab.Panel>
                     
 //                     <Tab.Panel>
-//                         {/* Page Activity Analytics */}
-//                         <PageActivityCharts />
+//                         <PageActivityCharts initialData={initialPageActivityStats} />
 //                     </Tab.Panel>
                     
 //                     <Tab.Panel>
-//                         {/* Form Submission Analytics */}
-//                         <FormSubmissionCharts />
+//                         <FormSubmissionCharts initialData={initialFormStats} />
 //                     </Tab.Panel>
 //                 </Tab.Panels>
 //             </Tab.Group>
@@ -94,39 +127,17 @@ export default async function Dashboard() {
 //     );
 // }
 
-// // A simple component to display top pages as a list
-// const TopPagesCard = ({ data, isLoading }) => {
-//     if (isLoading) return <p>Loading top pages list...</p>;
-//     if (!data || data.length === 0) return <p>No page view data yet for list.</p>;
-
-//     return (
-//         <Card title="Most Visited Pages (List)">
-//             <ul className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
-//                 {data.map((page, index) => (
-//                     <li key={index} className="py-3 flex justify-between items-center">
-//                         <span className="text-sm font-medium text-gray-700 truncate" title={page.path}>
-//                             {page.path.length > 30 ? `${page.path.substring(0, 27)}...` : page.path}
-//                         </span>
-//                         <span className="text-sm text-gray-500">{page.views} views</span>
-//                     </li>
-//                 ))}
-//             </ul>
-//         </Card>
-//     );
-// };
-
 // // Separate component for Views Analytics
-// function ViewsAnalytics() {
-//     const { data: stats, isLoading, error } = useQuery(
+// function ViewsAnalytics({ initialData }) {
+//     const { data: stats, isLoading } = useQuery(
 //         'analyticsStats', 
-//         getAnalyticsDashboardStats
+//         getAnalyticsDashboardStats,
+//         {
+//             initialData: initialData && Object.keys(initialData).length > 0 ? initialData : undefined,
+//             refetchOnWindowFocus: false
+//         }
 //     );
     
-//     const widgetData = isLoading ? [] : [
-//         { title: "Total Site Views", value: stats?.totalViews ?? 0, icon: "Eye" },
-//         { title: "Views Today", value: stats?.todayViews ?? 0, icon: "Calendar" },
-//     ];
-
 //     // Data for the Page Views Trend Line Chart
 //     const lineChartDataForTrend = {
 //         labels: stats?.dailyTrend?.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })) || [],
@@ -169,23 +180,29 @@ export default async function Dashboard() {
 //         }
 //     };
     
+//     // Top pages list component
+//     const TopPagesCard = ({ data, isLoading }) => {
+//         if (isLoading) return <p>Loading top pages list...</p>;
+//         if (!data || data.length === 0) return <p>No page view data yet for list.</p>;
+
+//         return (
+//             <Card title="Most Visited Pages (List)">
+//                 <ul className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+//                     {data.map((page, index) => (
+//                         <li key={index} className="py-3 flex justify-between items-center">
+//                             <span className="text-sm font-medium text-gray-700 truncate" title={page.path}>
+//                                 {page.path.length > 30 ? `${page.path.substring(0, 27)}...` : page.path}
+//                             </span>
+//                             <span className="text-sm text-gray-500">{page.views} views</span>
+//                         </li>
+//                     ))}
+//                 </ul>
+//             </Card>
+//         );
+//     };
+    
 //     return (
 //         <div className="space-y-6">
-//             {error && <p className="text-red-500">{error instanceof Error ? error.message : 'Failed to load analytics statistics'}</p>}
-            
-//             {/* Stats Widgets */}
-//             {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-5">
-//                 {isLoading && [1,2].map(i => <Card key={i}><p>Loading stats...</p></Card>)}
-//                 {!isLoading && widgetData.map((widget, index) => (
-//                     <WidgetStats 
-//                         key={index} 
-//                         title={widget.title} 
-//                         value={widget.value}
-//                         icon={widget.icon}
-//                     />
-//                 ))}
-//             </div>
-//              */}
 //             {/* Main Content Grid */}
 //             <div className="grid lg:grid-cols-1 xxl:grid-cols-6 gap-5">
 //                 <div className='lg:col-span-4'>
@@ -205,4 +222,4 @@ export default async function Dashboard() {
 //     );
 // }
 
-// export default Dashboard; 
+// export default DashboardMain;

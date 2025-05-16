@@ -174,9 +174,9 @@ const DynamicForm = ({ form, onSubmitSuccess, customButtonText, customButtonColo
       
       // Scroll to top of form
       const formElement = document.getElementById('dynamic-form-container');
-      if (formElement) {
-        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      // if (formElement) {
+      //   // formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // }
     }
   };
   

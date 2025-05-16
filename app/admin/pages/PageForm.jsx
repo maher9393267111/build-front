@@ -14,6 +14,7 @@ import {
   updatePage,
   getPageById,
   getBlockTemplates,
+  trackPageActivity, // Import the new service
 } from "@services/api";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import Icon from "@components/ui/Icon";
@@ -50,6 +51,105 @@ const quillModules = {
     ["clean"],
   ],
 };
+
+// Add this helper function before the PageForm component
+const getBlockButtonConfig = (block) => {
+    // Define which blocks support buttons and their button field names
+    const buttonConfigs = {
+      hero: { textField: 'buttonText', linkField: 'buttonLink', typeField: 'buttonType', formField: 'buttonFormId' },
+      cta: { textField: 'buttonText', linkField: 'buttonLink', typeField: 'buttonType', formField: 'buttonFormId' },
+      blocktextimage: { textField: 'buttonText', linkField: 'buttonLink', typeField: 'buttonType', formField: 'buttonFormId' },
+      about: { textField: 'linkText', linkField: 'linkUrl', typeField: 'buttonType', formField: 'buttonFormId' },
+      video: { textField: 'buttonText', linkField: 'buttonLink', typeField: 'buttonType', formField: 'buttonFormId' }
+    };
+    
+    return buttonConfigs[block.type] || null;
+  };
+  
+  // Add this reusable button configuration component
+  const BlockButtonConfiguration = ({ block, index, handleBlockContentChange, publishedForms = [] }) => {
+    const buttonConfig = getBlockButtonConfig(block);
+    
+    if (!buttonConfig) return null;
+    
+    const { textField, linkField, typeField, formField } = buttonConfig;
+    const buttonType = block.content?.[typeField] || 'link';
+    
+    return (
+      <div className="space-y-3 border-t border-gray-200 pt-3">
+        <h4 className="text-sm font-medium text-gray-700">Button Configuration</h4>
+        
+        {/* Button Text */}
+        <Textinput
+          label="Button Text"
+          value={block.content?.[textField] || ""}
+          onChange={(e) => handleBlockContentChange(index, textField, e.target.value)}
+          placeholder={block.type === 'about' ? "Learn More" : "Get Started"}
+        />
+        
+        {/* Button Type */}
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            Button Type
+          </label>
+          <Select
+            value={buttonType}
+            onChange={(e) => {
+              handleBlockContentChange(index, typeField, e.target.value);
+              // Clear the other field when switching types
+              if (e.target.value === 'link') {
+                handleBlockContentChange(index, formField, null);
+              } else {
+                handleBlockContentChange(index, linkField, '');
+              }
+            }}
+            options={[
+              { value: 'link', label: 'Link to Page' },
+              { value: 'popup', label: 'Open Form Popup' }
+            ]}
+          />
+        </div>
+        
+        {/* Conditional Fields Based on Button Type */}
+        {buttonType === 'link' ? (
+          <Textinput
+            label="Button Link"
+            value={block.content?.[linkField] || ""}
+            onChange={(e) => handleBlockContentChange(index, linkField, e.target.value)}
+            placeholder={block.type === 'about' ? "/about-us" : "/contact"}
+          />
+        ) : (
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Select Form for Popup
+            </label>
+            <Select
+              value={block.content?.[formField] || ""}
+              onChange={(e) => 
+                handleBlockContentChange(
+                  index, 
+                  formField, 
+                  e.target.value ? parseInt(e.target.value) : null
+                )
+              }
+              options={[
+                { value: "", label: "- Select a form -" },
+                ...publishedForms.map((form) => ({
+                  value: form.id.toString(),
+                  label: form.title,
+                })),
+              ]}
+            />
+            {block.content?.[formField] && (
+              <p className="text-xs text-blue-600 mt-1">
+                Form will open in a popup when button is clicked
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
 const PageForm = ({ id }) => {
   const [formTab, setFormTab] = useState("main"); 
@@ -375,11 +475,25 @@ const handleIndexingToggle = (checked) => {
         toast.success("Page updated successfully");
         // Invalidate the query after successful update
         queryClient.invalidateQueries("publishedPages");
+        // Track page update activity
+        await trackPageActivity({ 
+          pageId: parseInt(id), 
+          pageName: formData.title, 
+          action: 'updated' 
+        });
       } else {
-        await createPage(submissionData);
+        const createdPage = await createPage(submissionData); // Get the created page data
         toast.success("Page created successfully");
         // Invalidate the query after successful creation
         queryClient.invalidateQueries("publishedPages");
+        // Track page creation activity
+        if (createdPage && createdPage.id) {
+          await trackPageActivity({ 
+            pageId: createdPage.id, 
+            pageName: formData.title, 
+            action: 'created' 
+          });
+        }
         router.push("/admin/pages");
       }
 
@@ -1681,7 +1795,7 @@ const handleIndexingToggle = (checked) => {
                                              />
                                            </div>
                                          </div>
-                                         <Textinput
+                                         {/* <Textinput
                                            label="Button Text"
                                            value={
                                              block.content?.buttonText ||
@@ -1708,7 +1822,15 @@ const handleIndexingToggle = (checked) => {
                                                e.target.value
                                              )
                                            }
-                                         />
+                                         /> */}
+
+                                             {/* Replace the existing button text and button link fields with: */}
+    <BlockButtonConfiguration
+      block={block}
+      index={index}
+      handleBlockContentChange={handleBlockContentChange}
+      publishedForms={publishedForms}
+    />
                                          <div>
                                            <label className="block text-xs font-medium text-gray-700 mb-1">
                                              Button Background Color
@@ -2343,7 +2465,7 @@ const handleIndexingToggle = (checked) => {
                                            }
                                            rows={2}
                                          />
-                                         <Textinput
+                                         {/* <Textinput
                                            label="Button Text"
                                            value={
                                              block.content?.buttonText ||
@@ -2370,7 +2492,15 @@ const handleIndexingToggle = (checked) => {
                                                e.target.value
                                              )
                                            }
-                                         />
+                                         /> */}
+
+                                           {/* Replace the existing button text and button link fields with: */}
+    <BlockButtonConfiguration
+      block={block}
+      index={index}
+      handleBlockContentChange={handleBlockContentChange}
+      publishedForms={publishedForms}
+    />
                                          <Select
                                            label="Background Style"
                                            value={
@@ -2936,7 +3066,7 @@ const handleIndexingToggle = (checked) => {
                                          />
 
                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                           <Textinput
+                                           {/* <Textinput
                                              label="Button Text"
                                              value={
                                                block.content
@@ -2965,7 +3095,16 @@ const handleIndexingToggle = (checked) => {
                                                )
                                              }
                                              placeholder="e.g. /contact"
-                                           />
+                                           /> */}
+   {/* Replace the existing button text and button link fields with: */}
+   <BlockButtonConfiguration
+      block={block}
+      index={index}
+      handleBlockContentChange={handleBlockContentChange}
+      publishedForms={publishedForms}
+    />
+
+
                                          </div>
 
                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3704,7 +3843,7 @@ const handleIndexingToggle = (checked) => {
                                          />
 
                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                           <Textinput
+                                           {/* <Textinput
                                              label="Button Text"
                                              value={
                                                block.content
@@ -3733,7 +3872,13 @@ const handleIndexingToggle = (checked) => {
                                                )
                                              }
                                              placeholder="e.g. /contact"
-                                           />
+                                           /> */}
+                                             <BlockButtonConfiguration
+      block={block}
+      index={index}
+      handleBlockContentChange={handleBlockContentChange}
+      publishedForms={publishedForms}
+    />
                                          </div>
 
                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

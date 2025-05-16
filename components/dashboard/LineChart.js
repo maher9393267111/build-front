@@ -24,94 +24,56 @@ ChartJS.register(
     Legend
 )
 
-const options = {
+const defaultOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
         legend: {
             position: 'top',
-            display: false,
+            display: true,
         },
     },
-
     scales: {
         x: {
-            barPercentage: 0.5,
             grid: {
                 display: true,
                 drawBorder: true,
             },
         },
-
-        y:
-        {
+        y: {
             grid: {
-                display: false,
+                display: true,
                 drawBorder: true,
             },
-            ticks: {
-                stepSize: 50,
-            },
+            beginAtZero: true,
         },
-
     },
-
 }
 
-const data = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-    datasets: [
-        {
-            fill: true,
-            label: "My First dataset",
-            data: [30, 60, 90, 120, 150, 180, 200],
-            borderColor: "#2082FB",
-            borderWidth: "2",
-            backgroundColor: "rgba(179, 184, 237, 0.2)",
-            pointBackgroundColor: "#2082FB",
-            pointBorderColor: "#fff",
-            pointHoverBackgroundColor: "#2082FB",
-            pointHoverBorderColor: "#2082FB",
-            pointRadius: 6,
-            pointHoverRadius: 6,
-        },
-        {
-            fill: true,
-            label: "My First dataset",
-            data: [40, 80, 120, 160, 200, 240],
-            borderColor: "#DAE2F3",
-            borderWidth: "2",
-            backgroundColor: "rgba(179, 201, 237, 0.2)",
-            pointBackgroundColor: "#DAE2F3",
-            pointBorderColor: "#fff",
-            pointHoverBackgroundColor: "#DAE2F3",
-            pointHoverBorderColor: "#DAE2F3",
-            pointRadius: 6,
-            pointHoverRadius: 6,
-        },
-        {
-            fill: true,
-            label: "My First dataset",
-            data: [20, 70, 120, 170, 220, 250],
-            borderColor: "#DAE2F3",
-            borderWidth: "2",
-            backgroundColor: "rgba(179, 219, 237, 0.2)",
-            pointBackgroundColor: "#DAE2F3",
-            pointBorderColor: "#fff",
-            pointHoverBackgroundColor: "#DAE2F3",
-            pointHoverBorderColor: "#DAE2F3",
-            pointRadius: 6,
-            pointHoverRadius: 6,
-        },
-    ],
-}
+export default function LineChart({ chartData, chartOptions, title = "Chart", isLoading }) {
+    if (isLoading) {
+        return (
+            <Card title={title}>
+                <p className="text-center py-10">Loading chart data...</p>
+            </Card>
+        );
+    }
 
-export default function LineChart() {
+    if (!chartData || !chartData.datasets || chartData.datasets.length === 0 || chartData.datasets.every(ds => ds.data.length === 0)) {
+        return (
+            <Card title={title}>
+                <p className="text-center py-10">No data available for the chart.</p>
+            </Card>
+        );
+    }
+
+    const optionsToUse = { ...defaultOptions, ...chartOptions };
+
     return (
         <>
-            <Card title="Chart">
-                <div className="-mt-10">
-                <Line options={options} data={data} height={350} />
+            <Card title={title}>
+                <div style={{ height: '350px' }}> {/* Ensure consistent height */}
+                    <Line options={optionsToUse} data={chartData} />
                 </div>
             </Card>
         </>

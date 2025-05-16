@@ -5,7 +5,7 @@ import * as Icon from "react-bootstrap-icons"
 export default function Footer1({ settings }) {
     return (
         <>
-            <footer className="bottom pt-12">
+            <footer className="bottom pt-12 border-t border-pgray-200">
                 <div className="container">
                     <div className="grid xl:grid-cols-6 md:grid-cols-6 sm:grid-cols-1 gap-7 pb-12">
                         <div className="col-span-2">
