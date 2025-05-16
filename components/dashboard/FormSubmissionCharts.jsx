@@ -2,30 +2,58 @@
 import { useState } from 'react';
 import Card from '@components/ui/Card';
 import LineChart from '@components/dashboard/LineChart';
-import { getFormSubmissionStats } from '@services/api';
-import { useQuery } from 'react-query';
+import { getFormSubmissionStats, resetFormSubmissions } from '@services/api';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 import PaginationDynamic from '@components/elements/PaginationDynamic';
-import { InboxStackIcon, ClockIcon, CheckBadgeIcon } from '@heroicons/react/24/outline';
+import { InboxStackIcon, ClockIcon, CheckBadgeIcon, TrashIcon } from '@heroicons/react/24/outline';
+import ConfirmationModal from '@components/modal/ConfirmationModal';
+import { toast } from 'react-toastify';
 
 // Register the required Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const FormSubmissionCharts = ({ initialData }) => {
+const FormSubmissionCharts = ({
+  //  initialData
+
+ }) => {
   const [recentSubmissionsPage, setRecentSubmissionsPage] = useState(1);
   const recentSubmissionsLimit = 3; // Or make this configurable
+  const queryClient = useQueryClient();
+
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   const { data: stats, isLoading, error, isFetching } = useQuery(
     ['formSubmissionStats', recentSubmissionsPage, recentSubmissionsLimit],
     () => getFormSubmissionStats({ page: recentSubmissionsPage, limit: recentSubmissionsLimit }),
     {
-      initialData: initialData && Object.keys(initialData).length > 0 ? initialData : undefined,
+      // initialData: initialData && Object.keys(initialData).length > 0 ? initialData : undefined,
       keepPreviousData: true,
       refetchOnWindowFocus: false,
     }
   );
-  
+
+  const resetSubmissionsMutation = useMutation(resetFormSubmissions, {
+    onSuccess: (data) => {
+      toast.success(data.message || 'All form submissions have been reset to "new" status.');
+      queryClient.invalidateQueries('formSubmissionStats');
+      setIsResetModalOpen(false);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to reset form submissions.');
+      setIsResetModalOpen(false);
+    },
+  });
+
+  const handleOpenResetModal = () => {
+    setIsResetModalOpen(true);
+  };
+
+  const handleConfirmReset = () => {
+    resetSubmissionsMutation.mutate();
+  };
+
   const handleRecentSubmissionsPageChange = (page) => {
     setRecentSubmissionsPage(page);
   };
@@ -239,13 +267,24 @@ const FormSubmissionCharts = ({ initialData }) => {
       </div>
       
       {/* Recent Submissions */}
-      <Card title="Recent Submissions">
+      <Card 
+        title="Recent Submissions"
+      
+      >
         {isFetching && !stats?.recentSubmissions?.data?.length ? (
             <p className="text-center py-4">Loading recent submissions...</p>
         ) : error ? (
             <p className="text-center text-red-500 py-4">{error.message}</p>
         ) : stats?.recentSubmissions?.data?.length > 0 ? (
           <>
+           <button
+                onClick={handleOpenResetModal}
+                className="flex items-center px-3 py-1.5 border border-red-300 text-red-500 rounded-md hover:bg-red-50 text-sm font-medium"
+                disabled={resetSubmissionsMutation.isLoading}
+            >
+                <TrashIcon className="w-4 h-4 mr-2" />
+                {resetSubmissionsMutation.isLoading ? 'Resetting...' : 'Reset All Submissions'}
+            </button>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -295,6 +334,17 @@ const FormSubmissionCharts = ({ initialData }) => {
           <p className="text-center py-4">No recent submissions found.</p>
         )}
       </Card>
+
+      <ConfirmationModal
+        open={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        onConfirm={handleConfirmReset}
+        title="Reset All Form Submissions?"
+        description="Are you sure you want to reset all form submissions? This will change their status to 'new'. This action cannot be undone."
+        confirmText={resetSubmissionsMutation.isLoading ? 'Resetting...' : 'Yes, Reset All'}
+        loading={resetSubmissionsMutation.isLoading}
+        danger={true}
+      />
     </div>
   );
 };

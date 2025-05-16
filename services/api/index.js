@@ -480,3 +480,23 @@ export const getGlobalStats = async () => {
   const { data } = await http.get('/analytics/global-stats');
   return data;
 };
+
+
+// ----------
+
+export const resetFormSubmissions = async () => {
+  const { data } = await http.post('/analytics/reset-form-submissions');
+  return data;
+};
+
+// Reset page activities - clears all page activity logs
+export const resetPageActivities = async () => {
+  const { data } = await http.post('/analytics/reset-page-activities');
+  return data;
+};
+
+// Reset specific form submissions by form ID
+export const resetFormSubmissionsByFormId = async (formId) => {
+  const { data } = await http.post(`/analytics/reset-form-submissions/${formId}`);
+  return data;
+};

@@ -5,7 +5,10 @@ import Card from '@components/ui/Card';
 import http from '@services/api/http';
 import { CheckCircleIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import PaginationDynamic from '@components/elements/PaginationDynamic';
-import { useQuery } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { resetPageActivities } from '@services/api';
+import ConfirmationModal from '@components/modal/ConfirmationModal';
+import { toast } from 'react-toastify';
 
 const fetchPageActivityStats = async ({ queryKey }) => {
     const [_key, page, limit] = queryKey;
@@ -18,9 +21,15 @@ const fetchPageActivityStats = async ({ queryKey }) => {
     return data;
 };
 
-const PageActivityCharts = ({ initialData }) => {
+const PageActivityCharts = ({ 
+    // initialData 
+
+}) => {
     const [recentActivitiesPage, setRecentActivitiesPage] = useState(1);
     const recentActivitiesLimit = 3;
+    const queryClient = useQueryClient();
+
+    const [isResetActivityModalOpen, setIsResetActivityModalOpen] = useState(false);
 
     const { 
         data: stats, 
@@ -31,11 +40,31 @@ const PageActivityCharts = ({ initialData }) => {
         ['pageActivityStats', recentActivitiesPage, recentActivitiesLimit],
         fetchPageActivityStats,
         {
-            initialData: initialData && Object.keys(initialData).length > 0 ? initialData : undefined,
+            // initialData: initialData && Object.keys(initialData).length > 0 ? initialData : undefined,
             keepPreviousData: true,
             refetchOnWindowFocus: false,
         }
     );
+
+    const resetActivitiesMutation = useMutation(resetPageActivities, {
+        onSuccess: (data) => {
+            toast.success(data.message || 'All page activities have been reset.');
+            queryClient.invalidateQueries('pageActivityStats');
+            setIsResetActivityModalOpen(false);
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to reset page activities.');
+            setIsResetActivityModalOpen(false);
+        },
+    });
+
+    const handleOpenResetActivityModal = () => {
+        setIsResetActivityModalOpen(true);
+    };
+
+    const handleConfirmResetActivities = () => {
+        resetActivitiesMutation.mutate();
+    };
 
     const handleRecentActivitiesPageChange = (page) => {
         setRecentActivitiesPage(page);
@@ -167,6 +196,18 @@ const PageActivityCharts = ({ initialData }) => {
                     <p className="text-center text-red-500 py-4">{error.message || 'Failed to load recent activities'}</p>
                 ) : stats?.recentActivities?.data?.length > 0 ? (
                     <>
+
+<button
+                        onClick={handleOpenResetActivityModal}
+                        className="flex items-center px-3 py-1.5 border border-red-300 text-red-500 rounded-md hover:bg-red-50 text-sm font-medium"
+                        disabled={resetActivitiesMutation.isLoading}
+                    >
+                        <TrashIcon className="w-4 h-4 mr-2" />
+                        {resetActivitiesMutation.isLoading ? 'Resetting...' : 'Reset All Activities'}
+                    </button>
+
+
+
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
@@ -215,6 +256,17 @@ const PageActivityCharts = ({ initialData }) => {
                     <p className="text-center py-4">No recent activities found.</p>
                 )}
             </Card>
+
+            <ConfirmationModal
+                open={isResetActivityModalOpen}
+                onClose={() => setIsResetActivityModalOpen(false)}
+                onConfirm={handleConfirmResetActivities}
+                title="Reset All Page Activities?"
+                description="Are you sure you want to reset all page activity logs? This will delete all records. This action cannot be undone."
+                confirmText={resetActivitiesMutation.isLoading ? 'Resetting...' : 'Yes, Reset All'}
+                loading={resetActivitiesMutation.isLoading}
+                danger={true}
+            />
         </div>
     );
 };

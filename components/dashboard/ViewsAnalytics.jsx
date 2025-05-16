@@ -22,7 +22,10 @@ import {
 // Register the required Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-function ViewsAnalytics({ initialData }) {
+function ViewsAnalytics({ 
+    // initialData
+
+ }) {
     const [selectedPeriod, setSelectedPeriod] = useState('weekly');
     
     const periods = [
@@ -35,7 +38,7 @@ function ViewsAnalytics({ initialData }) {
         ['analyticsStats', selectedPeriod], 
         () => getAnalyticsDashboardStats({ period: selectedPeriod }),
         {
-            initialData: selectedPeriod === 'weekly' && initialData && Object.keys(initialData).length > 0 ? initialData : undefined,
+            // initialData: selectedPeriod === 'weekly' && initialData && Object.keys(initialData).length > 0 ? initialData : undefined,
             refetchOnWindowFocus: false,
             keepPreviousData: true,
         }
