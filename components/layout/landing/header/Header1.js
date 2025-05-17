@@ -278,18 +278,7 @@ export default function Header1({ handleToggle, scroll, pagesData, settings }) {
                               </Link>
                             )}
                           </HeadlessMenu.Item>
-                          <HeadlessMenu.Item>
-                            {({ active }) => (
-                              <Link
-                                href="/admin/profile"
-                                className={`w-full block text-left px-4 py-2 text-sm ${
-                                  active ? "bg-primary-50 text-primary-800" : "text-gray-700"
-                                }`}
-                              >
-                                Profile
-                              </Link>
-                            )}
-                          </HeadlessMenu.Item>
+                         
                           <HeadlessMenu.Item>
                             {({ active }) => (
                               <Link
@@ -305,48 +294,9 @@ export default function Header1({ handleToggle, scroll, pagesData, settings }) {
                         </>
                       )}
 
-                      {role === "SERVICE_PROVIDER" && !verified && (
-                        <HeadlessMenu.Item>
-                          {({ active }) => (
-                            <Link
-                              href="/service-provider/verification"
-                              className={`w-full block text-left px-4 py-2 text-sm ${
-                                active ? "bg-primary-50 text-primary-800" : "text-gray-700"
-                              }`}
-                            >
-                              Verify Account
-                            </Link>
-                          )}
-                        </HeadlessMenu.Item>
-                      )}
+             
 
-                      {role === "SERVICE_PROVIDER" && verified && (
-                        <HeadlessMenu.Item>
-                          {({ active }) => (
-                            <Link
-                              href="/service-provider/dashboard"
-                              className={`w-full block text-left px-4 py-2 text-sm ${
-                                active ? "bg-primary-50 text-primary-800" : "text-gray-700"
-                              }`}
-                            >
-                              Dashboard
-                            </Link>
-                          )}
-                        </HeadlessMenu.Item>
-                      )}
-
-                      <HeadlessMenu.Item>
-                        {({ active }) => (
-                          <button
-                            className={`w-full text-left px-4 py-2 text-sm ${
-                              active ? "bg-primary-50 text-primary-800" : "text-gray-700"
-                            }`}
-                            onClick={() => dispatch(setShowPopupMyProfile(true))}
-                          >
-                            My Profile
-                          </button>
-                        )}
-                      </HeadlessMenu.Item>
+                  
                       <HeadlessMenu.Item>
                         {({ active }) => (
                           <button
