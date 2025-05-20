@@ -500,3 +500,38 @@ export const resetFormSubmissionsByFormId = async (formId) => {
   const { data } = await http.post(`/analytics/reset-form-submissions/${formId}`);
   return data;
 };
+
+
+
+// Privacy Policy API endpoints
+export const getPrivacyPolicy = async () => {
+  const { data } = await http.get('/privacy-policy');
+  return data.policy || {};
+};
+
+export const updatePrivacyPolicy = async (policyData) => {
+  const { data } = await http.put('/privacy-policy', policyData);
+  return data;
+};
+
+// Terms and Conditions API endpoints
+export const getTermsAndConditions = async () => {
+  const { data } = await http.get('/terms-conditions');
+  return data.terms || {};
+};
+
+export const updateTermsAndConditions = async (termsData) => {
+  const { data } = await http.put('/terms-conditions', termsData);
+  return data;
+};
+
+// Cookie Policy API endpoints
+export const getCookiePolicy = async () => {
+  const { data } = await http.get('/cookie-policy');
+  return data.policy || {};
+};
+
+export const updateCookiePolicy = async (policyData) => {
+  const { data } = await http.put('/cookie-policy', policyData);
+  return data;
+};

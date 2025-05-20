@@ -243,7 +243,73 @@ function renderBlock(block, blockIndex, handleButtonClick) {
         </div>
       );
   
-    case "features":
+
+      case "contentv2":
+        return (
+          <div className="py-16" style={{ backgroundColor: block.content?.backgroundColor || "#ffffff" }}>
+            <div className="container mx-auto px-4">
+              <div className="items-center gap-16 lg:grid lg:grid-cols-2">
+                <div className="text-gray-500 dark:text-gray-400 sm:text-lg">
+                  <h2 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+                    {block.content?.title || "Powering innovation at 200,000+ companies worldwide"}
+                  </h2>
+                  
+                  <div 
+                    className="mb-4 prose max-w-none [&>p]:mb-4"
+                    dangerouslySetInnerHTML={{
+                      __html: block.content?.primaryDescription || 
+                        "<p>Empower Developers, IT Ops, and business teams to collaborate at high velocity. Respond to changes and deliver great customer and employee service experiences fast.</p>"
+                    }}
+                  />
+                  
+                  {block.content?.buttonText && (
+                    <button 
+                      className="inline-flex items-center font-medium hover:underline transition-colors duration-200"
+                      style={{ 
+                        color: block.content?.buttonTextColor || "#2563eb" 
+                      }}
+                      onClick={() => handleButtonClick(
+                        block, 
+                        block.content?.buttonType || 'link',
+                        block.content?.buttonLink,
+                        block.content?.buttonFormId,
+                        block.content?.buttonText
+                      )}
+                    >
+                      {block.content.buttonText}
+                      <svg
+                        className="ml-1 h-6 w-6"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      </button>
+                  )}
+                </div>
+                
+                <div className="mt-4 text-gray-500 dark:text-gray-400 sm:text-lg lg:mt-0">
+                  <div 
+                    className="prose max-w-none [&>p]:mb-4"
+                    dangerouslySetInnerHTML={{
+                      __html: block.content?.secondaryDescription || 
+                        `<p>Track work across the enterprise through an open, collaborative platform. Link issues across Jira and ingest data from other software development tools, so your IT support and operations teams have richer contextual information to rapidly respond to requests, incidents, and changes.</p>
+                        <p>Deliver great service experiences fast - without the complexity of traditional ITSM solutions. Accelerate critical development work, eliminate toil, and deploy changes with ease, with a complete audit trail for every change.</p>`
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+  
+  
+        case "features":
       return (
         <div className="py-16 bg-white">
           <div className="container mx-auto px-4">
@@ -300,15 +366,31 @@ function renderBlock(block, blockIndex, handleButtonClick) {
         return (
           <div className="py-16 bg-gray-50">
             <div className="container mx-auto px-4">
-              <div className="px-10 py-16 bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl">
+              <div
+                className="px-10 py-16 rounded-2xl"
+                style={{
+                  background: block.content?.backgroundColor
+                    ? block.content.backgroundColor
+                    : "linear-gradient(to right, var(--color-primary-600), var(--color-primary-700))",
+                }}
+              >
                 <div className="max-w-4xl mx-auto text-center">
                   <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
                     {block.content?.heading || "Call to Action"}
                   </h2>
-                  <p className="text-lg text-gray-200 leading-relaxed mb-8 max-w-3xl mx-auto">
+                  {/* <p className="text-lg text-gray-200 leading-relaxed mb-8 max-w-3xl mx-auto">
                     {block.content?.description ||
                       "Call to action description text"}
-                  </p>
+                  </p> */}
+                      {block.content?.description && (
+                <div
+                  className="text-lg ext-gray-200 leading-relaxed mb-8 max-w-3xl mx-auto"
+                  dangerouslySetInnerHTML={{
+                    __html: block.content.description,
+                  }}
+                />
+              )}
+
                   {block.content?.buttonText && (
                     <button 
                       className="bg-white text-primary-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
@@ -452,7 +534,14 @@ function renderBlock(block, blockIndex, handleButtonClick) {
           return (
             <div className="section-padding">
               <div className="container mx-auto px-4">
-                <div className="px-10 p-16 bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl">
+                <div
+                  className="px-10 py-16 rounded-2xl"
+                  style={{
+                    background: block.content?.backgroundColor
+                      ? block.content.backgroundColor
+                      : "linear-gradient(to right, var(--color-primary-600), var(--color-primary-700))",
+                  }}
+                >
                   <div className="max-w-4xl mx-auto text-center">
                     {block.content?.sectionTitle && (
                       <h2 className='text-3xl md:text-4xl font-bold mb-6 text-white'>
@@ -1125,133 +1214,152 @@ function renderBlock(block, blockIndex, handleButtonClick) {
           </section>
         );
   
-    case "video":
-      return (
-        <div className="py-16 bg-white relative overflow-hidden">
-          {block.content?.hasPattern && (
-            <div className="absolute inset-0 opacity-5 overflow-hidden pointer-events-none">
-              <div className="absolute -right-40 -top-40 w-80 h-80 rounded-full bg-primary-200"></div>
-              <div className="absolute -left-20 -bottom-40 w-64 h-64 rounded-full bg-primary-200"></div>
-            </div>
-          )}
-          <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-3xl mx-auto text-center mb-10 relative">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 relative inline-block pb-4">
-              {block.content?.title || "Video"}
-              <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-1 bg-primary-500 rounded-full"></span>
-            </h2>
-            {/* {block.content?.description && (
-              <p className="text-gray-600 max-w-2xl mx-auto mt-2">
-                {block.content.description}
-              </p>
-            )} */}
-          </div>
-            <div className={`flex flex-col ${block.content?.videoPosition === "left" ? "md:flex-row-reverse" : "md:flex-row"} -mx-4 items-center gap-12`}>
-              <div className="px-4 w-full md:w-1/2 mb-10 md:mb-0">
-                {block.content?.eyebrow && (
-                  <div className="text-primary-600 font-semibold text-sm mb-3 uppercase tracking-wider">
-                    {block.content.eyebrow}
-                  </div>
-                )}
-                <div className="h-full">
-                  <div 
-                    className="prose prose-lg max-w-none mb-8 text-gray-600" 
-                    dangerouslySetInnerHTML={{
-                      __html: block.content?.description || "<p>Your description will appear here.</p>"
-                    }}
-                  />
-                  
-                  {(block.content?.listItems || []).length > 0 && (
-                    <ul className="list-none pl-0 space-y-4 text-gray-700 mb-8">
-                      {(block.content?.listItems || []).map((item, i) => (
-                        <li key={i} className="flex items-start group">
-                          <div className="mr-3 text-primary-500 pt-1 flex-shrink-0">
-                            <Icon icon="CheckCircle" className="h-5 w-5 transform group-hover:scale-110 transition-transform" />
-                          </div>
-                          <span className="text-gray-700 group-hover:text-gray-900 transition-colors">{item.text || `Item ${i + 1}`}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  
-                  <div className="flex flex-wrap gap-4 mt-8">
-                    {block.content?.buttonText && (
-                      <button 
-                        className="px-6 py-3 rounded-lg inline-block font-medium shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" 
-                        style={{
-                          backgroundColor: block.content?.buttonBgColor || "#dd3333",
-                          color: block.content?.buttonTextColor || "#ffffff"
+        case "video":
+          return (
+            <div className="py-16 bg-white relative overflow-hidden">
+              {block.content?.hasPattern && (
+                <div className="absolute inset-0 opacity-5 overflow-hidden pointer-events-none">
+                  <div className="absolute -right-40 -top-40 w-80 h-80 rounded-full bg-primary-200"></div>
+                  <div className="absolute -left-20 -bottom-40 w-64 h-64 rounded-full bg-primary-200"></div>
+                </div>
+              )}
+              <div className="container mx-auto px-4 relative z-10">
+                <div className="max-w-3xl mx-auto text-center mb-10 relative">
+                  <h2 className="text-3xl md:text-4xl font-bold mb-6 relative inline-block pb-4">
+                    {block.content?.title || "Video"}
+                    <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-1 bg-primary-500 rounded-full"></span>
+                  </h2>
+                </div>
+                <div className={`flex flex-col ${block.content?.videoPosition === "left" ? "md:flex-row-reverse" : "md:flex-row"} -mx-4 items-center gap-12`}>
+                  <div className="px-4 w-full md:w-1/2 mb-10 md:mb-0">
+                    {block.content?.eyebrow && (
+                      <div className="text-primary-600 font-semibold text-sm mb-3 uppercase tracking-wider">
+                        {block.content.eyebrow}
+                      </div>
+                    )}
+                    <div className="h-full">
+                      <div 
+                        className="prose prose-lg max-w-none mb-8 text-gray-600" 
+                        dangerouslySetInnerHTML={{
+                          __html: block.content?.description || "<p>Your description will appear here.</p>"
                         }}
-                        onClick={() => handleButtonClick(
-                          block, 
-                          block.content?.buttonType || 'link',
-                          block.content?.buttonLink,
-                          block.content?.buttonFormId,
-                          block.content?.buttonText
+                      />
+                      
+                      {(block.content?.listItems || []).length > 0 && (
+                        <ul className="list-none pl-0 space-y-4 text-gray-700 mb-8">
+                          {(block.content?.listItems || []).map((item, i) => (
+                            <li key={i} className="flex items-start group">
+                              <div className="mr-3 text-primary-500 pt-1 flex-shrink-0">
+                                <Icon icon="CheckCircle" className="h-5 w-5 transform group-hover:scale-110 transition-transform" />
+                              </div>
+                              <span className="text-gray-700 group-hover:text-gray-900 transition-colors">{item.text || `Item ${i + 1}`}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      
+                      <div className="flex flex-wrap gap-4 mt-8">
+                        {block.content?.buttonText && (
+                          <button 
+                            className="px-6 py-3 rounded-lg inline-block font-medium shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" 
+                            style={{
+                              backgroundColor: block.content?.buttonBgColor || "#dd3333",
+                              color: block.content?.buttonTextColor || "#ffffff"
+                            }}
+                            onClick={() => {
+                              if (block.content?.buttonType === 'popup' && block.content?.buttonFormId) {
+                                console.log('Open form popup with ID:', block.content.buttonFormId);
+                              } else if (block.content?.buttonLink) {
+                                window.location.href = block.content.buttonLink;
+                              }
+                            }}
+                          >
+                            <span className="flex items-center">
+                              {block.content?.buttonIcon && (
+                                <Icon icon={block.content.buttonIcon} className="mr-2 h-5 w-5" />
+                              )}
+                              {block.content.buttonText}
+                            </span>
+                          </button>
                         )}
-                      >
-                        <span className="flex items-center">
-                          {block.content?.buttonIcon && (
-                            <Icon icon={block.content.buttonIcon} className="mr-2 h-5 w-5" />
-                          )}
-                          {block.content.buttonText}
-                        </span>
-                      </button>
-                    )}
-                    
-                    {block.content?.secondaryButtonText && (
-                      <button 
-                        className="px-6 py-3 rounded-lg inline-block font-medium border-2 hover:bg-gray-50 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" 
-                        style={{
-                          borderColor: block.content?.buttonBgColor || "#dd3333",
-                          color: block.content?.buttonBgColor || "#dd3333",
-                        }}
-                      >
-                        {block.content.secondaryButtonText}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="px-4 w-full md:w-1/2">
-                <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl blur opacity-20"></div>
-                  <div className="relative rounded-xl overflow-hidden transition-transform duration-300 transform hover:scale-[1.01]">
-                    {block.content?.videoUrl ? (
-                      <div className="rounded-xl overflow-hidden shadow-xl" style={{ height: "400px", minHeight: "350px" }}>
-                        <iframe 
-                          src={block.content.videoUrl} 
-                          title={block.content?.title || "Video"} 
-                          width="100%"
-                          height="100%"
-                          style={{ display: "block", width: "100%", height: "100%" }}
-                          frameBorder="0" 
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                          allowFullScreen
-                        ></iframe>
+                        
+                        {block.content?.secondaryButtonText && (
+                          <button 
+                            className="px-6 py-3 rounded-lg inline-block font-medium border-2 hover:bg-gray-50 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" 
+                            style={{
+                              borderColor: block.content?.buttonBgColor || "#dd3333",
+                              color: block.content?.buttonBgColor || "#dd3333",
+                            }}
+                          >
+                            {block.content.secondaryButtonText}
+                          </button>
+                        )}
                       </div>
-                    ) : (
-                      <div className="bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300 transition-colors hover:bg-gray-200" style={{ height: "400px", minHeight: "350px" }}>
-                        <span className="text-gray-500 flex flex-col items-center">
-                          <Icon icon="Video" className="h-16 w-16 mb-4 text-gray-400" />
-                          <span className="text-center max-w-xs px-4">
-                            No video URL provided.<br/>Add a YouTube or Vimeo URL.
-                          </span>
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  {block.content?.videoBadge && (
-                    <div className="absolute top-4 right-4 bg-primary-500 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
-                      {block.content.videoBadge}
                     </div>
-                  )}
+                  </div>
+                  <div className="px-4 w-full md:w-1/2">
+                    <div className="relative">
+                      <div className="absolute -inset-1 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl blur opacity-20"></div>
+                      <div className="relative rounded-xl overflow-hidden transition-transform duration-300 transform hover:scale-[1.01]">
+                        {/* Handle both video and image content */}
+                        {block.content?.mediaType === "image" && block.content?.imageUrl?.url ? (
+                          // Image display
+                          <div className="rounded-xl overflow-hidden shadow-xl">
+                            <img
+                              src={block.content.imageUrl.url}
+                              alt={block.content?.title || "Block Image"}
+                              className="w-full h-auto max-h-96 object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                        ) : block.content?.videoUrl ? (
+                          // Video display (default when contentType is not set or is "video")
+                          <div className="rounded-xl overflow-hidden shadow-xl" style={{ height: "400px", minHeight: "350px" }}>
+                            <iframe 
+                              src={block.content.videoUrl} 
+                              title={block.content?.title || "Video"} 
+                              width="100%"
+                              height="100%"
+                              style={{ display: "block", width: "100%", height: "100%" }}
+                              frameBorder="0" 
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                              allowFullScreen
+                            ></iframe>
+                          </div>
+                        ) : (
+                          // Placeholder when no content is selected
+                          <div className="bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300 transition-colors hover:bg-gray-200" style={{ height: "400px", minHeight: "350px" }}>
+                            <span className="text-gray-500 flex flex-col items-center">
+                              {(!block.content?.contentType || block.content?.contentType === "video") ? (
+                                <>
+                                  <Icon icon="Video" className="h-16 w-16 mb-4 text-gray-400" />
+                                  <span className="text-center max-w-xs px-4">
+                                    No video URL provided.<br/>Add a YouTube or Vimeo URL.
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <Icon icon="Photo" className="h-16 w-16 mb-4 text-gray-400" />
+                                  <span className="text-center max-w-xs px-4">
+                                    No image uploaded.<br/>Upload an image file.
+                                  </span>
+                                </>
+                              )}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      {block.content?.videoBadge && (
+                        <div className="absolute top-4 right-4 bg-primary-500 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
+                          {block.content.videoBadge}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      );
+          );
   
     case "form": {
       const [form, setForm] = useState(null);

@@ -27,6 +27,9 @@ export default async function AdminSitemapPage() {
         childIcon: 'FaAngleRight',
         links: [
           { url: '/contact', label: 'Contact', icon: 'FaPhoneAlt' },
+          { url: '/privacy-policy', label: 'Privacy Policy', icon: 'FaFileContract' },
+          { url: '/terms-conditions', label: 'Terms and Conditions', icon: 'FaFileContract' },
+          { url: '/cookie-policy', label: 'Cookie Policy', icon: 'FaFileContract' },
           // { url: '/faqs', label: 'FAQs', icon: 'FaQuestionCircle' },
         ],
       },

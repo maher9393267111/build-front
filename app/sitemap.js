@@ -32,6 +32,26 @@ export default async function sitemap() {
         changeFrequency: 'daily',
         priority: 0.8,
       },
+      {
+        url: `${BASE_URL}/privacy-policy`,
+        lastModified: currentDate,
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      },
+
+      {
+        url: `${BASE_URL}/terms-conditions`,
+        lastModified: currentDate,
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      },
+
+      {
+        url: `${BASE_URL}/cookie-policy`,
+        lastModified: currentDate,
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      },
       // Add other static pages like /about, /services etc.
     ];
     console.log("Generated static URLs:", staticUrls);

@@ -31,6 +31,7 @@ import "react-quill/dist/quill.snow.css";
 import { useQueryClient } from "react-query";
 import MediaUpload from "@components/ui/MediaUpload";
 import SeoDashboard from "@components/SEO/SeoDashboard";
+import TipTapEditor from "@components/TipTapEditor";
 
 // Dynamically import ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
@@ -60,7 +61,8 @@ const getBlockButtonConfig = (block) => {
       cta: { textField: 'buttonText', linkField: 'buttonLink', typeField: 'buttonType', formField: 'buttonFormId' },
       blocktextimage: { textField: 'buttonText', linkField: 'buttonLink', typeField: 'buttonType', formField: 'buttonFormId' },
       about: { textField: 'linkText', linkField: 'linkUrl', typeField: 'buttonType', formField: 'buttonFormId' },
-      video: { textField: 'buttonText', linkField: 'buttonLink', typeField: 'buttonType', formField: 'buttonFormId' }
+      video: { textField: 'buttonText', linkField: 'buttonLink', typeField: 'buttonType', formField: 'buttonFormId' },
+      contentv2: { textField: 'buttonText', linkField: 'buttonLink', typeField: 'buttonType', formField: 'buttonFormId' }
     };
     
     return buttonConfigs[block.type] || null;
@@ -510,6 +512,7 @@ const handleIndexingToggle = (checked) => {
     { value: "features", label: "Features" },
     { value: "cta", label: "Call to Action" },
     { value: "content", label: "Content Block" },
+    { value: "contentv2", label: "Content Block V2" },
     { value: "faq", label: "FAQ Section" },
     { value: "slider", label: "Image Slider" },
     { value: "testimonials", label: "Testimonials" },
@@ -521,6 +524,7 @@ const handleIndexingToggle = (checked) => {
     { value: "customers", label: "Customers" },
     { value: "form", label: "Form Block" },
     { value: "gallery", label: "Gallery Block" },
+  
   ];
 
   const getTemplateOptions = () => {
@@ -1993,6 +1997,80 @@ const handleIndexingToggle = (checked) => {
                                        </div>
                                      )}
 
+
+{block.type === "contentv2" && (
+  <div className="space-y-3">
+  <Textinput
+    label="Title"
+    value={block.content?.title || ""}
+    onChange={(e) =>
+      handleBlockContentChange(index, "title", e.target.value)
+    }
+    placeholder="Powering innovation at 200,000+ companies worldwide"
+  />
+
+<BlockButtonConfiguration
+    block={block}
+    index={index}
+    handleBlockContentChange={handleBlockContentChange}
+    publishedForms={publishedForms}
+  />
+
+  <div>
+    <label className="block text-xs font-medium text-gray-700 mb-1">
+      Button Text Color
+    </label>
+    <input
+      type="color"
+      value={block.content?.buttonTextColor || "#2563eb"}
+      onChange={(e) =>
+        handleBlockContentChange(index, "buttonTextColor", e.target.value)
+      }
+      className="w-10 h-10 p-0 border-none bg-transparent cursor-pointer"
+      style={{ background: "none" }}
+      title="Pick button text color"
+    />
+  </div>
+
+  <div>
+    <label className="block text-xs font-medium text-gray-700 mb-1">
+      Primary Description (Left Column)
+    </label>
+    <div className="custom-quill min-h-[150px]">
+      <TipTapEditor
+        content={block.content?.primaryDescription || ""}
+        onChange={(value) =>
+          handleBlockContentChange(index, "primaryDescription", value)
+        }
+        placeholder="Empower Developers, IT Ops, and business teams to collaborate at high velocity. Respond to changes and deliver great customer and employee service experiences fast."
+      />
+    </div>
+  </div>
+
+
+
+  <div>
+    <label className="block text-xs font-medium text-gray-700 mb-1">
+      Secondary Description (Right Column)
+    </label>
+    <div className="custom-quill min-h-[150px]">
+      <TipTapEditor
+        content={block.content?.secondaryDescription || ""}
+        onChange={(value) =>
+          handleBlockContentChange(index, "secondaryDescription", value)
+        }
+        placeholder="Track work across the enterprise through an open, collaborative platform. Additional detailed information goes here."
+      />
+    </div>
+  </div>
+
+
+
+
+</div>
+)}
+
+
                                      {block.type === "features" && (
                                        <div className="space-y-3">
                                          <Textinput
@@ -2450,21 +2528,24 @@ const handleIndexingToggle = (checked) => {
                                              )
                                            }
                                          />
-                                         <Textarea
-                                           label="Description"
-                                           value={
-                                             block.content
-                                               ?.description || ""
-                                           }
-                                           onChange={(e) =>
-                                             handleBlockContentChange(
-                                               index,
-                                               "description",
-                                               e.target.value
-                                             )
-                                           }
-                                           rows={2}
-                                         />
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Description
+                                           </label>
+                                           <div className="custom-quill min-h-[100px]">
+                                             <TipTapEditor
+                                               content={block.content?.description || ""}
+                                               onChange={(value) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "description",
+                                                   value
+                                                 )
+                                               }
+                                               placeholder="Enter your description here..."
+                                             />
+                                           </div>
+                                         </div>
                                          {/* <Textinput
                                            label="Button Text"
                                            value={
@@ -2501,6 +2582,36 @@ const handleIndexingToggle = (checked) => {
       handleBlockContentChange={handleBlockContentChange}
       publishedForms={publishedForms}
     />
+
+    
+    {/* //bgcolor add  */}
+    <div>
+      <label className="block text-xs font-medium text-gray-700 mb-1">
+        Background Color
+      </label>
+      <div className="flex items-center">
+        <input
+          type="color"
+          value={block.content?.backgroundColor || "#ffffff"}
+          onChange={(e) =>
+            handleBlockContentChange(index, "backgroundColor", e.target.value)
+          }
+          className="h-9 w-16 p-1 border rounded mr-2"
+        />
+        <Textinput
+          value={block.content?.backgroundColor || ""}
+          onChange={(e) =>
+            handleBlockContentChange(index, "backgroundColor", e.target.value)
+          }
+          placeholder="#ffffff"
+          className="flex-grow"
+        />
+      </div>
+    </div>
+    
+     
+
+
                                          <Select
                                            label="Background Style"
                                            value={
@@ -2660,7 +2771,7 @@ const handleIndexingToggle = (checked) => {
                                        </div>
                                      )}
 
-                                     {block.type === "content" && (
+{block.type === "content" && (
                                        <div className="space-y-3">
                                          <Textinput
                                            label="Section Title (Optional)"
@@ -2678,15 +2789,50 @@ const handleIndexingToggle = (checked) => {
                                          />
                                          <div>
                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                             Background Color
+                                           </label>
+                                           <div className="flex items-center">
+                                             <input
+                                               type="color"
+                                               value={
+                                                 block.content
+                                                   ?.backgroundColor ||
+                                                 "#ffffff"
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "backgroundColor",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               className="h-9 w-16 p-1 border rounded mr-2"
+                                             />
+                                             <Textinput
+                                               value={
+                                                 block.content
+                                                   ?.backgroundColor ||
+                                                 ""
+                                               }
+                                               onChange={(e) =>
+                                                 handleBlockContentChange(
+                                                   index,
+                                                   "backgroundColor",
+                                                   e.target.value
+                                                 )
+                                               }
+                                               placeholder="#ffffff"
+                                               className="flex-grow"
+                                             />
+                                           </div>
+                                         </div>
+                                         <div>
+                                           <label className="block text-xs font-medium text-gray-700 mb-1">
                                              HTML Content
                                            </label>
                                            <div className="custom-quill min-h-[250px]">
-                                             <ReactQuill
-                                               theme="snow"
-                                               value={
-                                                 block.content?.html ||
-                                                 ""
-                                               }
+                                             <TipTapEditor
+                                               content={block.content?.html || ""}
                                                onChange={(value) =>
                                                  handleBlockContentChange(
                                                    index,
@@ -2694,9 +2840,7 @@ const handleIndexingToggle = (checked) => {
                                                    value
                                                  )
                                                }
-                                               modules={quillModules}
                                                placeholder="Enter your content here..."
-                                               className="h-full"
                                              />
                                            </div>
                                          </div>
@@ -2977,13 +3121,8 @@ const handleIndexingToggle = (checked) => {
                                              Main Description
                                            </label>
                                            <div className="custom-quill min-h-[200px]">
-                                             <ReactQuill
-                                               theme="snow"
-                                               value={
-                                                 block.content
-                                                   ?.mainDescription ||
-                                                 ""
-                                               }
+                                             <TipTapEditor
+                                               content={block.content?.mainDescription || ""}
                                                onChange={(value) =>
                                                  handleBlockContentChange(
                                                    index,
@@ -2991,9 +3130,7 @@ const handleIndexingToggle = (checked) => {
                                                    value
                                                  )
                                                }
-                                               modules={quillModules}
                                                placeholder="Enter your description here..."
-                                               className="h-full"
                                              />
                                            </div>
                                          </div>
@@ -3249,12 +3386,8 @@ const handleIndexingToggle = (checked) => {
                                              Description
                                            </label>
                                            <div className="custom-quill min-h-[200px]">
-                                             <ReactQuill
-                                               theme="snow"
-                                               value={
-                                                 block.content
-                                                   ?.description || ""
-                                               }
+                                             <TipTapEditor
+                                               content={block.content?.description || ""}
                                                onChange={(value) =>
                                                  handleBlockContentChange(
                                                    index,
@@ -3262,9 +3395,7 @@ const handleIndexingToggle = (checked) => {
                                                    value
                                                  )
                                                }
-                                               modules={quillModules}
                                                placeholder="Enter your description here..."
-                                               className="h-full"
                                              />
                                            </div>
                                          </div>
@@ -3775,7 +3906,7 @@ const handleIndexingToggle = (checked) => {
                                              }
                                              placeholder="e.g. Watch Our Video"
                                            />
-                                           <Textinput
+                                           {/* <Textinput
                                              label="Video Embed URL"
                                              value={
                                                block.content?.videoUrl ||
@@ -3789,7 +3920,75 @@ const handleIndexingToggle = (checked) => {
                                                )
                                              }
                                              placeholder="e.g. https://www.youtube.com/embed/xxxxxxxxxxx"
-                                           />
+                                           /> */}
+
+<Select
+  label="Media Type"
+  value={block.content?.mediaType || "video"}
+  onChange={(e) =>
+    handleBlockContentChange(
+      index,
+      "mediaType",
+      e.target.value
+    )
+  }
+  options={[
+    {
+      value: "video",
+      label: "Video",
+    },
+    {
+      value: "image",
+      label: "Image",
+    },
+  ]}
+/>
+
+{/* Conditional rendering based on media type */}
+{block.content?.mediaType === "image" ? (
+  <div>
+    <label className="block text-xs font-medium text-gray-700 mb-1">
+      Upload Image
+    </label>
+    {/* Add your image upload component here */}
+    <div className="w-full">
+    <MediaUpload
+      file={block.content?.imageUrl || null}
+      onDrop={(e) => {
+        const identifier = {
+          blockIndex: index,
+        };
+        handleHeroImageUpload(e, identifier);
+      }}
+      onRemove={() => {
+        const identifier = {
+          blockIndex: index,
+        };
+        handleRemoveHeroImage(identifier);
+      }}
+      loading={uploadStates[`hero-${index}`]?.loading || false}
+      error={uploadStates[`hero-${index}`]?.error || null}
+      maxSize={5 * 1024 * 1024}
+      identifier={{
+        blockIndex: index,
+      }}
+    />
+    </div>
+  </div>
+) : (
+  <Textinput
+    label="Video Embed URL"
+    value={block.content?.videoUrl || ""}
+    onChange={(e) =>
+      handleBlockContentChange(
+        index,
+        "videoUrl",
+        e.target.value
+      )
+    }
+    placeholder="e.g. https://www.youtube.com/embed/xxxxxxxxxxx"
+  />
+)}
                                          </div>
 
                                          <div>
@@ -3797,12 +3996,8 @@ const handleIndexingToggle = (checked) => {
                                              Description
                                            </label>
                                            <div className="custom-quill min-h-[200px]">
-                                             <ReactQuill
-                                               theme="snow"
-                                               value={
-                                                 block.content
-                                                   ?.description || ""
-                                               }
+                                             <TipTapEditor
+                                               content={block.content?.description || ""}
                                                onChange={(value) =>
                                                  handleBlockContentChange(
                                                    index,
@@ -3810,9 +4005,7 @@ const handleIndexingToggle = (checked) => {
                                                    value
                                                  )
                                                }
-                                               modules={quillModules}
                                                placeholder="Enter your description here..."
-                                               className="h-full"
                                              />
                                            </div>
                                          </div>

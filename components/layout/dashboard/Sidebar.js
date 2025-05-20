@@ -81,19 +81,27 @@ function Sidebar({ isServiceProvider, isToggled, toggleTrueFalse }) {
         },
 
 
-        //contact settings
-        // {
-        //     name: "Contact Settings",
-        //     path: "contact-settings",
-        //     icon: <><Icon.EnvelopeIcon /></>
-        // },
-        
+      //privacy policy
+      {
+        name: "Privacy Policy",
+        path: "privacy-policy",
+        icon: <><Icon.DocumentTextIcon /></>
+      },
 
-        // {
-        //     name: "Contact Customers",
-        //     path: "contact-customers",
-        //     icon: <><Icon.EnvelopeIcon /></>
-        // },
+      //terms conditions
+      {
+        name: "Terms Conditions",
+        path: "terms-conditions",
+        icon: <><Icon.DocumentTextIcon /></>
+      },
+
+      //cookie policy
+      {
+        name: "Cookie Policy",
+        path: "cookie-policy",
+        icon: <><Icon.DocumentTextIcon /></>
+      },
+      
   
       
         
@@ -141,7 +149,7 @@ function Sidebar({ isServiceProvider, isToggled, toggleTrueFalse }) {
                     "flex items-center justify-between flex-shrink-0 p-2 lg:justify-center"}
                 >
                     <span className="p-2 text-xl font-semibold leading-8 tracking-wider uppercase whitespace-nowrap">
-                        Hero<span className={isToggled ? '' : "lg:hidden"} >Fix</span>
+                        Site<span className={isToggled ? '' : "lg:hidden"} >Dashboard</span>
                     </span>
 
                     {/* mobile sidebar close button */}

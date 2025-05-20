@@ -15,6 +15,9 @@ Allow: /blog
 Allow: /blog/
 Allow: /contact
 Allow: /faqs
+Allow: /privacy-policy
+Allow: /terms-conditions
+Allow: /cookie-policy
 # Allow dynamic pages (assuming they don't match disallowed patterns)
 Allow: /*
 

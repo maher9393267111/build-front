@@ -259,12 +259,51 @@ const FormSubmissionsPage = ({ params }) => {
             View File {value?.name || "Attachment"}
           </a>
         );
-      case 'checkbox':
-        if (value === true) return 'Yes';
-        if (value === false) return 'No';
-        // Handle string values for checkboxes
-        return value;
-      case 'question':
+      // case 'checkbox':
+      //   if (value === true) return 'Yes';
+      //   if (value === false) return 'No';
+      //   // Handle string values for checkboxes
+      //   return value;
+    
+    
+    // Replace the checkbox case in the renderFieldValue function with this:
+
+case 'checkbox':
+  // Handle array of selected values (new format)
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return <span className="text-gray-400">No selections</span>;
+    }
+    
+    // Display multiple selections as a list
+    return (
+      <div className="space-y-1">
+        {value.map((item, index) => (
+          <span key={index} className="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-2 mb-1">
+            {typeof item === 'object' ? (item.label || JSON.stringify(item)) : String(item)}
+          </span>
+        ))}
+      </div>
+    );
+  }
+  
+  // Handle backward compatibility for boolean values
+  if (value === true) return 'Yes';
+  if (value === false) return 'No';
+  
+  // Handle single string values (backward compatibility)
+  if (typeof value === 'string' || typeof value === 'number') {
+    return (
+      <span className="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+        {String(value)}
+      </span>
+    );
+  }
+  
+  // Handle null/undefined
+  return <span className="text-gray-400">Not provided</span>;
+    
+        case 'question':
         // Handle question fields specially
         if (typeof value === 'object' && value !== null) {
           return value.label || value.toString();
