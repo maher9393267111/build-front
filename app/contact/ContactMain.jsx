@@ -119,7 +119,7 @@ const ContactPageContent = ({ initialSettings }) => {
         // Default contact form (original form)
         return (
             <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="wow animate__animated animate__fadeInUp">
+                <div className="">
                     <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
                     <input 
                         id="subject"
@@ -131,7 +131,7 @@ const ContactPageContent = ({ initialSettings }) => {
                         onChange={handleInputChange}
                     />
                 </div>
-                <div className="wow animate__animated animate__fadeInUp" data-wow-delay=".1s">
+                <div className="">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                     <input 
                         id="name"
@@ -144,7 +144,7 @@ const ContactPageContent = ({ initialSettings }) => {
                         required
                     />
                 </div>
-                <div className="wow animate__animated animate__fadeInUp" data-wow-delay=".2s">
+                <div className="">
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                     <input 
                         id="email"
@@ -157,7 +157,7 @@ const ContactPageContent = ({ initialSettings }) => {
                         required
                     />
                 </div>
-                <div className="wow animate__animated animate__fadeInUp" data-wow-delay=".3s">
+                <div className="">
                     <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">Message</label>
                     <textarea 
                         id="message"
@@ -169,7 +169,7 @@ const ContactPageContent = ({ initialSettings }) => {
                         required
                     />
                 </div>
-                <div className="pt-2 wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
+                <div className="">
                     <button 
                         className={`py-4 px-8 text-white font-semibold text-center w-full md:w-auto rounded-lg bg-primary-600 hover:bg-primary-700 transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl ${
                             submitting ? 'opacity-70 cursor-not-allowed' : ''
@@ -196,7 +196,7 @@ const ContactPageContent = ({ initialSettings }) => {
                         />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
-                        <div className="p-8 bg-white shadow-lg rounded-xl transform transition-all duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary-500 wow animate__animated animate__fadeInUp">
+                        <div className="p-8 bg-white shadow-lg rounded-xl transform transition-all duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary-500 ">
                             <div className="flex justify-center">
                                 <div className="w-16 h-16 flex items-center justify-center bg-primary-50 rounded-full mb-6">
                                     <PhoneIcon className="h-8 w-8 text-primary-600" />
@@ -213,7 +213,7 @@ const ContactPageContent = ({ initialSettings }) => {
                                 )}
                             </div>
                         </div>
-                        <div className="p-8 bg-white shadow-lg rounded-xl transform transition-all duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary-500 wow animate__animated animate__fadeInUp" data-wow-delay=".2s">
+                        <div className="p-8 bg-white shadow-lg rounded-xl transform transition-all duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary-500 ">
                             <div className="flex justify-center">
                                 <div className="w-16 h-16 flex items-center justify-center bg-primary-50 rounded-full mb-6">
                                     <EnvelopeIcon className="h-8 w-8 text-primary-600" />
@@ -230,7 +230,7 @@ const ContactPageContent = ({ initialSettings }) => {
                                 )}
                             </div>
                         </div>
-                        <div className="p-8 bg-white shadow-lg rounded-xl transform transition-all duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary-500 wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
+                        <div className="p-8 bg-white shadow-lg rounded-xl transform transition-all duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary-500 ">
                             <div className="flex justify-center">
                                 <div className="w-16 h-16 flex items-center justify-center bg-primary-50 rounded-full mb-6">
                                     <MapPinIcon className="h-8 w-8 text-primary-600" />
@@ -245,7 +245,7 @@ const ContactPageContent = ({ initialSettings }) => {
                                 </div>
                             </div>
                         </div>
-                        <div className="p-8 bg-white shadow-lg rounded-xl transform transition-all duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary-500 wow animate__animated animate__fadeInUp" data-wow-delay=".6s">
+                        <div className="p-8 bg-white shadow-lg rounded-xl transform transition-all duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary-500 ">
                             <div className="flex justify-center">
                                 <div className="w-16 h-16 flex items-center justify-center bg-primary-50 rounded-full mb-6">
                                     <ClockIcon className="h-8 w-8 text-primary-600" />
@@ -282,7 +282,7 @@ const ContactPageContent = ({ initialSettings }) => {
                                     )}
                                 </div>
                                 <div className="p-8 lg:p-12 lg:order-1">
-                                    <div className="mb-8 wow animate__animated animate__fadeInUp">
+                                    <div className="mb-8 ">
                                         <h2 className="text-3xl font-bold text-gray-800">Write your opinion</h2>
                                         <p className="text-gray-500 mt-2">We value your feedback and inquiries</p>
                                         <div className="w-20 h-1 bg-primary-500 mt-4"></div>
